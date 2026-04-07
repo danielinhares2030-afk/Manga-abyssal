@@ -69,7 +69,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const libraryMangaIds = Object.keys(libraryData);
   const libraryMangas = mangas.filter(m => libraryMangaIds.includes(m.id));
 
-  // MOTOR DA LOJA
   const eq = userProfileData.equipped_items || {};
 
   return (
@@ -93,7 +92,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
       )}
 
-      {/* CAPA DA LOJA OU PERFIL */}
       <div className="h-40 md:h-64 w-full bg-[#020205] relative group border-b border-blue-900/20 overflow-hidden">
         {eq.capa_fundo ? (
             <img src={eq.capa_fundo.preview} className={`w-full h-full object-cover opacity-90 ${eq.capa_fundo.cssClass}`} />
@@ -110,23 +108,13 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-16 md:-mt-20 z-10">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
           
-          {/* CONTAINER DO AVATAR COM MAPEAMENTO CORRETO DA LOJA */}
           <div className="relative group w-28 h-28 md:w-36 md:h-36 flex-shrink-0 flex items-center justify-center">
-            {/* 3. Particulas: Atrás de tudo, com inset negativo para transbordar */}
             {eq.particulas && <img src={eq.particulas.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none ${eq.particulas.cssClass}`} />}
-            
-            {/* 4. Avatar Principal: Wrapper com overflow hidden */}
             <div className={`w-full h-full rounded-full bg-black flex items-center justify-center relative z-10 overflow-hidden ${eq.moldura ? '' : 'border-4 border-[#020205] shadow-[0_0_30px_rgba(37,99,235,0.15)]'}`}>
                <img src={eq.avatar ? eq.avatar.preview : (avatarBase64 || `https://placehold.co/150x150/050508/3b82f6?text=U`)} className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} />
             </div>
-
-            {/* 5. Efeito: Overlay por cima do avatar */}
             {eq.efeito && <img src={eq.efeito.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${eq.efeito.cssClass}`} />}
-
-            {/* 6. Moldura: Por Cima de tudo contornando */}
             {eq.moldura && <img src={eq.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${eq.moldura.cssClass}`} />}
-
-            {/* 7. Badge: Canto inferior */}
             {eq.badge && <img src={eq.badge.preview} className={`absolute -bottom-2 -right-2 w-8 h-8 z-40 drop-shadow-lg ${eq.badge.cssClass}`} />}
 
             {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-0 right-0 bg-blue-600 p-3 rounded-full text-black z-50 shadow-[0_0_15px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-colors duration-300"><Camera className="w-5 h-5" /></button>}
@@ -139,10 +127,29 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </h1>
             <p className="text-amber-500 font-bold mb-1 text-xs tracking-wider">{user.email}</p>
             {bio && !isEditing && <p className="text-blue-200/60 text-xs mb-3 italic font-medium">"{bio}"</p>}
-            <div className="w-full max-w-sm mx-auto md:mx-0 bg-[#050508]/80 p-4 rounded-xl border border-blue-900/20 shadow-inner mt-3 backdrop-blur-sm">
-              <div className="flex justify-between text-[10px] font-black uppercase mb-2 tracking-widest"><span className="text-blue-500">Nível {level} - <span className="text-blue-200/80">{getLevelTitle(level)}</span></span><span className="text-blue-400/60">{currentXp} / {xpNeeded} XP</span></div>
-              <div className="w-full bg-[#020205] rounded-full h-2 overflow-hidden border border-blue-900/30 shadow-inner"><div className="bg-gradient-to-r from-blue-800 to-amber-500 h-full rounded-full transition-all duration-1000 relative" style={{width: `${progressPercent}%`}}></div></div>
+            
+            {/* NOVO DESIGN DA BARRA DE XP - MAIS DIGNA */}
+            <div className="w-full max-w-md mx-auto md:mx-0 bg-black/60 p-5 rounded-2xl border border-white/5 mt-4 backdrop-blur-md relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 blur-[40px] pointer-events-none"></div>
+              <div className="flex justify-between items-end mb-3 relative z-10">
+                <div className="flex flex-col">
+                   <span className="text-[10px] font-black text-amber-500 tracking-[0.2em] uppercase mb-1">Nível {level}</span>
+                   <span className="text-sm font-black text-white uppercase tracking-wider">{getLevelTitle(level)}</span>
+                </div>
+                <div className="text-right flex flex-col">
+                   <span className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-1">Progresso</span>
+                   <span className="text-xs font-black text-blue-400">{currentXp} <span className="text-gray-600">/ {xpNeeded} XP</span></span>
+                </div>
+              </div>
+              
+              <div className="relative w-full h-4 bg-[#020205] rounded-full overflow-hidden border border-white/10 shadow-inner z-10">
+                 <div className="absolute inset-0 bg-gray-900/50"></div>
+                 <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-500 to-fuchsia-500 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(34,211,238,0.5)]" style={{ width: `${progressPercent}%` }}>
+                     <div className="absolute inset-0 w-full h-full bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-[length:20px_20px] animate-[shimmer_2s_linear_infinite]"></div>
+                 </div>
+              </div>
             </div>
+
           </div>
           <div className="flex gap-2">
             <button onClick={() => setIsEditing(!isEditing)} className="bg-black text-blue-200 px-5 py-3 rounded-xl text-xs uppercase tracking-widest font-black flex items-center gap-2 transition-all duration-300 hover:bg-blue-950/30 hover:text-white border border-blue-900/30 shadow-sm"><Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Editar'}</button>
@@ -195,7 +202,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                               const mg = mangas.find(m => m.id === hist.mangaId);
                               return (
                                   <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#050508] border border-blue-900/20 p-3 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-blue-500/40 transition-colors duration-300 shadow-sm group">
-                                      <div className="w-14 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-black border border-blue-900/30 shadow-inner">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover opacity-80 mix-blend-luminosity group-hover:mix-blend-normal group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" /> : <BookOpen className="w-6 h-6 m-auto mt-6 text-blue-900/40"/>}</div>
+                                      {/* CORREÇÃO DAS CAPAS CINZAS: Apenas colorida com scale-110 no hover */}
+                                      <div className="w-14 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-black border border-blue-900/30 shadow-inner">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" /> : <BookOpen className="w-6 h-6 m-auto mt-6 text-blue-900/40"/>}</div>
                                       <div className="flex-1"><h4 className="font-bold text-blue-50 text-sm line-clamp-1 group-hover:text-blue-400 transition-colors">{hist.mangaTitle}</h4><p className="text-amber-600 text-[10px] font-black mt-1 uppercase tracking-wider">Capítulo {hist.chapterNumber}</p></div>
                                       <div className="text-right"><p className="text-[9px] text-blue-400/50 font-bold uppercase tracking-widest">{new Date(hist.timestamp).toLocaleDateString()}</p><p className="text-[10px] text-blue-900/60 font-medium mt-0.5">{new Date(hist.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
                                   </div>
@@ -225,6 +233,16 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
             {activeTab === "Configuracoes" && (
                 <div className="animate-in fade-in duration-300 space-y-6">
+                    {/* SELETOR DE TEMAS */}
+                    <div className="bg-[#050508] border border-blue-900/20 p-5 rounded-2xl shadow-inner mt-4">
+                       <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-widest">Tema do Vazio</h3>
+                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                           {['Escuro', 'Abissal', 'OLED', 'Sangue'].map(t => (
+                               <button key={t} onClick={() => updateSettings({ theme: t })} className={`py-3 rounded-xl border font-bold text-[10px] uppercase tracking-widest transition-all duration-300 ${userSettings.theme === t ? 'bg-fuchsia-600 border-fuchsia-500 text-white shadow-[0_0_15px_rgba(192,38,211,0.3)]' : 'border-white/10 text-gray-400 hover:text-white hover:bg-white/5'}`}>{t}</button>
+                           ))}
+                       </div>
+                    </div>
+
                     <div className="bg-[#050508] border border-blue-900/20 p-5 rounded-2xl shadow-inner">
                        <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-widest">Modo de Leitura</h3>
                        <div className="flex gap-4">
