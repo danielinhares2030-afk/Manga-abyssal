@@ -14,7 +14,8 @@ import { app, auth, db } from './firebase';
 import { APP_ID, FALLBACK_SHOP_ITEMS } from './constants';
 import { getThemeClasses, removeXpLogic, addXpLogic, timeAgo } from './helpers';
 
-import { ErrorBoundary, GlobalToast, Footer, SplashScreen } from './UIComponents';
+// IMPORTAÇÃO DO NOVO ÍCONE AQUI
+import { ErrorBoundary, GlobalToast, Footer, SplashScreen, AbyssalLogo } from './UIComponents';
 
 import { LoginView } from './LoginView';
 import { HomeView } from './HomeView';
@@ -365,12 +366,9 @@ function MangaInfinityApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               
+              {/* O NOVO ÍCONE DA LOGO ESTÁ AQUI NA NAVBAR */}
               <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
-                <div className="relative flex items-center justify-center w-10 h-10 group-hover:scale-105 transition-transform duration-300">
-                   <Hexagon className="absolute w-full h-full text-blue-600/40 animate-[spin_10s_linear_infinite]" />
-                   <BookOpen className="w-6 h-6 text-amber-500 relative z-10 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
-                   <Eye className="w-2.5 h-2.5 text-red-600 absolute z-20 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" />
-                </div>
+                <AbyssalLogo className="w-10 h-10 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" />
                 <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-white to-amber-500 tracking-[0.2em] uppercase hidden sm:block">ABISSAL</span>
               </div>
               
