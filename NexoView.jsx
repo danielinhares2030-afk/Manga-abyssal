@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Hexagon, ShoppingCart, Trophy, Check, Compass, Timer, Star, Skull, Zap, Clock, Crown, Key, Loader2, ShieldAlert, Sparkles } from 'lucide-react';
-import { doc, updateDoc, collectionGroup, getDocs, query, orderBy, limit, where } from "firebase/firestore";
+import { doc, updateDoc, collectionGroup, getDocs, query } from "firebase/firestore";
 import { db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, getRarityColor } from './helpers';
 import { APP_ID } from './constants';
@@ -16,6 +16,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     const [rankingList, setRankingList] = useState([]);
     const [loadingRank, setLoadingRank] = useState(false);
 
+    // CORREÇÃO: ADICIONADOS RANKS S E SSS COM RECOMPENSAS ALTAS
     const rankConfigs = {
         'Rank E': { rxp: 30, rcoin: 15, pxp: 15, pcoin: 10, time: 15, charLimit: 300, enigmaTries: 3 },
         'Rank C': { rxp: 100, rcoin: 50, pxp: 50, pcoin: 25, time: 10, charLimit: 200, enigmaTries: 3 },
@@ -25,32 +26,38 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         'Rank SSS':{ rxp: 2000, rcoin: 1000, pxp: 1000, pcoin: 500, time: 1, charLimit: 40, enigmaTries: 1 }
     };
 
+    const RANK_CARDS = [
+        { id: 'Rank E', color: 'text-gray-400', border: 'border-gray-500/20', hover: 'hover:border-gray-500/50', btn: 'bg-gray-800 hover:bg-gray-700' },
+        { id: 'Rank C', color: 'text-blue-500', border: 'border-blue-500/20', hover: 'hover:border-blue-500/50', btn: 'bg-blue-700 hover:bg-blue-600' },
+        { id: 'Rank B', color: 'text-amber-500', border: 'border-amber-500/20', hover: 'hover:border-amber-500/50', btn: 'bg-amber-700 hover:bg-amber-600' },
+        { id: 'Rank A', color: 'text-red-500', border: 'border-red-500/20', hover: 'hover:border-red-500/50', btn: 'bg-red-700 hover:bg-red-600' },
+        { id: 'Rank S', color: 'text-fuchsia-500', border: 'border-fuchsia-500/20', hover: 'hover:border-fuchsia-500/50', btn: 'bg-fuchsia-700 hover:bg-fuchsia-600' },
+        { id: 'Rank SSS', color: 'text-rose-500', border: 'border-rose-500/20', hover: 'hover:border-rose-500/50', btn: 'bg-gradient-to-r from-rose-700 to-purple-700 hover:from-rose-600 hover:to-purple-600' },
+    ];
+
     useEffect(() => {
         if(activeTab === 'Ranking') fetchRanking();
     }, [activeTab]);
 
+    // CORREÇÃO DA FOTO 3: Firebase exigia index. Agora ele puxa tudo e organiza no próprio código!
     const fetchRanking = async () => {
         setLoadingRank(true);
         try {
-            // Updated sorting logic for Image 3: Level (Descending), then XP (Descending)
-            const q = query(
-              collectionGroup(db, 'profile'),
-              where('level', '>=', 1),
-              orderBy('level', 'desc'),
-              orderBy('xp', 'desc'),
-              limit(50)
-            );
-            
-            const snap = await getDocs(q);
+            const snap = await getDocs(query(collectionGroup(db, 'profile')));
             let rankData = [];
             snap.forEach(doc => {
                 if(doc.ref.path.includes('main') && (doc.data().level || doc.data().name)) { 
                    rankData.push({ id: doc.ref.parent.parent.id, ...doc.data() });
                 }
             });
-            setRankingList(rankData);
+            // Ordenação local (primeiro level, depois XP) para evitar erro de índice
+            rankData.sort((a, b) => {
+                if (b.level !== a.level) return (b.level || 1) - (a.level || 1);
+                return (b.xp || 0) - (a.xp || 0);
+            });
+            setRankingList(rankData.slice(0, 50));
         } catch (e) {
-            showToast("Erro na Hierarquia. Verifique regras do Firebase.", "error");
+            showToast("Erro na Hierarquia Abissal.", "error");
         } finally {
             setLoadingRank(false);
         }
@@ -168,25 +175,27 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }, 1500);
     };
 
-    const RANK_CARDS = [
-        { id: 'Rank E', color: 'text-gray-400', border: 'border-gray-500/20', hover: 'hover:border-gray-500/50', btn: 'bg-gray-800 hover:bg-gray-700' },
-        { id: 'Rank C', color: 'text-blue-500', border: 'border-blue-500/20', hover: 'hover:border-blue-500/50', btn: 'bg-blue-700 hover:bg-blue-600' },
-        { id: 'Rank B', color: 'text-amber-500', border: 'border-amber-500/20', hover: 'hover:border-amber-500/50', btn: 'bg-amber-700 hover:bg-amber-600' },
-        { id: 'Rank A', color: 'text-red-500', border: 'border-red-500/20', hover: 'hover:border-red-500/50', btn: 'bg-red-700 hover:bg-red-600' },
-    ];
-
     const equipped = userProfileData.equipped_items || {};
-    
+    const dynamicStyles = Object.values(equipped).filter(Boolean).map(item => `.${item.cssClass} { ${item.css || ''} } ${item.animacao || ''}`).join('\n');
+
     return (
         <div className={`max-w-4xl mx-auto px-4 py-6 animate-in fade-in duration-500 relative pb-24 font-sans text-gray-300 min-h-screen ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#020205]'}`}>
-            
+            {dynamicStyles && <style dangerouslySetInnerHTML={{ __html: dynamicStyles }} />}
+
             {confirmModal && (
                 <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setConfirmModal(null)}>
                     <div className="bg-[#050508] border border-blue-900/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(37,99,235,0.15)] max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
                         <Target className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-pulse" />
                         <h3 className="text-lg font-black text-white mb-2 uppercase tracking-widest">Assinar Contrato?</h3>
-                        <p className="text-xs text-blue-200/60 font-medium mb-6 px-2">Ao aceitar uma missão de <b>{confirmModal}</b>, o Abismo exigirá uma punição de XP e Moedas caso você falhe no tempo.</p>
+                        <p className="text-xs text-blue-200/60 font-medium px-2">Ao aceitar uma missão, você não pode voltar atrás sem punições.</p>
+                        
+                        {/* INFORMAÇÃO DA PUNIÇÃO AQUI COMO PEDIDO */}
+                        <div className="bg-red-950/30 border border-red-900/30 p-3 rounded-lg mt-3 mb-6">
+                            <p className="text-xs text-red-200 font-medium">Se falhar, o Abismo cobrará:</p>
+                            <p className="text-sm font-black text-red-500 mt-1">-{rankConfigs[confirmModal]?.pxp} XP | -{rankConfigs[confirmModal]?.pcoin} Moedas</p>
+                        </div>
+
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmModal(null)} className="flex-1 bg-black border border-blue-900/30 text-gray-400 font-bold py-3.5 rounded-xl hover:text-white transition-colors text-xs duration-300 uppercase tracking-widest">Recusar</button>
                             <button onClick={() => triggerForgeMission(confirmModal)} className="flex-1 bg-gradient-to-r from-blue-800 to-amber-600 text-white font-black py-3.5 rounded-xl hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)] text-xs duration-300 uppercase tracking-widest">Assinar</button>
@@ -277,7 +286,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] pointer-events-none"></div>
                                         <div className="text-center sm:text-left relative z-10">
                                             <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-3 justify-center sm:justify-start uppercase tracking-tight"><Target className="w-6 h-6 text-blue-500" /> Mural de Contratos</h2>
-                                            <p className="text-gray-400 text-xs leading-relaxed max-w-sm font-medium">Assine contratos com o Vazio. Conclua missões de leitura ou caçada visual para ascender na Hierarquia.</p>
+                                            <p className="text-gray-400 text-xs leading-relaxed max-w-sm font-medium">Assine contratos com o Vazio. Conclua missões para ascender na Hierarquia.</p>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -329,7 +338,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     <div className="bg-[#020205] border border-blue-900/20 p-6 md:p-8 rounded-3xl shadow-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-900/10 blur-[80px] pointer-events-none"></div>
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 relative z-10">
-                        <div><h3 className="text-2xl font-black text-amber-500 mb-1.5 flex items-center gap-2.5 uppercase tracking-tight"><ShoppingCart className="w-6 h-6"/> Mercado Astral</h3><p className="text-gray-400 text-xs tracking-wide">Troque suas moedas por artefatos de personalização da Alma.</p></div>
+                        <div><h3 className="text-2xl font-black text-amber-500 mb-1.5 flex items-center gap-2.5 uppercase tracking-tight"><ShoppingCart className="w-6 h-6"/> Mercado Astral</h3><p className="text-gray-400 text-xs tracking-wide">Troque suas moedas por artefatos de personalização.</p></div>
                         <div className="bg-amber-950/30 border border-amber-500/20 text-amber-400 font-black px-6 py-3 rounded-full flex items-center gap-2 w-full sm:w-auto justify-center text-sm shadow-inner">{userProfileData.coins || 0} M</div>
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5 relative z-10">
