@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Hexagon, ShoppingCart, Trophy, Check, Compass, Timer, Star, Skull, Zap, Clock, Crown, Key, Loader2, ShieldAlert, Sparkles } from 'lucide-react';
-import { doc, updateDoc, collectionGroup, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { doc, updateDoc, collectionGroup, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import { db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, getRarityColor } from './helpers';
 import { APP_ID } from './constants';
@@ -175,21 +175,11 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         { id: 'Rank A', color: 'text-red-500', border: 'border-red-500/20', hover: 'hover:border-red-500/50', btn: 'bg-red-700 hover:bg-red-600' },
     ];
 
-    // MOTOR DA LOJA LOCAL
     const equipped = userProfileData.equipped_items || {};
     
-    // CSS DINÂMICO CONSOLIDADO (Apenas para o usuário atual, o Ranking gera o próprio)
-    const dynamicStyles = Object.values(equipped)
-    .filter(Boolean)
-    .map(item => `.${item.cssClass} { ${item.css || ''} } ${item.animacao || ''}`)
-    .join('\n');
-
     return (
         <div className={`max-w-4xl mx-auto px-4 py-6 animate-in fade-in duration-500 relative pb-24 font-sans text-gray-300 min-h-screen ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#020205]'}`}>
             
-            {/* CSS LOJA INJECTION (Global para esta view) */}
-            {dynamicStyles && <style dangerouslySetInnerHTML={{ __html: dynamicStyles }} />}
-
             {confirmModal && (
                 <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setConfirmModal(null)}>
                     <div className="bg-[#050508] border border-blue-900/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(37,99,235,0.15)] max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -212,7 +202,127 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 <button onClick={() => setActiveTab("Ranking")} className={`px-5 py-2.5 rounded-xl font-black transition-all whitespace-nowrap flex items-center gap-2 text-[10px] uppercase tracking-widest duration-300 ${activeTab === "Ranking" ? 'bg-blue-950/40 text-blue-400 border border-blue-900/50 shadow-inner' : 'bg-black text-blue-900/60 hover:text-blue-200 border border-transparent shadow-sm'}`}><Trophy className="w-4 h-4"/> Hierarquia</button>
             </div>
 
-            {/*confirmModal, activeTab structures remain unchanged, including Missões and Forja Tabs*/}
+            {activeTab === "Missões" && (
+                <div className="animate-in fade-in duration-500 space-y-6">
+                    {userProfileData.activeMission ? (
+                        <div className="bg-gradient-to-br from-[#050508] to-black border border-blue-900/30 p-6 md:p-8 rounded-3xl relative overflow-hidden shadow-2xl">
+                           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 blur-[80px] pointer-events-none"></div>
+                           <div className="flex justify-between items-start mb-6 relative z-10">
+                              <div>
+                                 <span className="bg-blue-950/50 text-blue-400 text-[9px] font-black uppercase px-3 py-1 rounded shadow-inner border border-blue-900/30">{userProfileData.activeMission.difficulty}</span>
+                                 <h3 className="text-xl md:text-2xl font-black text-white mt-3 tracking-tight uppercase">{userProfileData.activeMission.title}</h3>
+                              </div>
+                              <div className="text-right">
+                                 <div className="flex items-center gap-2 text-red-400 font-black bg-red-950/30 px-3 py-1.5 rounded border border-red-900/30 shadow-inner text-xs"><Timer className="w-4 h-4 animate-pulse" /> {timeLeft}</div>
+                              </div>
+                           </div>
+                           
+                           {userProfileData.activeMission.type === 'read' && (
+                               <div className="bg-black/50 p-4 md:p-6 rounded-2xl border border-white/5 mb-6 shadow-inner relative z-10">
+                                  <p className="text-gray-300 font-medium text-sm mb-4 leading-relaxed">{userProfileData.activeMission.desc}</p>
+                                  <div className="w-full bg-[#020205] rounded-full h-3 overflow-hidden shadow-inner border border-white/5">
+                                      <div className="bg-gradient-to-r from-blue-700 to-cyan-400 h-full transition-all duration-1000 relative" style={{width: `${(userProfileData.activeMission.currentCount / userProfileData.activeMission.targetCount) * 100}%`}}>
+                                          <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+                                      </div>
+                                  </div>
+                                  <div className="flex justify-between text-[10px] text-blue-400 font-black mt-2 uppercase tracking-widest">
+                                      <span>Progresso</span>
+                                      <span>{userProfileData.activeMission.currentCount} / {userProfileData.activeMission.targetCount} Caps</span>
+                                  </div>
+                                  <button onClick={() => { const m = mangas.find(mg => mg.id === userProfileData.activeMission.targetManga); if(m) onNavigate('details', m); }} className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-xs uppercase tracking-widest shadow-md"><Compass className="w-4 h-4"/> Rastrear Obra</button>
+                               </div>
+                           )}
+
+                           {userProfileData.activeMission.type === 'search_local' && (
+                               <div className="bg-black/50 p-4 md:p-6 rounded-2xl border border-white/5 mb-6 shadow-inner relative z-10">
+                                   <p className="text-gray-300 font-medium text-sm leading-relaxed whitespace-pre-wrap">{userProfileData.activeMission.question}</p>
+                                   <div className="mt-4 p-3 bg-red-950/20 border border-red-900/30 rounded-lg flex items-start gap-2">
+                                       <ShieldAlert className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                       <p className="text-[10px] text-red-400/80 font-bold leading-relaxed uppercase tracking-widest">Navegue até a página desta obra no catálogo para concluir a caçada. O tempo é implacável.</p>
+                                   </div>
+                               </div>
+                           )}
+                           
+                           {userProfileData.activeMission.type === 'enigma' && (
+                               <div className="bg-black/50 p-4 md:p-6 rounded-2xl border border-white/5 mb-6 shadow-inner relative z-10">
+                                  <p className="text-gray-300 font-medium text-sm leading-relaxed whitespace-pre-wrap mb-6 bg-[#020205] p-4 rounded-xl border border-white/5">{userProfileData.activeMission.question}</p>
+                                  <form onSubmit={handleEnigmaSubmit} className="flex flex-col gap-3">
+                                     <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="Sua resposta..." className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-4 py-3.5 text-white font-medium outline-none focus:border-blue-500/50 transition-colors shadow-inner text-sm" />
+                                     <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3.5 rounded-xl transition-colors shadow-md text-xs uppercase tracking-widest flex items-center justify-center gap-2"><Key className="w-4 h-4"/> Desvendar</button>
+                                  </form>
+                                  <p className="text-center mt-3 text-[10px] text-gray-500 font-black uppercase tracking-widest">Tentativas Restantes: <span className="text-red-400">{userProfileData.activeMission.attemptsLeft}</span></p>
+                               </div>
+                           )}
+
+                           <div className="flex items-center justify-between border-t border-white/10 pt-5 relative z-10">
+                              <div className="flex gap-4">
+                                 <span className="flex items-center gap-1.5 text-blue-400 font-black text-sm"><Sparkles className="w-4 h-4"/> {userProfileData.activeMission.rewardXp} XP</span>
+                                 <span className="flex items-center gap-1.5 text-amber-500 font-black text-sm"><div className="w-4 h-4 rounded-full bg-amber-500 border-2 border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></div> {userProfileData.activeMission.rewardCoins} M</span>
+                              </div>
+                              <button onClick={cancelMission} className="text-[10px] text-red-500 hover:text-white font-black uppercase tracking-widest transition-colors flex items-center gap-1"><Skull className="w-3 h-3"/> Desistir</button>
+                           </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {isForgingMission ? (
+                                <div className="bg-[#050508] border border-blue-900/30 p-12 rounded-3xl flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden">
+                                   <div className="absolute inset-0 bg-blue-900/10 animate-pulse"></div>
+                                   <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4 relative z-10" />
+                                   <h3 className="text-xl font-black text-blue-400 uppercase tracking-widest relative z-10">O Abismo está forjando...</h3>
+                                   <p className="text-xs text-blue-200/60 mt-2 font-bold uppercase tracking-wider relative z-10">Mapeando ecos no catálogo</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="bg-gradient-to-r from-[#050508] to-[#0a0f1a] border border-blue-900/20 p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] pointer-events-none"></div>
+                                        <div className="text-center sm:text-left relative z-10">
+                                            <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-3 justify-center sm:justify-start uppercase tracking-tight"><Target className="w-6 h-6 text-blue-500" /> Mural de Contratos</h2>
+                                            <p className="text-gray-400 text-xs leading-relaxed max-w-sm font-medium">Assine contratos com o Vazio. Conclua missões de leitura ou caçada visual para ascender na Hierarquia.</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {RANK_CARDS.map(r => (
+                                            <div key={r.id} className={`bg-[#050508] border ${r.border} ${r.hover} p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-sm relative overflow-hidden group`}>
+                                                <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 blur-[20px] rounded-full group-hover:scale-150 transition-transform duration-500 pointer-events-none"></div>
+                                                <div className="flex justify-between items-start mb-6 relative z-10">
+                                                    <h3 className={`text-xl font-black uppercase tracking-widest ${r.color}`}>{r.id}</h3>
+                                                    <div className="text-right">
+                                                        <div className="text-[10px] font-black text-blue-400 mb-1 flex items-center justify-end gap-1"><Sparkles className="w-3 h-3"/> {rankConfigs[r.id].rxp} XP</div>
+                                                        <div className="text-[10px] font-black text-amber-500 flex items-center justify-end gap-1"><div className="w-2.5 h-2.5 rounded-full bg-amber-500 border border-amber-300"></div> {rankConfigs[r.id].rcoin} M</div>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setConfirmModal(r.id)} className={`w-full py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest text-white shadow-md transition-all duration-300 hover:scale-[1.02] ${r.btn} relative z-10`}>Assinar Contrato</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {activeTab === "Forja" && (
+                <div className="animate-in fade-in duration-500">
+                    <div className="bg-gradient-to-b from-[#050508] to-black border border-amber-900/20 p-6 sm:p-10 rounded-3xl text-center shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+                        <Hexagon className="w-16 h-16 mx-auto mb-6 text-amber-500 animate-[spin_10s_linear_infinite] drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] relative z-10" />
+                        <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-tight relative z-10">Fornalha Cósmica</h2>
+                        <p className="text-gray-400 text-sm mb-10 max-w-md mx-auto leading-relaxed relative z-10">Sintetize <b>5 Cristais</b> encontrados durante a leitura para obter Moedas e XP. Há <span className="text-red-400 font-bold">40% de chance</span> da anomalia destruir os cristais na forja.</p>
+                        
+                        <div className="bg-[#020205] border border-white/5 rounded-2xl p-6 max-w-xs mx-auto mb-8 shadow-inner relative z-10">
+                            <span className="text-[10px] uppercase font-black text-gray-500 tracking-widest mb-2 block">Cristais no Inventário</span>
+                            <div className="flex items-center justify-center gap-3 text-3xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
+                                <Hexagon className="w-8 h-8 fill-cyan-900/40" /> {userProfileData.crystals || 0}
+                            </div>
+                        </div>
+
+                        <button onClick={runSynthesis} disabled={synthesizing || (userProfileData.crystals || 0) < 5} className="bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 disabled:from-gray-800 disabled:to-gray-900 disabled:text-gray-500 text-black font-black py-4 px-10 rounded-xl transition-all duration-300 shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:scale-105 disabled:hover:scale-100 disabled:shadow-none relative z-10 text-xs uppercase tracking-widest flex items-center justify-center mx-auto gap-2">
+                           {synthesizing ? <><Loader2 className="w-5 h-5 animate-spin" /> Fundindo...</> : <><Zap className="w-5 h-5"/> Sintetizar 5 Cristais</>}
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {activeTab === "Loja" && (
                 <div className="animate-in fade-in duration-300">
@@ -229,34 +339,19 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                           return (
                             <div key={item.id} className={`bg-black border p-5 rounded-2xl flex flex-col items-center text-center transition-all duration-300 shadow-inner group ${isEquipped ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : 'border-blue-900/20 hover:border-amber-900/50 hover:shadow-[0_0_15px_rgba(37,99,235,0.1)]'}`}>
                               
-                              {/* CORRECTED MAPPING FOR SHOP PREVIEW (Fixes Image 2) */}
                               <div className={`w-20 h-20 rounded-xl mb-4 bg-[#050508] flex items-center justify-center overflow-hidden shadow-inner border border-white/5 relative`}>
-                                {/* Local CSS for preview */}
-                                {item && <style dangerouslySetInnerHTML={{__html: `.${item.cssClass}-preview { ${item.css || ''} } ${item.animacao || ''}`}} />}
-                                
-                                {/* 3. Particles mapping (background) */}
-                                {item.categoria === 'particulas' && <img src={item.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none ${item.cssClass}-preview`} />}
-
-                                {/* 4. Avatar placeholder (if not avatar type) */}
-                                {item.categoria !== 'avatar' && <Sparkles className="w-8 h-8 text-blue-400"/>}
-
-                                {/* 4. Avatar (if avatar type) */}
-                                {item.categoria === 'avatar' && <img src={item.preview} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${item.cssClass}-preview`} />}
-
-                                {/* 5. Effect mapping (overlay) */}
-                                {item.categoria === 'efeito' && <img src={item.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${item.cssClass}-preview`} />}
-
-                                {/* 6. Moldura mapping (frame) */}
-                                {item.categoria === 'moldura' && <img src={item.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${item.cssClass}-preview`} />}
-
-                                {/* 7. Badge mapping */}
-                                {item.categoria === 'badge' && <img src={item.preview} className={`absolute -bottom-1 -right-1 w-6 h-6 z-40 ${item.cssClass}-preview`} />}
+                                {item.categoria === 'particulas' && <img src={item.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none ${item.cssClass}`} />}
+                                {item.categoria !== 'avatar' && <Sparkles className="w-8 h-8 text-blue-400 relative z-10"/>}
+                                {item.categoria === 'avatar' && <img src={item.preview} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${item.cssClass}`} />}
+                                {item.categoria === 'efeito' && <img src={item.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${item.cssClass}`} />}
+                                {item.categoria === 'moldura' && <img src={item.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${item.cssClass}`} />}
+                                {item.categoria === 'badge' && <img src={item.preview} className={`absolute -bottom-1 -right-1 w-6 h-6 z-40 ${item.cssClass}`} />}
                               </div>
 
                               <h4 className="text-white font-bold mb-1.5 text-sm line-clamp-1 group-hover:text-amber-400 transition-colors">{item.nome || item.name}</h4>
                               <p className={`text-[9px] uppercase tracking-widest font-black mb-5 ${getRarityColor(item.raridade)}`}>{item.categoria || item.type}</p>
                               {hasItem ? (
-                                <button onClick={() => equipItem(item)} className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${isEquipped ? 'bg-red-950/30 text-red-500 hover:bg-red-900 hover:text-white border border-red-500/40' : 'bg-[#020205] text-white hover:bg-blue-900/40 border border-white/10'}`}>{isEquipped ? 'Remover' : 'Equipar'}</button>
+                                <button onClick={() => equipItem(item)} className={`w-full font-black py-3 rounded-xl transition-all duration-300 text-[10px] uppercase tracking-widest shadow-lg ${isEquipped ? 'bg-red-950/30 text-red-500 hover:bg-red-900 hover:text-white border border-red-500/40' : 'bg-[#020205] text-white hover:bg-blue-900/40 border border-white/10'}`}>{isEquipped ? 'Remover' : 'Equipar'}</button>
                               ) : (
                                 <button onClick={() => buyItem(item)} className="w-full bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-black font-black py-3 rounded-xl transition-all duration-300 text-[10px] shadow-lg uppercase tracking-widest">{item.preco || item.price} M</button>
                               )}
@@ -271,9 +366,35 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             {activeTab === "Ranking" && (
                 <div className="animate-in fade-in duration-500">
                     <div className="bg-gradient-to-b from-[#050508] to-black border border-blue-900/20 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
-                        {/*Hierarquia sorting UI structure remains unchanged, but sorts properly now*/}
-                        {rankingList.length <= 3 && (
-                            <p className="text-center text-[10px] uppercase text-gray-600 py-8 font-black tracking-[0.2em]">O Vazio silencia além dos líderes.</p>
+                        <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-900/10 blur-[100px] pointer-events-none"></div>
+                        <h3 className="text-2xl font-black text-blue-500 flex items-center justify-center gap-3 uppercase tracking-tight mb-8 relative z-10"><Trophy className="w-7 h-7 text-amber-500"/> Hierarquia do Vazio</h3>
+                        
+                        {loadingRank ? (
+                            <div className="flex flex-col items-center justify-center py-12"><Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4"/><p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Calculando poder...</p></div>
+                        ) : rankingList.length === 0 ? (
+                            <p className="text-center text-[10px] uppercase text-gray-600 py-8 font-black tracking-[0.2em]">O Vazio ainda não reconhece nenhum lorde.</p>
+                        ) : (
+                            <div className="space-y-3 relative z-10">
+                                {rankingList.map((player, index) => (
+                                    <div key={player.id} className={`bg-black border p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:scale-[1.02] ${index < 3 ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-blue-900/30 hover:border-blue-500/50'}`}>
+                                        <div className={`w-8 font-black text-lg text-center ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-700' : 'text-blue-900/40'}`}>#{index + 1}</div>
+                                        <div className="relative w-12 h-12 flex items-center justify-center">
+                                            {player.equipped_items?.moldura && <img src={player.equipped_items.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${player.equipped_items.moldura.cssClass}`} />}
+                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#0d0d12]">
+                                                <img src={player.avatarUrl || `https://placehold.co/100x100/050508/3b82f6?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover" />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className={`font-black text-sm truncate ${index < 3 ? 'text-amber-400' : 'text-white'}`}>{player.displayName || "Entidade Oculta"}</h4>
+                                            <p className="text-[10px] text-blue-400/80 font-bold uppercase tracking-wider truncate">{getLevelTitle(player.level)}</p>
+                                        </div>
+                                        <div className="text-right flex-shrink-0">
+                                            <div className="text-xs font-black text-amber-500 uppercase tracking-widest bg-amber-950/30 px-2 py-0.5 rounded border border-amber-900/30">Nível {player.level}</div>
+                                            <div className="text-[9px] text-gray-500 font-bold mt-1">{player.xp} XP</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
