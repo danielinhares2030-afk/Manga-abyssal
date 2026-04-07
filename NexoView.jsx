@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, ShoppingCart, Trophy, Check, Compass, Timer, Star, Skull, Zap, Clock, Crown, Key, Loader2, ShieldAlert, Sparkles } from 'lucide-react';
+import { Target, Hexagon, ShoppingCart, Trophy, Check, Compass, Timer, Star, Skull, Zap, Clock, Crown, Key, Loader2, ShieldAlert, Sparkles, User } from 'lucide-react';
 import { doc, updateDoc, collectionGroup, getDocs, query } from "firebase/firestore";
 import { db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, getRarityColor } from './helpers';
@@ -16,7 +16,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     const [rankingList, setRankingList] = useState([]);
     const [loadingRank, setLoadingRank] = useState(false);
 
-    // CORREÇÃO: ADICIONADOS RANKS S E SSS COM RECOMPENSAS ALTAS
     const rankConfigs = {
         'Rank E': { rxp: 30, rcoin: 15, pxp: 15, pcoin: 10, time: 15, charLimit: 300, enigmaTries: 3 },
         'Rank C': { rxp: 100, rcoin: 50, pxp: 50, pcoin: 25, time: 10, charLimit: 200, enigmaTries: 3 },
@@ -39,7 +38,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         if(activeTab === 'Ranking') fetchRanking();
     }, [activeTab]);
 
-    // CORREÇÃO DA FOTO 3: Firebase exigia index. Agora ele puxa tudo e organiza no próprio código!
     const fetchRanking = async () => {
         setLoadingRank(true);
         try {
@@ -50,7 +48,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                    rankData.push({ id: doc.ref.parent.parent.id, ...doc.data() });
                 }
             });
-            // Ordenação local (primeiro level, depois XP) para evitar erro de índice
             rankData.sort((a, b) => {
                 if (b.level !== a.level) return (b.level || 1) - (a.level || 1);
                 return (b.xp || 0) - (a.xp || 0);
@@ -176,12 +173,9 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     };
 
     const equipped = userProfileData.equipped_items || {};
-    const dynamicStyles = Object.values(equipped).filter(Boolean).map(item => `.${item.cssClass} { ${item.css || ''} } ${item.animacao || ''}`).join('\n');
 
     return (
         <div className={`max-w-4xl mx-auto px-4 py-6 animate-in fade-in duration-500 relative pb-24 font-sans text-gray-300 min-h-screen ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#020205]'}`}>
-            {dynamicStyles && <style dangerouslySetInnerHTML={{ __html: dynamicStyles }} />}
-
             {confirmModal && (
                 <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setConfirmModal(null)}>
                     <div className="bg-[#050508] border border-blue-900/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(37,99,235,0.15)] max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -189,13 +183,10 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         <Target className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-pulse" />
                         <h3 className="text-lg font-black text-white mb-2 uppercase tracking-widest">Assinar Contrato?</h3>
                         <p className="text-xs text-blue-200/60 font-medium px-2">Ao aceitar uma missão, você não pode voltar atrás sem punições.</p>
-                        
-                        {/* INFORMAÇÃO DA PUNIÇÃO AQUI COMO PEDIDO */}
                         <div className="bg-red-950/30 border border-red-900/30 p-3 rounded-lg mt-3 mb-6">
                             <p className="text-xs text-red-200 font-medium">Se falhar, o Abismo cobrará:</p>
                             <p className="text-sm font-black text-red-500 mt-1">-{rankConfigs[confirmModal]?.pxp} XP | -{rankConfigs[confirmModal]?.pcoin} Moedas</p>
                         </div>
-
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmModal(null)} className="flex-1 bg-black border border-blue-900/30 text-gray-400 font-bold py-3.5 rounded-xl hover:text-white transition-colors text-xs duration-300 uppercase tracking-widest">Recusar</button>
                             <button onClick={() => triggerForgeMission(confirmModal)} className="flex-1 bg-gradient-to-r from-blue-800 to-amber-600 text-white font-black py-3.5 rounded-xl hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)] text-xs duration-300 uppercase tracking-widest">Assinar</button>
@@ -348,13 +339,41 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                           return (
                             <div key={item.id} className={`bg-black border p-5 rounded-2xl flex flex-col items-center text-center transition-all duration-300 shadow-inner group ${isEquipped ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : 'border-blue-900/20 hover:border-amber-900/50 hover:shadow-[0_0_15px_rgba(37,99,235,0.1)]'}`}>
                               
+                              {/* NOVO PREVIEW MAIS INTELIGENTE DAS MOLDURAS/CAPAS NA LOJA */}
                               <div className={`w-20 h-20 rounded-xl mb-4 bg-[#050508] flex items-center justify-center overflow-hidden shadow-inner border border-white/5 relative`}>
+                                
+                                {/* 1. Capas de Fundo e Tema */}
+                                {(item.categoria === 'capa_fundo' || item.categoria === 'tema_perfil') ? (
+                                    item.preview ? <img src={item.preview} className="w-full h-full object-cover opacity-80" /> : <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-fuchsia-900/20"></div>
+                                ) : null}
+
+                                {/* 2. Partículas */}
                                 {item.categoria === 'particulas' && <img src={item.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none ${item.cssClass}`} />}
-                                {item.categoria !== 'avatar' && <Sparkles className="w-8 h-8 text-blue-400 relative z-10"/>}
+                                
+                                {/* 3. Avatar Base Falso (para ver as molduras em volta de algo) */}
+                                {['moldura', 'efeito', 'particulas', 'badge'].includes(item.categoria) && (
+                                    <div className="w-12 h-12 rounded-full bg-[#0d0d12] border border-white/10 z-10 overflow-hidden relative flex items-center justify-center">
+                                        <User className="w-8 h-8 text-gray-600" />
+                                    </div>
+                                )}
+
+                                {/* 4. Se for Avatar real */}
                                 {item.categoria === 'avatar' && <img src={item.preview} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${item.cssClass}`} />}
+                                
+                                {/* 5. Efeitos e Molduras */}
                                 {item.categoria === 'efeito' && <img src={item.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${item.cssClass}`} />}
                                 {item.categoria === 'moldura' && <img src={item.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${item.cssClass}`} />}
                                 {item.categoria === 'badge' && <img src={item.preview} className={`absolute -bottom-1 -right-1 w-6 h-6 z-40 ${item.cssClass}`} />}
+
+                                {/* 6. Letra animada se for Nickname */}
+                                {(item.categoria === 'nickname' || item.categoria === 'fonte' || item.categoria === 'font') && (
+                                    <span className={`text-xl font-black relative z-10 ${item.cssClass}`}>A</span>
+                                )}
+
+                                {/* 7. Fallback Estrela Padrão só para o que a IA não reconhecer */}
+                                {(!['avatar', 'capa_fundo', 'tema_perfil', 'particulas', 'efeito', 'moldura', 'badge', 'nickname', 'fonte', 'font'].includes(item.categoria)) && (
+                                    <Sparkles className="w-8 h-8 text-blue-400 relative z-10"/>
+                                )}
                               </div>
 
                               <h4 className="text-white font-bold mb-1.5 text-sm line-clamp-1 group-hover:text-amber-400 transition-colors">{item.nome || item.name}</h4>
