@@ -4,7 +4,7 @@ import { updateProfile } from "firebase/auth";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { auth, db } from './firebase';
 import { APP_ID } from './constants';
-import { compressImage, getLevelRequirement, getLevelTitle } from './helpers';
+import { compressImage, getLevelRequirement, getLevelTitle, cleanCosmeticUrl } from './helpers';
 
 export function ProfileView({ user, userProfileData, historyData, libraryData, dataLoaded, userSettings, updateSettings, onLogout, onUpdateData, showToast, mangas, onNavigate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -108,47 +108,42 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-16 md:-mt-20 z-10">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
           
-          {/* ESTRUTURA CORRIGIDA DO AVATAR - COMO VOCÊ PEDIU */}
           <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center flex-shrink-0 group">
             
-            {/* 1. O Avatar do Usuário (Base) */}
             <img 
                src={eq.avatar ? eq.avatar.preview : (avatarBase64 || `https://placehold.co/150x150/050508/3b82f6?text=U`)} 
                className={`w-full h-full rounded-full object-cover z-0 shadow-[0_0_30px_rgba(37,99,235,0.15)] ${eq.avatar?.cssClass || ''}`} 
                alt="Avatar do Usuário"
             />
             
-            {/* 2. As Partículas por trás (se quiser que passe por fora, fica com inset negativo) */}
+            {/* APLICAÇÃO DO CLOUDINARY CLEAN NAS IMAGENS COSMÉTICAS */}
             {eq.particulas && (
               <img 
-                src={eq.particulas.preview} 
+                src={cleanCosmeticUrl(eq.particulas.preview)} 
                 className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-10 ${eq.particulas.cssClass}`} 
-                style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} 
+                style={{ pointerEvents: 'none' }} 
               />
             )}
             
-            {/* 3. O Efeito de Brilho (sobrepõe exatamente no avatar) */}
             {eq.efeito && (
               <img 
-                src={eq.efeito.preview} 
+                src={cleanCosmeticUrl(eq.efeito.preview)} 
                 className={`absolute inset-0 m-auto w-full h-full object-contain z-10 ${eq.efeito.cssClass}`} 
-                style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} 
+                style={{ pointerEvents: 'none' }} 
               />
             )}
 
-            {/* 4. A Moldura Mágica (pouco maior que o avatar) */}
             {eq.moldura && (
               <img 
-                src={eq.moldura.preview} 
+                src={cleanCosmeticUrl(eq.moldura.preview)} 
                 className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-10 ${eq.moldura.cssClass}`} 
-                style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} 
+                style={{ pointerEvents: 'none' }} 
               />
             )}
 
-            {/* 5. A Badge/Medalha no Canto Inferior */}
             {eq.badge && (
               <img 
-                src={eq.badge.preview} 
+                src={cleanCosmeticUrl(eq.badge.preview)} 
                 className={`absolute -bottom-2 -right-2 w-8 h-8 object-contain z-20 ${eq.badge.cssClass}`} 
                 style={{ pointerEvents: 'none' }} 
               />
