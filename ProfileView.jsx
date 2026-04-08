@@ -108,14 +108,20 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-16 md:-mt-20 z-10">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
           
+          {/* MISTURA COM O FUNDO (MIX-BLEND-SCREEN) APLICADA AQUI NO AVATAR DO PERFIL */}
           <div className="relative group w-28 h-28 md:w-36 md:h-36 flex-shrink-0 flex items-center justify-center">
-            {eq.particulas && <img src={eq.particulas.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none ${eq.particulas.cssClass}`} />}
+            
+            {eq.particulas && <img src={eq.particulas.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none mix-blend-screen z-0 ${eq.particulas.cssClass}`} />}
+            
             <div className={`w-full h-full rounded-full bg-black flex items-center justify-center relative z-10 overflow-hidden ${eq.moldura ? '' : 'border-4 border-[#020205] shadow-[0_0_30px_rgba(37,99,235,0.15)]'}`}>
                <img src={eq.avatar ? eq.avatar.preview : (avatarBase64 || `https://placehold.co/150x150/050508/3b82f6?text=U`)} className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} />
             </div>
+
             {eq.efeito && <img src={eq.efeito.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${eq.efeito.cssClass}`} />}
-            {eq.moldura && <img src={eq.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${eq.moldura.cssClass}`} />}
-            {eq.badge && <img src={eq.badge.preview} className={`absolute -bottom-2 -right-2 w-8 h-8 z-40 drop-shadow-lg ${eq.badge.cssClass}`} />}
+            
+            {eq.moldura && <img src={eq.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none mix-blend-screen z-30 ${eq.moldura.cssClass}`} />}
+            
+            {eq.badge && <img src={eq.badge.preview} className={`absolute -bottom-2 -right-2 w-8 h-8 z-40 drop-shadow-lg mix-blend-screen pointer-events-none ${eq.badge.cssClass}`} />}
 
             {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-0 right-0 bg-blue-600 p-3 rounded-full text-black z-50 shadow-[0_0_15px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-colors duration-300"><Camera className="w-5 h-5" /></button>}
             <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
@@ -128,7 +134,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             <p className="text-amber-500 font-bold mb-1 text-xs tracking-wider">{user.email}</p>
             {bio && !isEditing && <p className="text-blue-200/60 text-xs mb-3 italic font-medium">"{bio}"</p>}
             
-            {/* NOVO DESIGN DA BARRA DE XP - MAIS DIGNA */}
             <div className="w-full max-w-md mx-auto md:mx-0 bg-black/60 p-5 rounded-2xl border border-white/5 mt-4 backdrop-blur-md relative overflow-hidden shadow-2xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 blur-[40px] pointer-events-none"></div>
               <div className="flex justify-between items-end mb-3 relative z-10">
@@ -202,7 +207,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                               const mg = mangas.find(m => m.id === hist.mangaId);
                               return (
                                   <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#050508] border border-blue-900/20 p-3 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-blue-500/40 transition-colors duration-300 shadow-sm group">
-                                      {/* CORREÇÃO DAS CAPAS CINZAS: Apenas colorida com scale-110 no hover */}
                                       <div className="w-14 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-black border border-blue-900/30 shadow-inner">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" /> : <BookOpen className="w-6 h-6 m-auto mt-6 text-blue-900/40"/>}</div>
                                       <div className="flex-1"><h4 className="font-bold text-blue-50 text-sm line-clamp-1 group-hover:text-blue-400 transition-colors">{hist.mangaTitle}</h4><p className="text-amber-600 text-[10px] font-black mt-1 uppercase tracking-wider">Capítulo {hist.chapterNumber}</p></div>
                                       <div className="text-right"><p className="text-[9px] text-blue-400/50 font-bold uppercase tracking-widest">{new Date(hist.timestamp).toLocaleDateString()}</p><p className="text-[10px] text-blue-900/60 font-medium mt-0.5">{new Date(hist.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
@@ -233,7 +237,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
             {activeTab === "Configuracoes" && (
                 <div className="animate-in fade-in duration-300 space-y-6">
-                    {/* SELETOR DE TEMAS */}
                     <div className="bg-[#050508] border border-blue-900/20 p-5 rounded-2xl shadow-inner mt-4">
                        <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-widest">Tema do Vazio</h3>
                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
