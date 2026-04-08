@@ -428,44 +428,30 @@ function MangaInfinityApp() {
                       <span className="text-[10px] text-fuchsia-400 font-bold uppercase tracking-widest">Nível {userProfileData.level || 1}</span>
                     </div>
                     
-                    {/* ESTRUTURA CORRIGIDA DO AVATAR NA NAVBAR */}
-                    <div className="relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group">
-                        <img 
-                           src={userProfileData.avatarUrl || user.photoURL || `https://placehold.co/100x100/050508/3b82f6?text=U`} 
-                           className={`w-9 h-9 rounded-full object-cover z-0 border border-white/10 group-hover:border-cyan-500 transition-colors duration-300 ${eq.avatar?.cssClass || ''}`} 
-                           alt="Avatar do Usuário"
-                        />
+                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
+                        <div className={`w-9 h-9 rounded-full overflow-hidden bg-[#161a25] flex items-center justify-center relative z-10 ${!eq.moldura ? 'border border-white/10 group-hover:border-cyan-500' : ''}`}>
+                            <img 
+                               src={cleanCosmeticUrl(userProfileData.avatarUrl) || user.photoURL || `https://placehold.co/100x100/0f111a/3b82f6?text=U`} 
+                               className={`w-full h-full object-cover transition-colors duration-300 ${eq.avatar?.cssClass || ''}`} 
+                               alt="Avatar"
+                               onError={(e) => e.target.src = `https://placehold.co/100x100/0f111a/3b82f6?text=U`}
+                            />
+                        </div>
                         
-                        {eq.particulas && (
-                          <img 
-                            src={cleanCosmeticUrl(eq.particulas.preview)} 
-                            className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-10 ${eq.particulas.cssClass}`} 
-                            style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} 
-                          />
+                        {cleanCosmeticUrl(eq.particulas?.preview) && (
+                          <img src={cleanCosmeticUrl(eq.particulas.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-10 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} />
                         )}
                         
-                        {eq.efeito && (
-                          <img 
-                            src={cleanCosmeticUrl(eq.efeito.preview)} 
-                            className={`absolute inset-0 m-auto w-full h-full object-contain z-10 ${eq.efeito.cssClass}`} 
-                            style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} 
-                          />
+                        {cleanCosmeticUrl(eq.efeito?.preview) && (
+                          <img src={cleanCosmeticUrl(eq.efeito.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} />
                         )}
 
-                        {eq.moldura && (
-                          <img 
-                            src={cleanCosmeticUrl(eq.moldura.preview)} 
-                            className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-10 ${eq.moldura.cssClass}`} 
-                            style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} 
-                          />
+                        {cleanCosmeticUrl(eq.moldura?.preview) && (
+                          <img src={cleanCosmeticUrl(eq.moldura.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-30 ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} />
                         )}
 
-                        {eq.badge && (
-                          <img 
-                            src={cleanCosmeticUrl(eq.badge.preview)} 
-                            className={`absolute -bottom-1 -right-1 w-4 h-4 object-contain z-20 ${eq.badge.cssClass}`} 
-                            style={{ pointerEvents: 'none' }} 
-                          />
+                        {cleanCosmeticUrl(eq.badge?.preview) && (
+                          <img src={cleanCosmeticUrl(eq.badge.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute -bottom-1 -right-1 w-4 h-4 object-contain z-40 ${eq.badge.cssClass || ''}`} style={{ pointerEvents: 'none' }} />
                         )}
                     </div>
                   </div>
