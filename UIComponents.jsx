@@ -1,11 +1,13 @@
 import React from 'react';
 import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 
-/* NOVO ÍCONE: PUXANDO A SUA IMAGEM PNG TRANSPARENTE */
+// A MÁGICA: Importa a imagem diretamente dos seus arquivos locais
+import meuLogo from './1775680662923_v4lypu.png'; 
+
 export function AbyssalLogo({ className = "w-10 h-10" }) {
   return (
     <img 
-      src="/1775680662923_v4lypu.png" 
+      src={meuLogo} 
       alt="Logo Mangás Abissal" 
       className={`object-contain ${className}`}
     />
@@ -45,7 +47,7 @@ export function GlobalToast({ toast }) {
 
 export function Footer() {
     return (
-        <footer className="w-full bg-[#0f111a] border-t border-blue-900/20 py-12 mt-auto pb-24 md:pb-12 relative overflow-hidden flex flex-col items-center justify-center">
+        <footer className="w-full bg-[#0b0e14] border-t border-blue-900/20 py-12 mt-auto pb-24 md:pb-12 relative overflow-hidden flex flex-col items-center justify-center">
             <div className="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-900/10 rounded-full blur-[100px] pointer-events-none"></div>
             <div className="max-w-7xl mx-auto px-4 text-center relative z-10 flex flex-col items-center justify-center w-full">
                 <div className="flex justify-center items-center gap-3 mb-5 relative">
@@ -64,17 +66,17 @@ export function Footer() {
 
 export function SplashScreen() {
   return (
-    <div className="fixed inset-0 z-[600] bg-[#0f111a] flex flex-col items-center justify-center overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[600] bg-[#0b0e14] flex flex-col items-center justify-center overflow-hidden font-sans">
       <style>{`
         @keyframes vortex-open { 0% { transform: scale(0.8); opacity: 0; filter: blur(20px); } 50% { transform: scale(1.05); opacity: 1; filter: blur(0px); } 100% { transform: scale(1); opacity: 1; } }
       `}</style>
       
-      <div className="absolute w-[60rem] h-[60rem] bg-gradient-to-tr from-blue-900/10 via-[#0f111a] to-red-900/5 rounded-full blur-[120px] animate-[spin_25s_linear_infinite]"></div>
+      <div className="absolute w-[60rem] h-[60rem] bg-gradient-to-tr from-blue-900/10 via-[#0b0e14] to-red-900/5 rounded-full blur-[120px] animate-[spin_25s_linear_infinite]"></div>
 
       <div className="relative z-20 flex flex-col items-center animate-[vortex-open_1.5s_cubic-bezier(0.2,0.8,0.2,1)_forwards] w-full max-w-sm mx-auto text-center">
         <AbyssalLogo className="w-36 h-36 mx-auto mb-10 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
         <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-blue-100 to-blue-700 tracking-[0.3em] ml-[0.3em] text-center leading-tight uppercase">MANGÁS<br/>ABISSAL</h1>
-        <div className="mt-12 text-amber-500 text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase animate-pulse bg-[#0a0d14]/80 px-6 py-2.5 rounded-full border border-amber-900/30 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] text-center mx-auto">CONECTANDO AO VAZIO...</div>
+        <div className="mt-12 text-amber-500 text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase animate-pulse bg-[#13151f]/80 px-6 py-2.5 rounded-full border border-amber-900/30 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] text-center mx-auto">CONECTANDO AO VAZIO...</div>
       </div>
     </div>
   );
