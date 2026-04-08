@@ -176,6 +176,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
 
     return (
         <div className={`max-w-4xl mx-auto px-4 py-6 animate-in fade-in duration-500 relative pb-24 font-sans text-gray-300 min-h-screen ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#020205]'}`}>
+            
             {confirmModal && (
                 <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setConfirmModal(null)}>
                     <div className="bg-[#050508] border border-blue-900/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(37,99,235,0.15)] max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -339,38 +340,31 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                           return (
                             <div key={item.id} className={`bg-black border p-5 rounded-2xl flex flex-col items-center text-center transition-all duration-300 shadow-inner group ${isEquipped ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : 'border-blue-900/20 hover:border-amber-900/50 hover:shadow-[0_0_15px_rgba(37,99,235,0.1)]'}`}>
                               
-                              {/* NOVO PREVIEW MAIS INTELIGENTE DAS MOLDURAS/CAPAS NA LOJA */}
                               <div className={`w-20 h-20 rounded-xl mb-4 bg-[#050508] flex items-center justify-center overflow-hidden shadow-inner border border-white/5 relative`}>
                                 
-                                {/* 1. Capas de Fundo e Tema */}
                                 {(item.categoria === 'capa_fundo' || item.categoria === 'tema_perfil') ? (
                                     item.preview ? <img src={item.preview} className="w-full h-full object-cover opacity-80" /> : <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-fuchsia-900/20"></div>
                                 ) : null}
 
-                                {/* 2. Partículas */}
-                                {item.categoria === 'particulas' && <img src={item.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none ${item.cssClass}`} />}
+                                {/* MISTURA COM O FUNDO TAMBÉM NOS PRÉVIAS DA LOJA */}
+                                {item.categoria === 'particulas' && <img src={item.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none mix-blend-screen z-0 ${item.cssClass}`} />}
                                 
-                                {/* 3. Avatar Base Falso (para ver as molduras em volta de algo) */}
                                 {['moldura', 'efeito', 'particulas', 'badge'].includes(item.categoria) && (
                                     <div className="w-12 h-12 rounded-full bg-[#0d0d12] border border-white/10 z-10 overflow-hidden relative flex items-center justify-center">
                                         <User className="w-8 h-8 text-gray-600" />
                                     </div>
                                 )}
 
-                                {/* 4. Se for Avatar real */}
                                 {item.categoria === 'avatar' && <img src={item.preview} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${item.cssClass}`} />}
                                 
-                                {/* 5. Efeitos e Molduras */}
                                 {item.categoria === 'efeito' && <img src={item.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${item.cssClass}`} />}
-                                {item.categoria === 'moldura' && <img src={item.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${item.cssClass}`} />}
-                                {item.categoria === 'badge' && <img src={item.preview} className={`absolute -bottom-1 -right-1 w-6 h-6 z-40 ${item.cssClass}`} />}
+                                {item.categoria === 'moldura' && <img src={item.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none mix-blend-screen z-30 ${item.cssClass}`} />}
+                                {item.categoria === 'badge' && <img src={item.preview} className={`absolute -bottom-1 -right-1 w-6 h-6 z-40 drop-shadow-lg mix-blend-screen pointer-events-none ${item.cssClass}`} />}
 
-                                {/* 6. Letra animada se for Nickname */}
                                 {(item.categoria === 'nickname' || item.categoria === 'fonte' || item.categoria === 'font') && (
                                     <span className={`text-xl font-black relative z-10 ${item.cssClass}`}>A</span>
                                 )}
 
-                                {/* 7. Fallback Estrela Padrão só para o que a IA não reconhecer */}
                                 {(!['avatar', 'capa_fundo', 'tema_perfil', 'particulas', 'efeito', 'moldura', 'badge', 'nickname', 'fonte', 'font'].includes(item.categoria)) && (
                                     <Sparkles className="w-8 h-8 text-blue-400 relative z-10"/>
                                 )}
@@ -407,7 +401,8 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     <div key={player.id} className={`bg-black border p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:scale-[1.02] ${index < 3 ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-blue-900/30 hover:border-blue-500/50'}`}>
                                         <div className={`w-8 font-black text-lg text-center ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-700' : 'text-blue-900/40'}`}>#{index + 1}</div>
                                         <div className="relative w-12 h-12 flex items-center justify-center">
-                                            {player.equipped_items?.moldura && <img src={player.equipped_items.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 ${player.equipped_items.moldura.cssClass}`} />}
+                                            {/* MISTURA COM O FUNDO NOS AVATARES DO RANKING */}
+                                            {player.equipped_items?.moldura && <img src={player.equipped_items.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none mix-blend-screen z-30 ${player.equipped_items.moldura.cssClass}`} />}
                                             <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#0d0d12]">
                                                 <img src={player.avatarUrl || `https://placehold.co/100x100/050508/3b82f6?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover" />
                                             </div>
