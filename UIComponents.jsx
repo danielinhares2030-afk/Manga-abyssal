@@ -1,15 +1,14 @@
 import React from 'react';
 import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 
-// A MÁGICA: Importa a imagem diretamente dos seus arquivos locais
-import meuLogo from './1775680662923_v4lypu.png'; 
-
+/* NOVO ÍCONE: COM O SEU LINK DIRETO DO POSTIMAGES */
 export function AbyssalLogo({ className = "w-10 h-10" }) {
   return (
     <img 
-      src={meuLogo} 
+      src="https://i.postimg.cc/5yjKb919/1775680662923-v4lypu.png" 
       alt="Logo Mangás Abissal" 
       className={`object-contain ${className}`}
+      onError={(e) => e.target.style.display = 'none'}
     />
   );
 }
