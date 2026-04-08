@@ -1,427 +1,538 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, ShoppingCart, Trophy, Check, Compass, Timer, Star, Skull, Zap, Clock, Crown, Key, Loader2, ShieldAlert, Sparkles, User } from 'lucide-react';
-import { doc, updateDoc, collectionGroup, getDocs, query } from "firebase/firestore";
-import { db } from './firebase';
-import { addXpLogic, removeXpLogic, getLevelTitle, getRarityColor } from './helpers';
-import { APP_ID } from './constants';
+import { 
+  Search, Bell, Dices, Hexagon, Infinity as InfinityIcon, 
+  Home as HomeIcon, LayoutGrid, Library, UserCircle, User, X, Trophy, BookOpen, Eye 
+} from 'lucide-react';
 
-export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems, buyItem, equipItem }) {
-    const [activeTab, setActiveTab] = useState("Missões");
-    const [enigmaAnswer, setEnigmaAnswer] = useState("");
-    const [timeLeft, setTimeLeft] = useState("");
-    const [confirmModal, setConfirmModal] = useState(null); 
-    const [isForgingMission, setIsForgingMission] = useState(false); 
-    const [synthesizing, setSynthesizing] = useState(false);
-    
-    const [rankingList, setRankingList] = useState([]);
-    const [loadingRank, setLoadingRank] = useState(false);
+import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+import { 
+  doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, 
+  query, getDocs, updateDoc, increment 
+} from "firebase/firestore";
 
-    const rankConfigs = {
-        'Rank E': { rxp: 30, rcoin: 15, pxp: 15, pcoin: 10, time: 15, charLimit: 300, enigmaTries: 3 },
-        'Rank C': { rxp: 100, rcoin: 50, pxp: 50, pcoin: 25, time: 10, charLimit: 200, enigmaTries: 3 },
-        'Rank B': { rxp: 150, rcoin: 80, pxp: 80, pcoin: 40, time: 8, charLimit: 120, enigmaTries: 2 },
-        'Rank A': { rxp: 300, rcoin: 150, pxp: 150, pcoin: 80, time: 5, charLimit: 80, enigmaTries: 2 },
-        'Rank S': { rxp: 800, rcoin: 400, pxp: 400, pcoin: 200, time: 3, charLimit: 60, enigmaTries: 1 },
-        'Rank SSS':{ rxp: 2000, rcoin: 1000, pxp: 1000, pcoin: 500, time: 1, charLimit: 40, enigmaTries: 1 }
+import { app, auth, db } from './firebase'; 
+import { APP_ID, FALLBACK_SHOP_ITEMS } from './constants';
+import { getThemeClasses, removeXpLogic, addXpLogic, timeAgo } from './helpers';
+
+import { ErrorBoundary, GlobalToast, Footer, SplashScreen, AbyssalLogo } from './UIComponents';
+
+import { LoginView } from './LoginView';
+import { HomeView } from './HomeView';
+import { SearchView } from './SearchView';
+import { CatalogView } from './CatalogView';
+import { LibraryView } from './LibraryView';
+import { NexoView } from './NexoView';
+import { ProfileView } from './ProfileView';
+
+import DetailsView from './DetailsView';
+import ReaderView  from './ReaderView';
+
+function MangaInfinityApp() {
+  const [splashTimerDone, setSplashTimerDone] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [isGuest, setIsGuest] = useState(false); 
+  const [currentView, setCurrentView] = useState('login'); 
+  
+  const [globalToast, setGlobalToast] = useState(null); 
+  const [levelUpAlert, setLevelUpAlert] = useState(null); 
+  const [dropAlert, setDropAlert] = useState(false);
+  const [isRandomizing, setIsRandomizing] = useState(false); 
+  const [showMobileSearch, setShowMobileSearch] = useState(false); 
+  const [showNotifMenu, setShowNotifMenu] = useState(false);
+  
+  const [selectedManga, setSelectedManga] = useState(null);
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [globalSearch, setGlobalSearch] = useState(''); 
+  
+  const [mangas, setMangas] = useState([]);
+  const [loadingMangas, setLoadingMangas] = useState(true);
+  const [shopItems, setShopItems] = useState(FALLBACK_SHOP_ITEMS);
+
+  const [catalogState, setCatalogState] = useState({ filterType: "Todos", selectedGenres: [], visibleCount: 24, scrollPos: 0 });
+
+  const [user, setUser] = useState(null);
+  const [userProfileData, setUserProfileData] = useState({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [] });
+  const [userSettings, setUserSettings] = useState({ readMode: 'Cascata', dataSaver: false, theme: 'Escuro' });
+  const [libraryData, setLibraryData] = useState({});
+  const [historyData, setHistoryData] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [dataLoaded, setDataLoaded] = useState(false); 
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSplashTimerDone(true), 3500); 
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (e) => {
+        if (e.state && e.state.view) {
+            setCurrentView(e.state.view);
+            if (e.state.mangaId) { const m = mangas.find(mg => mg.id === e.state.mangaId); if (m) setSelectedManga(m); }
+            if (e.state.chapterId && e.state.mangaId) {
+                const m = mangas.find(mg => mg.id === e.state.mangaId);
+                if (m && m.chapters) { const c = m.chapters.find(ch => ch.id === e.state.chapterId); if (c) setSelectedChapter(c); }
+            }
+        } else { setCurrentView('home'); }
     };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [mangas]);
 
-    const RANK_CARDS = [
-        { id: 'Rank E', color: 'text-gray-400', border: 'border-gray-500/20', hover: 'hover:border-gray-500/50', btn: 'bg-gray-800 hover:bg-gray-700' },
-        { id: 'Rank C', color: 'text-blue-500', border: 'border-blue-500/20', hover: 'hover:border-blue-500/50', btn: 'bg-blue-700 hover:bg-blue-600' },
-        { id: 'Rank B', color: 'text-amber-500', border: 'border-amber-500/20', hover: 'hover:border-amber-500/50', btn: 'bg-amber-700 hover:bg-amber-600' },
-        { id: 'Rank A', color: 'text-red-500', border: 'border-red-500/20', hover: 'hover:border-red-500/50', btn: 'bg-red-700 hover:bg-red-600' },
-        { id: 'Rank S', color: 'text-fuchsia-500', border: 'border-fuchsia-500/20', hover: 'hover:border-fuchsia-500/50', btn: 'bg-fuchsia-700 hover:bg-fuchsia-600' },
-        { id: 'Rank SSS', color: 'text-rose-500', border: 'border-rose-500/20', hover: 'hover:border-rose-500/50', btn: 'bg-gradient-to-r from-rose-700 to-purple-700 hover:from-rose-600 hover:to-purple-600' },
-    ];
-
-    useEffect(() => {
-        if(activeTab === 'Ranking') fetchRanking();
-    }, [activeTab]);
-
-    const fetchRanking = async () => {
-        setLoadingRank(true);
-        try {
-            const snap = await getDocs(query(collectionGroup(db, 'profile')));
-            let rankData = [];
-            snap.forEach(doc => {
-                if(doc.ref.path.includes('main') && (doc.data().level || doc.data().name)) { 
-                   rankData.push({ id: doc.ref.parent.parent.id, ...doc.data() });
-                }
-            });
-            rankData.sort((a, b) => {
-                if (b.level !== a.level) return (b.level || 1) - (a.level || 1);
-                return (b.xp || 0) - (a.xp || 0);
-            });
-            setRankingList(rankData.slice(0, 50));
-        } catch (e) {
-            showToast("Erro na Hierarquia Abissal.", "error");
-        } finally {
-            setLoadingRank(false);
+  useEffect(() => {
+    const fetchMangas = async () => {
+      try {
+        const obrasRef = collection(db, "obras");
+        const snap = await getDocs(obrasRef);
+        const list = [];
+        for (const docSnap of snap.docs) {
+          const data = docSnap.data();
+          const capSnap = await getDocs(collection(db, `obras/${docSnap.id}/capitulos`));
+          const chapters = [];
+          capSnap.forEach(c => { const cData = c.data(); chapters.push({ id: c.id, ...cData, rawTime: cData.createdAt || cData.timestamp || Date.now() }); });
+          chapters.sort((a,b) => b.number - a.number);
+          list.push({ id: docSnap.id, ...data, chapters });
         }
+        list.sort((a, b) => b.createdAt - a.createdAt);
+        setMangas(list);
+      } catch (error) { console.error(error); } finally { setLoadingMangas(false); }
     };
+    fetchMangas();
+  }, []);
 
-    useEffect(() => {
-        if (!userProfileData.activeMission) return;
-        const updateTimer = () => {
-            const diff = userProfileData.activeMission.deadline - Date.now();
-            if (diff <= 0) { setTimeLeft("Expirado"); } else {
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const m = Math.floor((diff / 1000 / 60) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                setTimeLeft(`${d > 0 ? d+'d ' : ''}${h > 0 || d > 0 ? h+'h ' : ''}${m}m ${s}s`);
-            }
-        };
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
-        return () => clearInterval(interval);
-    }, [userProfileData.activeMission]);
+  useEffect(() => {
+    const q = query(collection(db, "loja_itens"));
+    const unsub = onSnapshot(q, (snap) => {
+        if (!snap.empty) {
+            const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() })); setShopItems(items);
+        } else { setShopItems(FALLBACK_SHOP_ITEMS); }
+    });
+    return () => unsub();
+  }, []);
 
-    const triggerForgeMission = async (difficulty) => {
-        setConfirmModal(null); setIsForgingMission(true);
-        setTimeout(() => { generateMission(difficulty); }, 2500); 
-    };
-
-    const generateMission = async (difficulty) => {
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser); setAuthReady(true);
+      if (currentUser) {
+        if (currentView === 'login') { window.history.pushState({ view: 'home' }, '', ''); setCurrentView('home'); }
         try {
-            const now = Date.now();
-            let completed = userProfileData.completedMissions || [];
-            let newMission = null;
-            const conf = rankConfigs[difficulty];
-
-            const missionPool = ['read', 'search_visual', 'enigma'];
-            const chosenType = missionPool[Math.floor(Math.random() * missionPool.length)];
-
-            if (mangas.length > 0) {
-                const randomManga = mangas[Math.floor(Math.random() * mangas.length)];
-
-                if (chosenType === 'search_visual' && randomManga.synopsis && randomManga.synopsis.length > 30) {
-                    let cleanDesc = randomManga.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(randomManga.title, 'gi'), '█████');
-                    let genres = randomManga.genres ? randomManga.genres.join(', ') : 'Desconhecidos';
-                    let q = `[ECO DO VAZIO]\n\nGêneros: ${genres}\n\nFragmento:\n"${cleanDesc.substring(0, conf.charLimit)}..."\n\nRastreie esta obra no catálogo e acesse a página dela para concluir o contrato.`;
-                    
-                    newMission = { id: Date.now().toString(), type: 'search_local', difficulty, title: "Caçada Abissal", question: q, targetManga: randomManga.id, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000) };
-                
-                } else if (chosenType === 'enigma') {
-                    let q = `[MISTÉRIO DO ABISMO]\n\nAnalisando fragmentos da Biblioteca...\n`;
-                    if (randomManga.author) q += `• Autoria rastreada: ${randomManga.author}\n`;
-                    if (randomManga.genres && randomManga.genres.length > 0) q += `• Gêneros: ${randomManga.genres.slice(0,3).join(', ')}\n`;
-                    q += `\nQual é o nome exato desta obra gravada no Infinito?`;
-                    newMission = { id: Date.now().toString(), type: 'enigma', difficulty, title: "Enigma do Vazio", question: q, answer: [randomManga.title.toLowerCase().trim()], attemptsLeft: conf.enigmaTries, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000) };
-                
-                } else {
-                    let readTarget = difficulty === 'Rank E' ? 1 : difficulty === 'Rank C' ? 2 : difficulty === 'Rank B' ? 3 : difficulty === 'Rank A' ? 5 : difficulty === 'Rank S' ? 10 : 20;
-                    if(randomManga.chapters && randomManga.chapters.length < readTarget) readTarget = randomManga.chapters.length || 1;
-                    newMission = { id: Date.now().toString(), type: 'read', difficulty, title: `Exploração do Abismo`, desc: `Leia ${readTarget} capítulo(s) da obra "${randomManga.title}".`, targetManga: randomManga.id, targetCount: readTarget, currentCount: 0, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (readTarget * 45 * 60 * 1000) };
-                }
-            }
-
-            if (newMission) {
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: newMission, completedMissions: completed });
-                showToast(`Contrato do Abismo Assinado!`, "success");
+          const profileRef = doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'profile', 'main');
+          const unsubProfile = onSnapshot(profileRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setUserProfileData({ 
+                bio: data.bio, avatarUrl: data.avatarUrl, coverUrl: data.coverUrl, 
+                xp: data.xp || 0, level: data.level || 1, coins: data.coins || 0, crystals: data.crystals || 0,
+                inventory: data.inventory || [], 
+                equipped_items: data.equipped_items || {}, 
+                activeMission: data.activeMission || null, completedMissions: data.completedMissions || []
+              });
+              if(data.settings) setUserSettings({ ...userSettings, ...data.settings }); 
             } else {
-                showToast("O Abismo está vazio de contratos no momento.", "error");
+              setDoc(profileRef, { bio: "Leitor Nível 1.", settings: userSettings, xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [] }, { merge: true });
             }
-        } catch(e) { showToast("Falha na Matrix do Nexo.", "error"); } finally { setIsForgingMission(false); }
-    };
+          });
+
+          const libraryRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'library');
+          const unsubLib = onSnapshot(query(libraryRef), (snapshot) => { const libs = {}; snapshot.docs.forEach(d => libs[d.id] = d.data().status); setLibraryData(libs); });
+
+          const historyRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'history');
+          const unsubHist = onSnapshot(query(historyRef), (snapshot) => {
+            const hist = []; snapshot.docs.forEach(d => hist.push({ id: d.id, ...d.data() }));
+            setHistoryData(hist.sort((a,b) => b.timestamp - a.timestamp));
+          });
+
+          const notifRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'notifications');
+          const unsubNotif = onSnapshot(query(notifRef), (snapshot) => {
+             const notifs = []; snapshot.docs.forEach(d => notifs.push({ id: d.id, ...d.data() }));
+             setNotifications(notifs.sort((a,b) => b.createdAt - a.createdAt)); setDataLoaded(true);
+          });
+
+          return () => { unsubProfile(); unsubLib(); unsubHist(); unsubNotif(); };
+        } catch (error) { console.error(error); }
+      } else {
+        setUserProfileData({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [] }); setLibraryData({}); setHistoryData([]); setNotifications([]); setDataLoaded(true);
+      }
+    });
+    return () => unsubscribeAuth();
+  }, [currentView]);
+
+  useEffect(() => {
+    if (!user || !userProfileData.activeMission) return;
+    const interval = setInterval(async () => {
+      const mission = userProfileData.activeMission;
+      if (mission && Date.now() > mission.deadline) {
+         setGlobalToast({ text: `Missão Falhou pelo Tempo! Penalidade: -${mission.penaltyXp}XP`, type: "error" });
+         const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+         let newCoins = Math.max(0, (userProfileData.coins || 0) - mission.penaltyCoins);
+         let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, mission.penaltyXp);
+         await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [user, userProfileData.activeMission]);
+
+  useEffect(() => {
+      const completeSearchLocalMission = async () => {
+          if (!user || !userProfileData?.activeMission) return;
+          const m = userProfileData.activeMission;
+          const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+          
+          let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
+          let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
+          let currentCompleted = userProfileData.completedMissions || [];
+          if (!currentCompleted.includes("enigma_local_" + m.targetManga)) currentCompleted = [...currentCompleted, "enigma_local_" + m.targetManga];
+
+          await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
+          showToast(`Alvo Encontrado! Missão Concluída: +${m.rewardXp} XP | +${m.rewardCoins} M`, "success");
+          if(didLevelUp) handleLevelUpAnim(newLvl);
+      };
+
+      if (currentView === 'details' && selectedManga && userProfileData?.activeMission?.type === 'search_local') {
+          if (userProfileData.activeMission.targetManga === selectedManga.id) { completeSearchLocalMission(); }
+      }
+  }, [currentView, selectedManga, userProfileData?.activeMission, user]);
+
+  const showSplash = !splashTimerDone || !authReady || loadingMangas;
+
+  useEffect(() => {
+    if (!showSplash && !user && !isGuest && currentView !== 'login') { setCurrentView('login'); }
+  }, [showSplash, user, isGuest, currentView]);
+
+  const showToast = (text, type = 'info') => {
+    setGlobalToast({ text, type }); setTimeout(() => setGlobalToast(null), 4000);
+  };
+
+  const handleLevelUpAnim = (lvl) => {
+      setLevelUpAlert(lvl); setTimeout(() => setLevelUpAlert(null), 5000);
+  }
+
+  const navigateTo = (view, manga = null, chapter = null) => {
+    if (currentView === 'catalog') { setCatalogState(prev => ({ ...prev, scrollPos: window.scrollY })); }
+    if (manga) setSelectedManga(manga);
+    if (chapter) setSelectedChapter(chapter);
+
+    window.history.pushState({ view, mangaId: manga?.id, chapterId: chapter?.id }, '', '');
+    setCurrentView(view);
+    if (view !== 'catalog') { window.scrollTo(0, 0); }
+  };
+
+  const handleBack = () => {
+    if (window.history.state !== null) { window.history.back(); } else { navigateTo('home'); }
+  };
+
+  const handleSearchSubmit = (e) => { if (e.key === 'Enter' && globalSearch.trim() !== '') navigateTo('search'); };
+  
+  const handleLogout = async () => { await signOut(auth); setIsGuest(false); setCurrentView('login'); };
+
+  const handleRandomManga = () => {
+    if (mangas.length === 0) { showToast("Catálogo vazio.", "error"); return; }
+    setIsRandomizing(true);
+    setTimeout(() => {
+      const random = mangas[Math.floor(Math.random() * mangas.length)];
+      navigateTo('details', random);
+      setIsRandomizing(false);
+    }, 600); 
+  };
+
+  const triggerRandomDrop = async () => {
+    if (!user) return;
+    const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+    try { await updateDoc(profileRef, { crystals: increment(1) }); setDropAlert(true); setTimeout(() => setDropAlert(false), 2000); } catch(e) {}
+  };
+
+  const markAsRead = async (manga, chapter, isValidReading) => {
+    if (!user) return;
+    try {
+      const ref = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', `${manga.id}_${chapter.id}`);
+      const docSnap = await getDoc(ref);
+      let isNewRead = false;
+      if (!docSnap.exists()) {
+        isNewRead = true;
+        await setDoc(ref, { mangaId: manga.id, mangaTitle: manga.title, chapterNumber: chapter.number, timestamp: Date.now(), id: `${manga.id}_${chapter.id}` });
+      } else { await updateDoc(ref, { timestamp: Date.now() }); }
+
+      if (isNewRead && userProfileData.activeMission?.type === 'read' && userProfileData.activeMission.targetManga === manga.id) {
+         if (!isValidReading) { showToast("⚠️ Tempo insuficiente (Mín. 45s).", "warning"); return; }
+         const m = userProfileData.activeMission;
+         const newCount = m.currentCount + 1;
+         const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+         
+         if (newCount >= m.targetCount) {
+             let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
+             let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
+             let currentCompleted = userProfileData.completedMissions || [];
+             if (!currentCompleted.includes(m.targetManga)) currentCompleted = [...currentCompleted, m.targetManga];
+             await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
+             showToast(`Missão Concluída! +${m.rewardXp} XP | +${m.rewardCoins} Moedas`, "success");
+             if(didLevelUp) handleLevelUpAnim(newLvl);
+         } else {
+             await updateDoc(profileRef, { 'activeMission.currentCount': newCount });
+             showToast(`Progresso: ${newCount}/${m.targetCount}`, "info");
+         }
+      }
+    } catch(e) { console.error(e) }
+  };
+
+  const updateSettings = async (newSettings) => {
+    const updated = { ...userSettings, ...newSettings };
+    setUserSettings(updated);
+    if(user) { try { await setDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { settings: updated }, { merge: true }); } catch(e) {} }
+  };
+
+  const buyItem = async (item) => {
+    const price = item.preco || item.price;
+    if ((userProfileData.coins || 0) < price) { showToast("Moedas Insuficientes!", "error"); return; }
+    const newCoins = userProfileData.coins - price;
+    const newInv = [...(userProfileData.inventory || []), item.id];
+    await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: newCoins, inventory: newInv });
+    showToast(`Adquirido com sucesso!`, "success");
+  };
+
+  const toggleEquipItem = async (item) => {
+    const cat = item.categoria || item.type;
+    const currentEquipped = userProfileData.equipped_items || {};
+    const isEquipped = currentEquipped[cat]?.id === item.id;
+    const newEquipped = { ...currentEquipped };
     
-    const handleEnigmaSubmit = async (e) => {
-        e.preventDefault(); const m = userProfileData.activeMission;
-        if (!m || m.type !== 'enigma') return;
-        if (!enigmaAnswer.trim()) return showToast("A resposta não pode ser vazia.", "warning");
-        const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-        const userAnswer = enigmaAnswer.toLowerCase().trim();
-        const isCorrect = m.answer.some(ans => { const correctAns = ans.toLowerCase().trim(); return userAnswer === correctAns || (userAnswer.length >= 3 && (correctAns.includes(userAnswer) || userAnswer.includes(correctAns))); });
-        
-        if (isCorrect) {
-           let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
-           let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
-           await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
-           setEnigmaAnswer(''); showToast(`Decifrado! +${m.rewardXp} XP / +${m.rewardCoins} M.`, "success");
-           if(didLevelUp) onLevelUp(newLvl); 
-        } else {
-           const attempts = m.attemptsLeft - 1;
-           if (attempts <= 0) {
-               let newCoins = Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins);
-               let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
-               await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
-               showToast(`Falhou! Punição do Abismo aplicada.`, "error");
-           } else {
-               await updateDoc(profileRef, { 'activeMission.attemptsLeft': attempts }); showToast(`Incorreto. ${attempts} vida(s) restante(s).`, "error");
-           }
-           setEnigmaAnswer('');
-        }
-    };
+    if (isEquipped) {
+        delete newEquipped[cat];
+    } else {
+        newEquipped[cat] = item;
+    }
     
-    const cancelMission = async () => {
-        const m = userProfileData.activeMission; if(!m) return;
-        const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-        let newCoins = Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins);
-        let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
-        await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
-        showToast(`Desistência punida: -${m.penaltyXp}XP / -${m.penaltyCoins} M.`, "error");
-    };
+    await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { 
+        equipped_items: newEquipped 
+    });
+  };
 
-    const runSynthesis = async () => {
-        if ((userProfileData.crystals || 0) < 5) { showToast("Cristais insuficientes (Custa 5).", "error"); return; }
-        setSynthesizing(true);
-        setTimeout(async () => {
-          const res = await synthesizeCrystal(); setSynthesizing(false);
-          if (res && res.success) showToast(`Síntese Concluída! +${res.wonCoins} M | +${res.wonXp} XP`, 'success');
-          else showToast(`Falha! Cristais destruídos no Vácuo.`, 'error');
-        }, 1500);
-    };
+  const synthesizeCrystal = async () => {
+    if (userProfileData.crystals < 5) return null;
+    const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+    if (Math.random() < 0.40) { await updateDoc(profileRef, { crystals: increment(-5) }); return { success: false }; }
+    const wonCoins = Math.floor(Math.random() * 10) + 5; const wonXp = Math.floor(Math.random() * 5) + 5;    
+    let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, wonXp);
+    await updateDoc(profileRef, { crystals: increment(-5), coins: increment(wonCoins), xp: newXp, level: newLvl });
+    if(didLevelUp) handleLevelUpAnim(newLvl);
+    return { success: true, wonCoins, wonXp, leveledUp: didLevelUp, newLvl };
+  };
 
-    const equipped = userProfileData.equipped_items || {};
+  const handleLibraryToggle = async (mangaId, status) => {
+      if (!user) { showToast("Faça login para favoritar obras.", "warning"); return; }
+      try {
+          const ref = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'library', mangaId.toString());
+          if (status === "Remover") await deleteDoc(ref); else await setDoc(ref, { mangaId: mangaId, status: status, updatedAt: Date.now() });
+          if(status === 'Favoritos') showToast("Adicionado aos Favoritos!", "success"); else if(status === 'Remover') showToast("Removido da Biblioteca.", "info");
+      } catch(error) { showToast('Erro ao atualizar biblioteca.', 'error'); }
+  };
 
-    return (
-        <div className={`max-w-4xl mx-auto px-4 py-6 animate-in fade-in duration-500 relative pb-24 font-sans text-gray-300 min-h-screen ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#020205]'}`}>
-            
-            {confirmModal && (
-                <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setConfirmModal(null)}>
-                    <div className="bg-[#050508] border border-blue-900/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(37,99,235,0.15)] max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
-                        <Target className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-pulse" />
-                        <h3 className="text-lg font-black text-white mb-2 uppercase tracking-widest">Assinar Contrato?</h3>
-                        <p className="text-xs text-blue-200/60 font-medium px-2">Ao aceitar uma missão, você não pode voltar atrás sem punições.</p>
-                        <div className="bg-red-950/30 border border-red-900/30 p-3 rounded-lg mt-3 mb-6">
-                            <p className="text-xs text-red-200 font-medium">Se falhar, o Abismo cobrará:</p>
-                            <p className="text-sm font-black text-red-500 mt-1">-{rankConfigs[confirmModal]?.pxp} XP | -{rankConfigs[confirmModal]?.pcoin} Moedas</p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button onClick={() => setConfirmModal(null)} className="flex-1 bg-black border border-blue-900/30 text-gray-400 font-bold py-3.5 rounded-xl hover:text-white transition-colors text-xs duration-300 uppercase tracking-widest">Recusar</button>
-                            <button onClick={() => triggerForgeMission(confirmModal)} className="flex-1 bg-gradient-to-r from-blue-800 to-amber-600 text-white font-black py-3.5 rounded-xl hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)] text-xs duration-300 uppercase tracking-widest">Assinar</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+  if (showSplash) return <SplashScreen />;
+  if (currentView === 'login' || (!user && !isGuest)) {
+    return <LoginView onLoginSuccess={() => { window.history.pushState({ view: 'home' }, '', ''); setCurrentView('home'); setIsGuest(false); }} onGuestAccess={() => { window.history.pushState({ view: 'home' }, '', ''); setIsGuest(true); setCurrentView('home'); }} />;
+  }
 
-            <div className="flex gap-2.5 border-b border-blue-900/20 mb-6 overflow-x-auto scrollbar-hide pb-2 relative z-20">
-                <button onClick={() => setActiveTab("Missões")} className={`px-5 py-2.5 rounded-xl font-black transition-all whitespace-nowrap flex items-center gap-2 text-[10px] uppercase tracking-widest duration-300 ${activeTab === "Missões" ? 'bg-blue-950/40 text-blue-400 border border-blue-900/50 shadow-inner' : 'bg-black text-blue-900/60 hover:text-blue-200 border border-transparent shadow-sm'}`}><Target className="w-4 h-4"/> Contratos</button>
-                <button onClick={() => setActiveTab("Forja")} className={`px-5 py-2.5 rounded-xl font-black transition-all whitespace-nowrap flex items-center gap-2 text-[10px] uppercase tracking-widest duration-300 ${activeTab === "Forja" ? 'bg-amber-950/40 text-amber-400 border border-amber-900/50 shadow-inner' : 'bg-black text-blue-900/60 hover:text-blue-200 border border-transparent shadow-sm'}`}><Hexagon className="w-4 h-4"/> Fornalha Cósmica</button>
-                <button onClick={() => setActiveTab("Loja")} className={`px-5 py-2.5 rounded-xl font-black transition-all whitespace-nowrap flex items-center gap-2 text-[10px] uppercase tracking-widest duration-300 ${activeTab === "Loja" ? 'bg-red-950/40 text-red-500 border border-red-900/50 shadow-inner' : 'bg-black text-blue-900/60 hover:text-blue-200 border border-transparent shadow-sm'}`}><ShoppingCart className="w-4 h-4"/> Mercado Astral</button>
-                <button onClick={() => setActiveTab("Ranking")} className={`px-5 py-2.5 rounded-xl font-black transition-all whitespace-nowrap flex items-center gap-2 text-[10px] uppercase tracking-widest duration-300 ${activeTab === "Ranking" ? 'bg-blue-950/40 text-blue-400 border border-blue-900/50 shadow-inner' : 'bg-black text-blue-900/60 hover:text-blue-200 border border-transparent shadow-sm'}`}><Trophy className="w-4 h-4"/> Hierarquia</button>
-            </div>
+  const unreadNotifCount = notifications.filter(n => !n.read).length;
+  const eq = userProfileData.equipped_items || {};
 
-            {activeTab === "Missões" && (
-                <div className="animate-in fade-in duration-500 space-y-6">
-                    {userProfileData.activeMission ? (
-                        <div className="bg-gradient-to-br from-[#050508] to-black border border-blue-900/30 p-6 md:p-8 rounded-3xl relative overflow-hidden shadow-2xl">
-                           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 blur-[80px] pointer-events-none"></div>
-                           <div className="flex justify-between items-start mb-6 relative z-10">
-                              <div>
-                                 <span className="bg-blue-950/50 text-blue-400 text-[9px] font-black uppercase px-3 py-1 rounded shadow-inner border border-blue-900/30">{userProfileData.activeMission.difficulty}</span>
-                                 <h3 className="text-xl md:text-2xl font-black text-white mt-3 tracking-tight uppercase">{userProfileData.activeMission.title}</h3>
-                              </div>
-                              <div className="text-right">
-                                 <div className="flex items-center gap-2 text-red-400 font-black bg-red-950/30 px-3 py-1.5 rounded border border-red-900/30 shadow-inner text-xs"><Timer className="w-4 h-4 animate-pulse" /> {timeLeft}</div>
-                              </div>
-                           </div>
-                           
-                           {userProfileData.activeMission.type === 'read' && (
-                               <div className="bg-black/50 p-4 md:p-6 rounded-2xl border border-white/5 mb-6 shadow-inner relative z-10">
-                                  <p className="text-gray-300 font-medium text-sm mb-4 leading-relaxed">{userProfileData.activeMission.desc}</p>
-                                  <div className="w-full bg-[#020205] rounded-full h-3 overflow-hidden shadow-inner border border-white/5">
-                                      <div className="bg-gradient-to-r from-blue-700 to-cyan-400 h-full transition-all duration-1000 relative" style={{width: `${(userProfileData.activeMission.currentCount / userProfileData.activeMission.targetCount) * 100}%`}}>
-                                          <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
-                                      </div>
-                                  </div>
-                                  <div className="flex justify-between text-[10px] text-blue-400 font-black mt-2 uppercase tracking-widest">
-                                      <span>Progresso</span>
-                                      <span>{userProfileData.activeMission.currentCount} / {userProfileData.activeMission.targetCount} Caps</span>
-                                  </div>
-                                  <button onClick={() => { const m = mangas.find(mg => mg.id === userProfileData.activeMission.targetManga); if(m) onNavigate('details', m); }} className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-xs uppercase tracking-widest shadow-md"><Compass className="w-4 h-4"/> Rastrear Obra</button>
-                               </div>
-                           )}
+  return (
+    <div className={`min-h-screen font-sans selection:bg-cyan-600 selection:text-white flex flex-col transition-colors duration-300 ${getThemeClasses(userSettings.theme)}`}>
+      
+      <style dangerouslySetInnerHTML={{__html: [
+          ...shopItems.map(item => `.${item.cssClass || 'none'} { ${item.css || ''} } ${item.animacao || ''}`),
+          ...Object.values(eq).filter(Boolean).map(item => `.${item.cssClass || 'none'} { ${item.css || ''} } ${item.animacao || ''}`)
+      ].join('\n')}} />
+      <style>{`input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #22d3ee; cursor: pointer; box-shadow: 0 0 15px rgba(34, 211, 238, 0.9); border: 2px solid white; } .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
 
-                           {userProfileData.activeMission.type === 'search_local' && (
-                               <div className="bg-black/50 p-4 md:p-6 rounded-2xl border border-white/5 mb-6 shadow-inner relative z-10">
-                                   <p className="text-gray-300 font-medium text-sm leading-relaxed whitespace-pre-wrap">{userProfileData.activeMission.question}</p>
-                                   <div className="mt-4 p-3 bg-red-950/20 border border-red-900/30 rounded-lg flex items-start gap-2">
-                                       <ShieldAlert className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                       <p className="text-[10px] text-red-400/80 font-bold leading-relaxed uppercase tracking-widest">Navegue até a página desta obra no catálogo para concluir a caçada. O tempo é implacável.</p>
-                                   </div>
-                               </div>
-                           )}
-                           
-                           {userProfileData.activeMission.type === 'enigma' && (
-                               <div className="bg-black/50 p-4 md:p-6 rounded-2xl border border-white/5 mb-6 shadow-inner relative z-10">
-                                  <p className="text-gray-300 font-medium text-sm leading-relaxed whitespace-pre-wrap mb-6 bg-[#020205] p-4 rounded-xl border border-white/5">{userProfileData.activeMission.question}</p>
-                                  <form onSubmit={handleEnigmaSubmit} className="flex flex-col gap-3">
-                                     <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="Sua resposta..." className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-4 py-3.5 text-white font-medium outline-none focus:border-blue-500/50 transition-colors shadow-inner text-sm" />
-                                     <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3.5 rounded-xl transition-colors shadow-md text-xs uppercase tracking-widest flex items-center justify-center gap-2"><Key className="w-4 h-4"/> Desvendar</button>
-                                  </form>
-                                  <p className="text-center mt-3 text-[10px] text-gray-500 font-black uppercase tracking-widest">Tentativas Restantes: <span className="text-red-400">{userProfileData.activeMission.attemptsLeft}</span></p>
-                               </div>
-                           )}
+      {levelUpAlert && (
+          <div className="fixed top-20 right-4 z-[99999] bg-[#0d0d12]/95 backdrop-blur-md border border-white/10 shadow-[0_5px_30px_rgba(217,70,239,0.2)] text-white px-4 py-3 rounded-lg flex items-center gap-3 animate-in slide-in-from-right fade-out duration-300 pointer-events-none">
+             <div className="bg-gradient-to-br from-cyan-600 to-fuchsia-600 p-2 rounded-md shadow-inner"><Trophy className="w-5 h-5 text-white" /></div>
+             <div className="flex flex-col"><span className="text-[10px] text-cyan-400 uppercase tracking-widest font-black">Level Up!</span><span className="text-sm font-bold">Nível {levelUpAlert} Alcançado</span></div>
+          </div>
+      )}
 
-                           <div className="flex items-center justify-between border-t border-white/10 pt-5 relative z-10">
-                              <div className="flex gap-4">
-                                 <span className="flex items-center gap-1.5 text-blue-400 font-black text-sm"><Sparkles className="w-4 h-4"/> {userProfileData.activeMission.rewardXp} XP</span>
-                                 <span className="flex items-center gap-1.5 text-amber-500 font-black text-sm"><div className="w-4 h-4 rounded-full bg-amber-500 border-2 border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></div> {userProfileData.activeMission.rewardCoins} M</span>
-                              </div>
-                              <button onClick={cancelMission} className="text-[10px] text-red-500 hover:text-white font-black uppercase tracking-widest transition-colors flex items-center gap-1"><Skull className="w-3 h-3"/> Desistir</button>
-                           </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {isForgingMission ? (
-                                <div className="bg-[#050508] border border-blue-900/30 p-12 rounded-3xl flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden">
-                                   <div className="absolute inset-0 bg-blue-900/10 animate-pulse"></div>
-                                   <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4 relative z-10" />
-                                   <h3 className="text-xl font-black text-blue-400 uppercase tracking-widest relative z-10">O Abismo está forjando...</h3>
-                                   <p className="text-xs text-blue-200/60 mt-2 font-bold uppercase tracking-wider relative z-10">Mapeando ecos no catálogo</p>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="bg-gradient-to-r from-[#050508] to-[#0a0f1a] border border-blue-900/20 p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] pointer-events-none"></div>
-                                        <div className="text-center sm:text-left relative z-10">
-                                            <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-3 justify-center sm:justify-start uppercase tracking-tight"><Target className="w-6 h-6 text-blue-500" /> Mural de Contratos</h2>
-                                            <p className="text-gray-400 text-xs leading-relaxed max-w-sm font-medium">Assine contratos com o Vazio. Conclua missões para ascender na Hierarquia.</p>
+      {dropAlert && (
+          <div className="fixed bottom-24 right-4 z-[99999] bg-[#0d0d12]/90 backdrop-blur-md border border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.3)] px-3 py-2 rounded-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-out duration-300 pointer-events-none">
+              <Hexagon className="w-4 h-4 text-cyan-400 animate-pulse" /><span className="text-cyan-100 text-xs font-bold">+1 Cristal</span>
+          </div>
+      )}
+
+      {isRandomizing && (
+        <div className="fixed inset-0 z-[2000] bg-[#050508]/90 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-100 pointer-events-none">
+           <Dices className="w-24 h-24 text-fuchsia-500 animate-[spin_0.2s_linear_infinite] drop-shadow-[0_0_50px_rgba(217,70,239,0.6)]" />
+        </div>
+      )}
+
+      <GlobalToast toast={globalToast} />
+
+      {currentView !== 'reader' && (
+        <nav className="sticky top-0 z-40 bg-[#030407]/80 backdrop-blur-xl border-b border-white/5 shadow-sm relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              
+              <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
+                <AbyssalLogo className="w-10 h-10 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" />
+                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-white to-amber-500 tracking-[0.2em] uppercase hidden sm:block">ABISSAL</span>
+              </div>
+              
+              <div className="hidden md:block flex-1 max-w-lg mx-8 relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-4 w-4 text-gray-400/60 group-focus-within:text-cyan-400 transition-colors" /></div>
+                <input type="text" value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} onKeyDown={handleSearchSubmit} className="w-full pl-10 pr-4 py-2 border border-white/10 rounded-lg bg-[#0d0d12]/50 text-gray-100 outline-none focus:border-cyan-500 transition-all text-sm" placeholder="Pesquisar a obra e teclar Enter..." />
+              </div>
+
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="flex items-center gap-1 md:gap-3 border-r border-white/10 pr-4 md:pr-6">
+                  <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300" title="Pesquisar">
+                    {showMobileSearch ? <X className="w-5 h-5"/> : <Search className="w-5 h-5" />}
+                  </button>
+
+                  <button onClick={handleRandomManga} className="p-2 text-gray-300/80 hover:text-fuchsia-400 transition-colors duration-300 group relative" title="Obra Aleatória">
+                    <Dices className="w-5 h-5 md:w-5 md:h-5 group-hover:text-fuchsia-400 transition-colors duration-300" />
+                  </button>
+                  <div className="relative">
+                    <button onClick={() => {if(!user) return showToast("Faça login para ver mensagens", "info"); setShowNotifMenu(!showNotifMenu)}} className="relative p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300">
+                        <Bell className="w-5 h-5 md:w-5 md:h-5"/>
+                        {unreadNotifCount > 0 && <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-[#050508]"></span>}
+                    </button>
+                    {showNotifMenu && user && (
+                        <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 w-72 bg-[#0d0d12] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in slide-in-from-top-2">
+                            <div className="p-3 border-b border-white/10 bg-[#050508] flex items-center justify-between">
+                                <h3 className="font-black text-sm text-white flex items-center gap-2"><Bell className="w-4 h-4 text-cyan-400"/> Avisos e Comentários</h3>
+                                {unreadNotifCount > 0 && <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-black">{unreadNotifCount}</span>}
+                            </div>
+                            <div className="max-h-64 overflow-y-auto no-scrollbar">
+                                {notifications.length === 0 ? (
+                                    <p className="text-center text-xs text-gray-400/60 py-6">Nenhum aviso no momento.</p>
+                                ) : (
+                                    notifications.map(n => (
+                                        <div key={n.id} onClick={async () => { await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'notifications', n.id), {read: true}); if(n.mangaId) { const m = mangas.find(mg=>mg.id===n.mangaId); if(m) navigateTo('details', m); setShowNotifMenu(false); } }} className={`p-3 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${!n.read ? 'bg-cyan-900/10' : ''}`}>
+                                            <p className="text-xs text-gray-200 font-medium leading-relaxed">{n.text}</p>
+                                            <p className="text-[9px] text-cyan-500 mt-1.5 font-bold uppercase">{timeAgo(n.createdAt)}</p>
                                         </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {RANK_CARDS.map(r => (
-                                            <div key={r.id} className={`bg-[#050508] border ${r.border} ${r.hover} p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-sm relative overflow-hidden group`}>
-                                                <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 blur-[20px] rounded-full group-hover:scale-150 transition-transform duration-500 pointer-events-none"></div>
-                                                <div className="flex justify-between items-start mb-6 relative z-10">
-                                                    <h3 className={`text-xl font-black uppercase tracking-widest ${r.color}`}>{r.id}</h3>
-                                                    <div className="text-right">
-                                                        <div className="text-[10px] font-black text-blue-400 mb-1 flex items-center justify-end gap-1"><Sparkles className="w-3 h-3"/> {rankConfigs[r.id].rxp} XP</div>
-                                                        <div className="text-[10px] font-black text-amber-500 flex items-center justify-end gap-1"><div className="w-2.5 h-2.5 rounded-full bg-amber-500 border border-amber-300"></div> {rankConfigs[r.id].rcoin} M</div>
-                                                    </div>
-                                                </div>
-                                                <button onClick={() => setConfirmModal(r.id)} className={`w-full py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest text-white shadow-md transition-all duration-300 hover:scale-[1.02] ${r.btn} relative z-10`}>Assinar Contrato</button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
                     )}
+                  </div>
                 </div>
-            )}
 
-            {activeTab === "Forja" && (
-                <div className="animate-in fade-in duration-500">
-                    <div className="bg-gradient-to-b from-[#050508] to-black border border-amber-900/20 p-6 sm:p-10 rounded-3xl text-center shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-600/10 blur-[100px] rounded-full pointer-events-none"></div>
-                        <Hexagon className="w-16 h-16 mx-auto mb-6 text-amber-500 animate-[spin_10s_linear_infinite] drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] relative z-10" />
-                        <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-tight relative z-10">Fornalha Cósmica</h2>
-                        <p className="text-gray-400 text-sm mb-10 max-w-md mx-auto leading-relaxed relative z-10">Sintetize <b>5 Cristais</b> encontrados durante a leitura para obter Moedas e XP. Há <span className="text-red-400 font-bold">40% de chance</span> da anomalia destruir os cristais na forja.</p>
-                        
-                        <div className="bg-[#020205] border border-white/5 rounded-2xl p-6 max-w-xs mx-auto mb-8 shadow-inner relative z-10">
-                            <span className="text-[10px] uppercase font-black text-gray-500 tracking-widest mb-2 block">Cristais no Inventário</span>
-                            <div className="flex items-center justify-center gap-3 text-3xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
-                                <Hexagon className="w-8 h-8 fill-cyan-900/40" /> {userProfileData.crystals || 0}
-                            </div>
-                        </div>
-
-                        <button onClick={runSynthesis} disabled={synthesizing || (userProfileData.crystals || 0) < 5} className="bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 disabled:from-gray-800 disabled:to-gray-900 disabled:text-gray-500 text-black font-black py-4 px-10 rounded-xl transition-all duration-300 shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:scale-105 disabled:hover:scale-100 disabled:shadow-none relative z-10 text-xs uppercase tracking-widest flex items-center justify-center mx-auto gap-2">
-                           {synthesizing ? <><Loader2 className="w-5 h-5 animate-spin" /> Fundindo...</> : <><Zap className="w-5 h-5"/> Sintetizar 5 Cristais</>}
-                        </button>
+                <div className="hidden md:flex items-center gap-6 text-sm font-bold text-gray-300/80">
+                  <button onClick={() => navigateTo('home')} className={`hover:text-cyan-400 transition-colors duration-300 ${currentView === 'home' ? 'text-cyan-400' : ''}`}>Início</button>
+                  <button onClick={() => navigateTo('catalog')} className={`hover:text-cyan-400 transition-colors duration-300 ${currentView === 'catalog' ? 'text-cyan-400' : ''}`}>Catálogo</button>
+                  <button onClick={() => user ? navigateTo('nexo') : navigateTo('login')} className={`hover:text-fuchsia-400 transition-colors duration-300 flex items-center gap-1 ${currentView === 'nexo' ? 'text-fuchsia-400' : ''}`}><Hexagon className="w-4 h-4"/> Nexo</button>
+                  <button onClick={() => user ? navigateTo('profile') : navigateTo('login')} className={`hover:text-cyan-400 transition-colors duration-300 flex items-center gap-1 ${currentView === 'profile' ? 'text-cyan-400' : ''}`}><UserCircle className="w-4 h-4"/> Perfil</button>
+                </div>
+                {user ? (
+                  <div className="cursor-pointer flex items-center gap-3 group" onClick={() => navigateTo('profile')}>
+                    <div className="hidden sm:flex flex-col text-right">
+                      <span className="text-sm font-bold text-gray-200 group-hover:text-cyan-300 transition-colors duration-300">{user.displayName || "Leitor"}</span>
+                      <span className="text-[10px] text-fuchsia-400 font-bold uppercase tracking-widest">Nível {userProfileData.level || 1}</span>
                     </div>
-                </div>
-            )}
-
-            {activeTab === "Loja" && (
-                <div className="animate-in fade-in duration-300">
-                    <div className="bg-[#020205] border border-blue-900/20 p-6 md:p-8 rounded-3xl shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-900/10 blur-[80px] pointer-events-none"></div>
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 relative z-10">
-                        <div><h3 className="text-2xl font-black text-amber-500 mb-1.5 flex items-center gap-2.5 uppercase tracking-tight"><ShoppingCart className="w-6 h-6"/> Mercado Astral</h3><p className="text-gray-400 text-xs tracking-wide">Troque suas moedas por artefatos de personalização.</p></div>
-                        <div className="bg-amber-950/30 border border-amber-500/20 text-amber-400 font-black px-6 py-3 rounded-full flex items-center gap-2 w-full sm:w-auto justify-center text-sm shadow-inner">{userProfileData.coins || 0} M</div>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5 relative z-10">
-                        {shopItems.map(item => {
-                          const hasItem = userProfileData.inventory?.includes(item.id);
-                          const isEquipped = userProfileData.equipped_items?.[item.categoria]?.id === item.id;
-                          return (
-                            <div key={item.id} className={`bg-black border p-5 rounded-2xl flex flex-col items-center text-center transition-all duration-300 shadow-inner group ${isEquipped ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : 'border-blue-900/20 hover:border-amber-900/50 hover:shadow-[0_0_15px_rgba(37,99,235,0.1)]'}`}>
-                              
-                              <div className={`w-20 h-20 rounded-xl mb-4 bg-[#050508] flex items-center justify-center overflow-hidden shadow-inner border border-white/5 relative`}>
-                                
-                                {(item.categoria === 'capa_fundo' || item.categoria === 'tema_perfil') ? (
-                                    item.preview ? <img src={item.preview} className="w-full h-full object-cover opacity-80" /> : <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-fuchsia-900/20"></div>
-                                ) : null}
-
-                                {/* MISTURA COM O FUNDO TAMBÉM NOS PRÉVIAS DA LOJA */}
-                                {item.categoria === 'particulas' && <img src={item.preview} className={`absolute inset-[-50%] w-[200%] h-[200%] max-w-none object-cover pointer-events-none mix-blend-screen z-0 ${item.cssClass}`} />}
-                                
-                                {['moldura', 'efeito', 'particulas', 'badge'].includes(item.categoria) && (
-                                    <div className="w-12 h-12 rounded-full bg-[#0d0d12] border border-white/10 z-10 overflow-hidden relative flex items-center justify-center">
-                                        <User className="w-8 h-8 text-gray-600" />
-                                    </div>
-                                )}
-
-                                {item.categoria === 'avatar' && <img src={item.preview} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${item.cssClass}`} />}
-                                
-                                {item.categoria === 'efeito' && <img src={item.preview} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-20 ${item.cssClass}`} />}
-                                {item.categoria === 'moldura' && <img src={item.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none mix-blend-screen z-30 ${item.cssClass}`} />}
-                                {item.categoria === 'badge' && <img src={item.preview} className={`absolute -bottom-1 -right-1 w-6 h-6 z-40 drop-shadow-lg mix-blend-screen pointer-events-none ${item.cssClass}`} />}
-
-                                {(item.categoria === 'nickname' || item.categoria === 'fonte' || item.categoria === 'font') && (
-                                    <span className={`text-xl font-black relative z-10 ${item.cssClass}`}>A</span>
-                                )}
-
-                                {(!['avatar', 'capa_fundo', 'tema_perfil', 'particulas', 'efeito', 'moldura', 'badge', 'nickname', 'fonte', 'font'].includes(item.categoria)) && (
-                                    <Sparkles className="w-8 h-8 text-blue-400 relative z-10"/>
-                                )}
-                              </div>
-
-                              <h4 className="text-white font-bold mb-1.5 text-sm line-clamp-1 group-hover:text-amber-400 transition-colors">{item.nome || item.name}</h4>
-                              <p className={`text-[9px] uppercase tracking-widest font-black mb-5 ${getRarityColor(item.raridade)}`}>{item.categoria || item.type}</p>
-                              {hasItem ? (
-                                <button onClick={() => equipItem(item)} className={`w-full font-black py-3 rounded-xl transition-all duration-300 text-[10px] uppercase tracking-widest shadow-lg ${isEquipped ? 'bg-red-950/30 text-red-500 hover:bg-red-900 hover:text-white border border-red-500/40' : 'bg-[#020205] text-white hover:bg-blue-900/40 border border-white/10'}`}>{isEquipped ? 'Remover' : 'Equipar'}</button>
-                              ) : (
-                                <button onClick={() => buyItem(item)} className="w-full bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-black font-black py-3 rounded-xl transition-all duration-300 text-[10px] shadow-lg uppercase tracking-widest">{item.preco || item.price} M</button>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === "Ranking" && (
-                <div className="animate-in fade-in duration-500">
-                    <div className="bg-gradient-to-b from-[#050508] to-black border border-blue-900/20 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-900/10 blur-[100px] pointer-events-none"></div>
-                        <h3 className="text-2xl font-black text-blue-500 flex items-center justify-center gap-3 uppercase tracking-tight mb-8 relative z-10"><Trophy className="w-7 h-7 text-amber-500"/> Hierarquia do Vazio</h3>
+                    
+                    {/* ESTRUTURA DO AVATAR NA NAVBAR CORRIGIDA COM MIX-BLEND INLINE */}
+                    <div className="relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group">
                         
-                        {loadingRank ? (
-                            <div className="flex flex-col items-center justify-center py-12"><Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4"/><p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Calculando poder...</p></div>
-                        ) : rankingList.length === 0 ? (
-                            <p className="text-center text-[10px] uppercase text-gray-600 py-8 font-black tracking-[0.2em]">O Vazio ainda não reconhece nenhum lorde.</p>
-                        ) : (
-                            <div className="space-y-3 relative z-10">
-                                {rankingList.map((player, index) => (
-                                    <div key={player.id} className={`bg-black border p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:scale-[1.02] ${index < 3 ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-blue-900/30 hover:border-blue-500/50'}`}>
-                                        <div className={`w-8 font-black text-lg text-center ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-700' : 'text-blue-900/40'}`}>#{index + 1}</div>
-                                        <div className="relative w-12 h-12 flex items-center justify-center">
-                                            {/* MISTURA COM O FUNDO NOS AVATARES DO RANKING */}
-                                            {player.equipped_items?.moldura && <img src={player.equipped_items.moldura.preview} className={`absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none mix-blend-screen z-30 ${player.equipped_items.moldura.cssClass}`} />}
-                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#0d0d12]">
-                                                <img src={player.avatarUrl || `https://placehold.co/100x100/050508/3b82f6?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover" />
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className={`font-black text-sm truncate ${index < 3 ? 'text-amber-400' : 'text-white'}`}>{player.displayName || "Entidade Oculta"}</h4>
-                                            <p className="text-[10px] text-blue-400/80 font-bold uppercase tracking-wider truncate">{getLevelTitle(player.level)}</p>
-                                        </div>
-                                        <div className="text-right flex-shrink-0">
-                                            <div className="text-xs font-black text-amber-500 uppercase tracking-widest bg-amber-950/30 px-2 py-0.5 rounded border border-amber-900/30">Nível {player.level}</div>
-                                            <div className="text-[9px] text-gray-500 font-bold mt-1">{player.xp} XP</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        <img 
+                           src={userProfileData.avatarUrl || user.photoURL || `https://placehold.co/100x100/050508/3b82f6?text=U`} 
+                           className={`w-9 h-9 rounded-full object-cover z-0 border border-white/10 group-hover:border-cyan-500 transition-colors duration-300 ${eq.avatar?.cssClass || ''}`} 
+                           alt="Avatar do Usuário"
+                        />
+                        
+                        {eq.particulas && (
+                          <img 
+                            src={eq.particulas.preview} 
+                            className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-10 ${eq.particulas.cssClass}`} 
+                            style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} 
+                          />
+                        )}
+                        
+                        {eq.efeito && (
+                          <img 
+                            src={eq.efeito.preview} 
+                            className={`absolute inset-0 m-auto w-full h-full object-contain z-10 ${eq.efeito.cssClass}`} 
+                            style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} 
+                          />
+                        )}
+
+                        {eq.moldura && (
+                          <img 
+                            src={eq.moldura.preview} 
+                            className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-10 ${eq.moldura.cssClass}`} 
+                            style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} 
+                          />
+                        )}
+
+                        {eq.badge && (
+                          <img 
+                            src={eq.badge.preview} 
+                            className={`absolute -bottom-1 -right-1 w-4 h-4 object-contain z-20 ${eq.badge.cssClass}`} 
+                            style={{ pointerEvents: 'none' }} 
+                          />
                         )}
                     </div>
-                </div>
-            )}
+                  </div>
+                ) : (
+                  <button onClick={() => navigateTo('login')} className="bg-gradient-to-r from-cyan-600 to-fuchsia-600 text-white font-bold px-4 py-1.5 rounded-lg hover:scale-105 transition-transform duration-300 shadow-sm text-sm">Entrar</button>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {showMobileSearch && (
+            <div className="absolute top-full left-0 w-full bg-[#050508]/95 backdrop-blur-xl border-b border-white/10 p-3 shadow-xl md:hidden animate-in slide-in-from-top-2 z-50">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300/80" />
+                <input type="text" value={globalSearch} onChange={e => setGlobalSearch(e.target.value)} onKeyDown={(e) => { handleSearchSubmit(e); if(e.key === 'Enter') setShowMobileSearch(false); }} className="w-full pl-9 pr-4 py-2 border border-white/10 rounded-lg bg-[#0d0d12] text-gray-100 outline-none focus:border-cyan-500 text-sm transition-colors duration-300" placeholder="Pesquisar a obra..." autoFocus />
+              </div>
+            </div>
+          )}
+        </nav>
+      )}
+
+      <main className="flex-1">
+        {currentView === 'home' && <HomeView mangas={mangas} onNavigate={navigateTo} dataSaver={userSettings.dataSaver} />}
+        {currentView === 'search' && <SearchView mangas={mangas} query={globalSearch} onNavigate={navigateTo} dataSaver={userSettings.dataSaver} />}
+        {currentView === 'catalog' && <CatalogView mangas={mangas} onNavigate={navigateTo} dataSaver={userSettings.dataSaver} catalogState={catalogState} setCatalogState={setCatalogState} />}
+        {currentView === 'nexo' && user && <NexoView user={user} userProfileData={userProfileData} showToast={showToast} mangas={mangas} db={db} appId={APP_ID} onNavigate={navigateTo} onLevelUp={handleLevelUpAnim} synthesizeCrystal={synthesizeCrystal} shopItems={shopItems} buyItem={buyItem} equipItem={toggleEquipItem} />}
+        {currentView === 'library' && <LibraryView mangas={mangas} user={user} libraryData={libraryData} onNavigate={navigateTo} onRequireLogin={() => navigateTo('login')} dataSaver={userSettings.dataSaver} />}
+        {currentView === 'profile' && user && <ProfileView user={user} userProfileData={userProfileData} historyData={historyData} libraryData={libraryData} dataLoaded={dataLoaded} userSettings={userSettings} updateSettings={updateSettings} onLogout={handleLogout} onUpdateData={(n) => setUserProfileData({...userProfileData, ...n})} showToast={showToast} mangas={mangas} onNavigate={navigateTo} />}
+        {currentView === 'details' && selectedManga && <DetailsView manga={selectedManga} libraryData={libraryData} historyData={historyData} user={user} userProfileData={userProfileData} onBack={handleBack} onChapterClick={(m, c) => navigateTo('reader', m, c)} onRequireLogin={() => navigateTo('login')} showToast={showToast} db={db} />}
+        {currentView === 'reader' && selectedManga && selectedChapter && <ReaderView manga={selectedManga} chapter={selectedChapter} user={user} userProfileData={userProfileData} onBack={handleBack} onChapterClick={(m, c) => navigateTo('reader', m, c)} triggerRandomDrop={triggerRandomDrop} onMarkAsRead={markAsRead} readMode={userSettings.readMode} onRequireLogin={() => navigateTo('login')} showToast={showToast} libraryData={libraryData} onToggleLibrary={handleLibraryToggle} />}
+      </main>
+
+      {currentView !== 'reader' && currentView !== 'login' && <Footer />}
+
+      {currentView !== 'reader' && (
+        <div className="md:hidden fixed bottom-0 w-full bg-[#050508]/95 backdrop-blur-2xl border-t border-white/5 z-40 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+          <div className="flex justify-around items-center h-[60px] px-2 relative">
+            <button onClick={() => navigateTo('home')} className={`flex flex-col items-center gap-1 w-14 transition-colors duration-300 ${currentView === 'home' ? 'text-cyan-400' : 'text-gray-400/60 hover:text-cyan-300'}`}>
+               <HomeIcon className="w-5 h-5" /><span className="text-[9px] font-bold">Início</span>
+            </button>
+            <button onClick={() => navigateTo('catalog')} className={`flex flex-col items-center gap-1 w-14 transition-colors duration-300 ${currentView === 'catalog' ? 'text-cyan-400' : 'text-gray-400/60 hover:text-cyan-300'}`}>
+               <LayoutGrid className="w-5 h-5" /><span className="text-[9px] font-bold">Catálogo</span>
+            </button>
+            <div className="relative -top-5 flex justify-center w-16">
+                <button onClick={() => user ? navigateTo('nexo') : navigateTo('login')} className={`flex flex-col items-center justify-center w-14 h-14 rounded-full border-[3px] border-[#030407] shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-transform hover:scale-105 duration-300 ${currentView === 'nexo' ? 'bg-gradient-to-tr from-cyan-500 to-fuchsia-500 text-white' : 'bg-[#0d0d12] text-fuchsia-400'}`}>
+                    <Hexagon className="w-6 h-6 relative z-10" fill={currentView === 'nexo' ? "currentColor" : "none"}/>
+                    <span className="text-[8px] font-black relative z-10 mt-0.5">NEXO</span>
+                </button>
+            </div>
+            <button onClick={() => user ? navigateTo('library') : navigateTo('login')} className={`flex flex-col items-center gap-1 w-14 transition-colors duration-300 ${currentView === 'library' ? 'text-cyan-400' : 'text-gray-400/60 hover:text-cyan-300'}`}>
+               <Library className="w-5 h-5" /><span className="text-[9px] font-bold">Biblioteca</span>
+            </button>
+            <button onClick={() => user ? navigateTo('profile') : navigateTo('login')} className={`flex flex-col items-center gap-1 w-14 transition-colors duration-300 ${currentView === 'profile' ? 'text-cyan-400' : 'text-gray-400/60 hover:text-cyan-300'}`}>
+               <UserCircle className="w-5 h-5" /><span className="text-[9px] font-bold">Perfil</span>
+            </button>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <MangaInfinityApp />
+    </ErrorBoundary>
+  );
 }
