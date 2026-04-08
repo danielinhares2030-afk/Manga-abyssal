@@ -1,38 +1,14 @@
 import React from 'react';
 import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 
-/* NOVO ÍCONE: LIVRO ABISSAL COM OLHO DE I.A. */
+/* NOVO ÍCONE: PUXANDO A SUA IMAGEM PNG TRANSPARENTE */
 export function AbyssalLogo({ className = "w-10 h-10" }) {
   return (
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#ef4444" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f59e0b" />
-          <stop offset="100%" stopColor="#b45309" />
-        </linearGradient>
-        <linearGradient id="eyeIris" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ef4444" />
-          <stop offset="100%" stopColor="#991b1b" />
-        </linearGradient>
-      </defs>
-      {/* Aura Pulsante */}
-      <circle cx="50" cy="50" r="45" fill="url(#eyeGlow)" className="animate-pulse" />
-      {/* Capa do Livro */}
-      <path d="M20 75 L50 90 L80 75 L80 25 L50 40 L20 25 Z" fill="#0f172a" stroke="url(#bookGradient)" strokeWidth="4" strokeLinejoin="round" />
-      {/* Páginas Internas */}
-      <path d="M25 70 L50 85 L75 70 L75 30 L50 45 L25 30 Z" fill="#1e293b" stroke="#fbbf24" strokeWidth="2" strokeLinejoin="round" />
-      <line x1="50" y1="45" x2="50" y2="85" stroke="#fbbf24" strokeWidth="2" />
-      {/* Olho Abissal */}
-      <path d="M35 55 Q50 40 65 55 Q50 70 35 55 Z" fill="#000" stroke="#ef4444" strokeWidth="3" />
-      <circle cx="50" cy="55" r="7" fill="url(#eyeIris)" />
-      <circle cx="50" cy="55" r="3" fill="#000" />
-      {/* Linhas de I.A e Poder */}
-      <path d="M50 20 L50 10 M30 35 L20 25 M70 35 L80 25" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" className="animate-pulse" />
-    </svg>
+    <img 
+      src="/1775680662923_v4lypu.png" 
+      alt="Logo Mangás Abissal" 
+      className={`object-contain ${className}`}
+    />
   );
 }
 
@@ -69,7 +45,7 @@ export function GlobalToast({ toast }) {
 
 export function Footer() {
     return (
-        <footer className="w-full bg-[#020205] border-t border-blue-900/20 py-12 mt-auto pb-24 md:pb-12 relative overflow-hidden flex flex-col items-center justify-center">
+        <footer className="w-full bg-[#0f111a] border-t border-blue-900/20 py-12 mt-auto pb-24 md:pb-12 relative overflow-hidden flex flex-col items-center justify-center">
             <div className="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-900/10 rounded-full blur-[100px] pointer-events-none"></div>
             <div className="max-w-7xl mx-auto px-4 text-center relative z-10 flex flex-col items-center justify-center w-full">
                 <div className="flex justify-center items-center gap-3 mb-5 relative">
@@ -88,17 +64,17 @@ export function Footer() {
 
 export function SplashScreen() {
   return (
-    <div className="fixed inset-0 z-[600] bg-[#020205] flex flex-col items-center justify-center overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[600] bg-[#0f111a] flex flex-col items-center justify-center overflow-hidden font-sans">
       <style>{`
         @keyframes vortex-open { 0% { transform: scale(0.8); opacity: 0; filter: blur(20px); } 50% { transform: scale(1.05); opacity: 1; filter: blur(0px); } 100% { transform: scale(1); opacity: 1; } }
       `}</style>
       
-      <div className="absolute w-[60rem] h-[60rem] bg-gradient-to-tr from-blue-900/10 via-[#020205] to-red-900/5 rounded-full blur-[120px] animate-[spin_25s_linear_infinite]"></div>
+      <div className="absolute w-[60rem] h-[60rem] bg-gradient-to-tr from-blue-900/10 via-[#0f111a] to-red-900/5 rounded-full blur-[120px] animate-[spin_25s_linear_infinite]"></div>
 
       <div className="relative z-20 flex flex-col items-center animate-[vortex-open_1.5s_cubic-bezier(0.2,0.8,0.2,1)_forwards] w-full max-w-sm mx-auto text-center">
         <AbyssalLogo className="w-36 h-36 mx-auto mb-10 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
         <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-blue-100 to-blue-700 tracking-[0.3em] ml-[0.3em] text-center leading-tight uppercase">MANGÁS<br/>ABISSAL</h1>
-        <div className="mt-12 text-amber-500 text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase animate-pulse bg-[#050508]/80 px-6 py-2.5 rounded-full border border-amber-900/30 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] text-center mx-auto">CONECTANDO AO VAZIO...</div>
+        <div className="mt-12 text-amber-500 text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase animate-pulse bg-[#0a0d14]/80 px-6 py-2.5 rounded-full border border-amber-900/30 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] text-center mx-auto">CONECTANDO AO VAZIO...</div>
       </div>
     </div>
   );
