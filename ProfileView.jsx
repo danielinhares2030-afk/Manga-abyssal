@@ -17,59 +17,37 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const [confirmAction, setConfirmAction] = useState(null); 
 
   useEffect(() => {
-    setName(user.displayName || '');
-    setBio(userProfileData.bio || '');
-    setAvatarBase64(userProfileData.avatarUrl || user.photoURL || '');
-    setCoverBase64(userProfileData.coverUrl || '');
+    setName(user.displayName || ''); setBio(userProfileData.bio || ''); setAvatarBase64(userProfileData.avatarUrl || user.photoURL || ''); setCoverBase64(userProfileData.coverUrl || '');
   }, [user, userProfileData]);
   
   const avatarInputRef = useRef(null); const coverInputRef = useRef(null);
 
   const handleImageUpload = async (e, type) => {
     const file = e.target.files[0]; if (!file) return;
-    try {
-      const compressedBase64 = await compressImage(file, type === 'cover' ? 400 : 150, 0.4);
-      if (type === 'avatar') setAvatarBase64(compressedBase64); else setCoverBase64(compressedBase64);
-    } catch (err) { showToast("Erro na imagem.", "error"); }
+    try { const compressedBase64 = await compressImage(file, type === 'cover' ? 400 : 150, 0.4); if (type === 'avatar') setAvatarBase64(compressedBase64); else setCoverBase64(compressedBase64); } catch (err) { showToast("Erro na imagem.", "error"); }
   };
 
   const handleSave = async (e) => {
     e.preventDefault(); setLoading(true);
-    try {
-      await updateProfile(auth.currentUser, { displayName: name });
-      const docData = { coverUrl: coverBase64, avatarUrl: avatarBase64, bio: bio };
-      await setDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), docData, { merge: true });
-      onUpdateData(docData);
-      showToast('Registro salvo no Abismo!', 'success'); setIsEditing(false);
-    } catch (error) { showToast(`Erro ao gravar.`, 'error'); } finally { setLoading(false); }
+    try { await updateProfile(auth.currentUser, { displayName: name }); const docData = { coverUrl: coverBase64, avatarUrl: avatarBase64, bio: bio }; await setDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), docData, { merge: true }); onUpdateData(docData); showToast('Registro salvo no Abismo!', 'success'); setIsEditing(false); } catch (error) { showToast(`Erro ao gravar.`, 'error'); } finally { setLoading(false); }
   };
 
   const executeConfirmAction = async () => {
-      if (confirmAction === 'history') {
-          try {
-              historyData.forEach(async (h) => {
-                  await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', h.id));
-              });
-              showToast("Rastro apagado do Vazio.", "success");
-          } catch(e) { showToast("Erro ao apagar histórico.", "error"); }
-      } else if (confirmAction === 'cache') {
-          localStorage.clear();
-          sessionStorage.clear();
-          window.location.reload(true);
-      }
+      if (confirmAction === 'history') { try { historyData.forEach(async (h) => { await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', h.id)); }); showToast("Rastro apagado do Vazio.", "success"); } catch(e) { showToast("Erro ao apagar histórico.", "error"); } } 
+      else if (confirmAction === 'cache') { localStorage.clear(); sessionStorage.clear(); window.location.reload(true); }
       setConfirmAction(null);
   };
 
-  const level = userProfileData.level || 1;
-  const currentXp = userProfileData.xp || 0;
-  const xpNeeded = getLevelRequirement(level);
-  const progressPercent = Math.min(100, (currentXp / xpNeeded) * 100);
-  const lidosSet = new Set(historyData.map(h => h.mangaId));
-  const obrasLidasIds = Array.from(lidosSet);
-  const libraryMangaIds = Object.keys(libraryData);
-  const libraryMangas = mangas.filter(m => libraryMangaIds.includes(m.id));
-
+  const level = userProfileData.level || 1; const currentXp = userProfileData.xp || 0; const xpNeeded = getLevelRequirement(level); const progressPercent = Math.min(100, (currentXp / xpNeeded) * 100);
+  const lidosSet = new Set(historyData.map(h => h.mangaId)); const obrasLidasIds = Array.from(lidosSet); const libraryMangaIds = Object.keys(libraryData); const libraryMangas = mangas.filter(m => libraryMangaIds.includes(m.id));
   const eq = userProfileData.equipped_items || {};
+
+  const getAvatarSrc = () => {
+    if (!eq.avatar) return null;
+    const itemImg = eq.avatar.preview || eq.avatar.url || eq.avatar.img || eq.avatar.imagem || eq.avatar.image || eq.avatar.src || eq.avatar.foto || eq.avatar.link;
+    return itemImg ? cleanCosmeticUrl(itemImg) : null;
+  };
+  const activeAvatarSrc = getAvatarSrc() || avatarBase64 || `https://placehold.co/150x150/13151f/3b82f6?text=U`;
 
   return (
     <div className={`animate-in fade-in duration-500 w-full pb-20 font-sans min-h-screen text-gray-200 ${eq.tema_perfil ? eq.tema_perfil.cssClass : 'bg-[#0b0e14]'}`}>
@@ -78,12 +56,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
               <div className="bg-[#13151f] border border-red-900/50 p-6 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.15)] max-w-sm w-full text-center relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
                   <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4 animate-pulse" />
-                  <h3 className="text-lg font-black text-white mb-2 uppercase tracking-widest">
-                      {confirmAction === 'history' ? 'Apagar Rastros?' : 'Limpar Sistema?'}
-                  </h3>
-                  <p className="text-xs text-gray-400 font-medium mb-6 px-2">
-                      {confirmAction === 'history' ? 'Os registros de leitura serão varridos do Abismo para sempre.' : 'Isso irá recarregar a interface e limpar arquivos temporários.'}
-                  </p>
+                  <h3 className="text-lg font-black text-white mb-2 uppercase tracking-widest">{confirmAction === 'history' ? 'Apagar Rastros?' : 'Limpar Sistema?'}</h3>
+                  <p className="text-xs text-gray-400 font-medium mb-6 px-2">{confirmAction === 'history' ? 'Os registros de leitura serão varridos do Abismo para sempre.' : 'Isso irá recarregar a interface e limpar arquivos temporários.'}</p>
                   <div className="flex gap-3">
                       <button onClick={() => setConfirmAction(null)} className="flex-1 bg-black border border-red-900/30 text-gray-400 font-bold py-3.5 rounded-xl hover:text-white transition-colors text-xs duration-300 uppercase tracking-widest">Cancelar</button>
                       <button onClick={executeConfirmAction} className="flex-1 bg-red-950/40 border border-red-900/50 text-red-400 hover:bg-red-700 hover:text-white font-black py-3.5 rounded-xl transition-colors shadow-[0_0_15px_rgba(220,38,38,0.2)] text-xs duration-300 uppercase tracking-widest">Confirmar</button>
@@ -93,13 +67,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
       )}
 
       <div className="h-40 md:h-64 w-full bg-[#0b0e14] relative group border-b border-blue-900/20 overflow-hidden">
-        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? (
-            <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} onError={(e) => e.target.style.display = 'none'} className={`w-full h-full object-cover opacity-90 ${eq.capa_fundo.cssClass || ''}`} />
-        ) : coverBase64 ? (
-            <img src={coverBase64} className="w-full h-full object-cover opacity-70 mix-blend-luminosity" /> 
-        ) : (
-            <div className={`w-full h-full bg-gradient-to-tr from-[#0b0e14] to-[#1c1f2e] ${eq.capa_fundo?.cssClass || ''}`} />
-        )}
+        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} onError={(e) => e.target.style.display = 'none'} className={`w-full h-full object-cover opacity-90 ${eq.capa_fundo.cssClass || ''}`} /> ) : coverBase64 ? ( <img src={coverBase64} className="w-full h-full object-cover opacity-70 mix-blend-luminosity" /> ) : ( <div className={`w-full h-full bg-gradient-to-tr from-[#0b0e14] to-[#1c1f2e] ${eq.capa_fundo?.cssClass || ''}`} /> )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0e14] via-transparent to-transparent" />
         {isEditing && <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/60 text-blue-100 px-4 py-2 rounded-xl flex items-center gap-2 text-xs uppercase tracking-widest font-black z-10 transition-colors hover:bg-blue-900/50 duration-300 backdrop-blur-sm border border-blue-900/30"><Camera className="w-4 h-4" /> Capa</button>}
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
@@ -109,41 +77,21 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
           
           <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
-            
             <div className={`w-full h-full rounded-full bg-[#13151f] flex items-center justify-center relative z-10 overflow-hidden ${!eq.moldura ? 'border-4 border-[#0b0e14] shadow-[0_0_30px_rgba(37,99,235,0.15)]' : ''}`}>
-               <img 
-                 src={cleanCosmeticUrl(eq.avatar?.preview) || avatarBase64 || `https://placehold.co/150x150/13151f/3b82f6?text=U`} 
-                 className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} 
-                 alt="Avatar"
-                 onError={(e) => e.target.src = `https://placehold.co/150x150/13151f/3b82f6?text=U`}
-               />
+               <img src={activeAvatarSrc} className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} alt="Avatar" onError={(e) => e.target.src = `https://placehold.co/150x150/13151f/3b82f6?text=U`} />
             </div>
             
-            {/* CONDIÇÕES BLINDADAS COM "&&" - SE O LINK FOR VAZIO, ELE NÃO GERA NADA */}
-            {cleanCosmeticUrl(eq.particulas?.preview) && (
-              <img src={cleanCosmeticUrl(eq.particulas.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-0 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} />
-            )}
-            
-            {cleanCosmeticUrl(eq.efeito?.preview) && (
-              <img src={cleanCosmeticUrl(eq.efeito.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} />
-            )}
-
-            {cleanCosmeticUrl(eq.moldura?.preview) && (
-              <img src={cleanCosmeticUrl(eq.moldura.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-30 ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} />
-            )}
-
-            {cleanCosmeticUrl(eq.badge?.preview) && (
-              <img src={cleanCosmeticUrl(eq.badge.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute -bottom-2 -right-2 w-8 h-8 object-contain z-40 ${eq.badge.cssClass || ''}`} style={{ pointerEvents: 'none' }} />
-            )}
+            {cleanCosmeticUrl(eq.particulas?.preview) && ( <img src={cleanCosmeticUrl(eq.particulas.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-0 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
+            {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
+            {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-30 ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
+            {cleanCosmeticUrl(eq.badge?.preview) && ( <img src={cleanCosmeticUrl(eq.badge.preview)} onError={(e) => e.target.style.display = 'none'} className={`absolute -bottom-2 -right-2 w-8 h-8 object-contain z-40 ${eq.badge.cssClass || ''}`} style={{ pointerEvents: 'none' }} /> )}
 
             {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-0 right-0 bg-blue-600 p-3 rounded-full text-black z-50 shadow-[0_0_15px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-colors duration-300"><Camera className="w-5 h-5" /></button>}
             <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
           </div>
 
           <div className="flex-1 text-center md:text-left mt-4 md:mt-0">
-            <h1 className={`text-2xl md:text-4xl font-black tracking-tight ${eq.nickname ? eq.nickname.cssClass : 'text-blue-50'}`}>
-                {name || 'Entidade Sem Nome'}
-            </h1>
+            <h1 className={`text-2xl md:text-4xl font-black tracking-tight ${eq.nickname ? eq.nickname.cssClass : 'text-blue-50'}`}>{name || 'Entidade Sem Nome'}</h1>
             <p className="text-amber-500 font-bold mb-1 text-xs tracking-wider">{user.email}</p>
             {bio && !isEditing && <p className="text-blue-200/60 text-xs mb-3 italic font-medium">"{bio}"</p>}
             
@@ -159,7 +107,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                    <span className="text-xs font-black text-blue-400">{currentXp} <span className="text-gray-600">/ {xpNeeded} XP</span></span>
                 </div>
               </div>
-              
               <div className="relative w-full h-4 bg-[#0b0e14] rounded-full overflow-hidden border border-white/5 shadow-inner z-10">
                  <div className="absolute inset-0 bg-gray-900/30"></div>
                  <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-blue-700 via-cyan-500 to-fuchsia-500 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(34,211,238,0.5)]" style={{ width: `${progressPercent}%` }}>
@@ -167,7 +114,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                  </div>
               </div>
             </div>
-
           </div>
           <div className="flex gap-2">
             <button onClick={() => setIsEditing(!isEditing)} className="bg-[#13151f] text-blue-200 px-5 py-3 rounded-xl text-xs uppercase tracking-widest font-black flex items-center gap-2 transition-all duration-300 hover:bg-blue-900 hover:text-white border border-blue-900/30 shadow-sm"><Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Editar'}</button>
@@ -276,7 +222,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                     </div>
                 </div>
             )}
-
           </div>
         )}
       </div>
