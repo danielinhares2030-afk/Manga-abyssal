@@ -1,37 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Search, Bell, Dices, Hexagon, Infinity as InfinityIcon, 
-  Home as HomeIcon, LayoutGrid, Library, UserCircle, User, X, Trophy, BookOpen, Eye 
-} from 'lucide-react';
-
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-import { 
-  doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, 
-  query, getDocs, updateDoc, increment 
-} from "firebase/firestore";
-
-import { app, auth, db } from './firebase'; 
-import { APP_ID, FALLBACK_SHOP_ITEMS } from './constants';
-import { getThemeClasses, removeXpLogic, addXpLogic, timeAgo, cleanCosmeticUrl } from './helpers';
-
-import { ErrorBoundary, GlobalToast, Footer, SplashScreen, AbyssalLogo } from './UIComponents';
-
-import { LoginView } from './LoginView';
-import { HomeView } from './HomeView';
-import { SearchView } from './SearchView';
-import { CatalogView } from './CatalogView';
-import { LibraryView } from './LibraryView';
-import { NexoView } from './NexoView';
-import { ProfileView } from './ProfileView';
-
-import DetailsView from './DetailsView';
 import ReaderView  from './ReaderView';
+// ADICIONE A NOVA IMPORTAÇÃO AQUI:
+import { PopularView } from './PopularView';
 
 function MangaInfinityApp() {
   const [splashTimerDone, setSplashTimerDone] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [isGuest, setIsGuest] = useState(false); 
-  const [currentView, setCurrentView] = useState('login'); 
+  const [currentView, setCurrentView] = useState('login'); // Pode ser: home, catalog, search, details, reader, nexo, library, profile, popular
   
   const [globalToast, setGlobalToast] = useState(null); 
   const [levelUpAlert, setLevelUpAlert] = useState(null); 
@@ -480,6 +455,10 @@ function MangaInfinityApp() {
         {currentView === 'nexo' && user && <NexoView user={user} userProfileData={userProfileData} showToast={showToast} mangas={mangas} db={db} appId={APP_ID} onNavigate={navigateTo} onLevelUp={handleLevelUpAnim} synthesizeCrystal={synthesizeCrystal} shopItems={shopItems} buyItem={buyItem} equipItem={toggleEquipItem} />}
         {currentView === 'library' && <LibraryView mangas={mangas} user={user} libraryData={libraryData} onNavigate={navigateTo} onRequireLogin={() => navigateTo('login')} dataSaver={userSettings.dataSaver} />}
         {currentView === 'profile' && user && <ProfileView user={user} userProfileData={userProfileData} historyData={historyData} libraryData={libraryData} dataLoaded={dataLoaded} userSettings={userSettings} updateSettings={updateSettings} onLogout={handleLogout} onUpdateData={(n) => setUserProfileData({...userProfileData, ...n})} showToast={showToast} mangas={mangas} onNavigate={navigateTo} />}
+        
+        {/* NOVA ROTA ADICIONADA AQUI */}
+        {currentView === 'popular' && <PopularView mangas={mangas} onNavigate={navigateTo} dataSaver={userSettings.dataSaver} />}
+        
         {currentView === 'details' && selectedManga && <DetailsView manga={selectedManga} libraryData={libraryData} historyData={historyData} user={user} userProfileData={userProfileData} onBack={handleBack} onChapterClick={(m, c) => navigateTo('reader', m, c)} onRequireLogin={() => navigateTo('login')} showToast={showToast} db={db} />}
         {currentView === 'reader' && selectedManga && selectedChapter && <ReaderView manga={selectedManga} chapter={selectedChapter} user={user} userProfileData={userProfileData} onBack={handleBack} onChapterClick={(m, c) => navigateTo('reader', m, c)} triggerRandomDrop={triggerRandomDrop} onMarkAsRead={markAsRead} readMode={userSettings.readMode} onRequireLogin={() => navigateTo('login')} showToast={showToast} libraryData={libraryData} onToggleLibrary={handleLibraryToggle} />}
       </main>
