@@ -1,33 +1,93 @@
-import React, { useState } from 'react';
-import { Star, Clock, ListFilter, BookmarkPlus, ChevronRight, Flame } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Clock, ListFilter, BookmarkPlus, ChevronRight, Flame, Play } from 'lucide-react';
 import { timeAgo } from './helpers';
 
 export function HomeView({ mangas, onNavigate, dataSaver }) {
     const [filter, setFilter] = useState('Todos');
+    const [currentSlide, setCurrentSlide] = useState(0);
 
     const recentes = [...(mangas || [])].sort((a, b) => b.createdAt - a.createdAt);
     const populares = [...(mangas || [])].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+    
+    // Pega as 5 melhores obras que têm capa para o Carrossel Gigante
+    const destaques = [...(mangas || [])].filter(m => m.coverUrl).slice(0, 5);
 
     const filterOptions = ['Todos', 'Mangá', 'Manhwa', 'Manhua', 'Comic'];
     const filteredRecentes = filter === 'Todos' ? recentes : recentes.filter(m => m.type === filter);
 
+    // Lógica para o Carrossel passar sozinho a cada 5 segundos
+    useEffect(() => {
+        if (destaques.length === 0) return;
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % destaques.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [destaques.length]);
+
     return (
-        <div className="pb-24 animate-in fade-in duration-500">
+        <div className="pb-24 animate-in fade-in duration-500 bg-[#050508]">
             
-            <div className="mt-4 md:mt-6 px-4 md:px-8 max-w-7xl mx-auto">
+            {/* O VERDADEIRO CARROSSEL GIGANTE DE DESTAQUES */}
+            {destaques.length > 0 && (
+                <div className="relative w-full h-[45vh] md:h-[65vh] max-h-[600px] overflow-hidden mb-8 group bg-[#050508] border-b border-white/5">
+                    {destaques.map((manga, index) => (
+                        <div 
+                            key={manga.id} 
+                            className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                        >
+                            {/* Fundo Desfocado */}
+                            <div className="absolute inset-0 bg-[#050508]">
+                                <img src={manga.coverUrl} className={`w-full h-full object-cover opacity-40 md:opacity-50 ${dataSaver ? 'blur-sm' : ''}`} alt="Background" />
+                            </div>
+                            
+                            {/* Gradientes para o texto não sumir */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-[#050508]/60 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#050508] via-[#050508]/40 to-transparent" />
+                            
+                            {/* Conteúdo do Carrossel */}
+                            <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 max-w-7xl mx-auto flex items-end gap-6 md:gap-10">
+                                <img src={manga.coverUrl} className={`hidden md:block w-40 md:w-48 rounded-xl shadow-[0_15px_40px_rgba(0,0,0,0.8)] border border-white/10 ${dataSaver ? 'blur-[1px]' : ''}`} alt="Capa" />
+                                
+                                <div className="flex-1 pb-4 md:pb-6">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <span className="bg-cyan-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest shadow-lg">Em Destaque</span>
+                                        <span className="flex items-center gap-1 text-amber-400 text-xs font-black bg-black/50 px-2 py-1 rounded-md backdrop-blur-sm border border-amber-500/20"><Star className="w-3 h-3 fill-amber-400"/> {manga.rating ? Number(manga.rating).toFixed(1) : "5.0"}</span>
+                                    </div>
+                                    <h2 className="text-3xl md:text-5xl font-black text-white mb-3 line-clamp-1 md:line-clamp-2 tracking-tight drop-shadow-lg">{manga.title}</h2>
+                                    <p className="text-gray-300 text-xs md:text-sm line-clamp-2 md:line-clamp-3 mb-6 max-w-2xl text-shadow-sm font-medium">{manga.synopsis || "Descubra esta obra épica nos registos do Vazio. Uma jornada inesquecível aguarda por si."}</p>
+                                    
+                                    <button onClick={() => onNavigate('details', manga)} className="bg-white text-black hover:bg-cyan-400 hover:text-black font-black px-8 py-3.5 rounded-full flex items-center gap-2 transition-all duration-300 text-xs md:text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105">
+                                        <Play className="w-4 h-4 fill-current" /> Ler Agora
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {/* Bolinhas indicadoras do Carrossel */}
+                    <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 flex gap-2">
+                        {destaques.map((_, i) => (
+                            <button key={i} onClick={() => setCurrentSlide(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? 'w-8 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]' : 'w-2 bg-white/30 hover:bg-white/50'}`} />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* SEÇÃO POPULARES (Com botão Ver Todos que abre a Aba Exclusiva) */}
+            <div className="mt-4 md:mt-8 px-4 md:px-8 max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
                         <Flame className="w-5 h-5 text-amber-500" /> Mais Populares
                     </h2>
-                    <button onClick={() => onNavigate('popular')} className="text-[10px] sm:text-xs font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-widest flex items-center transition-colors bg-cyan-950/30 px-3 py-1.5 rounded-full border border-cyan-900/50">
+                    <button onClick={() => onNavigate('popular')} className="text-[10px] sm:text-xs font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-widest flex items-center transition-colors bg-cyan-950/30 px-3 py-1.5 rounded-full border border-cyan-900/50 hover:bg-cyan-900/50">
                         Ver Todos <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                     </button>
                 </div>
                 
-                {/* CARROSSEL CORRIGIDO: flex-none impede que os itens sejam esmagados */}
-                <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar items-stretch" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {/* Lista deslizante horizontal */}
+                <div className="flex overflow-x-auto gap-3 md:gap-4 pb-6 snap-x snap-mandatory no-scrollbar items-stretch" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {populares.map(manga => (
-                        <div key={manga.id} onClick={() => onNavigate('details', manga)} className="flex-none w-[130px] sm:w-[150px] snap-start cursor-pointer group">
+                        <div key={manga.id} onClick={() => onNavigate('details', manga)} className="flex-none w-[110px] sm:w-[140px] md:w-[160px] snap-start cursor-pointer group">
                             <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-[#0d0d12] border border-white/5 shadow-lg group-hover:border-amber-500/50 transition-colors duration-300 ${dataSaver ? 'blur-[2px]' : ''}`}>
                                 <img src={manga.coverUrl} alt={manga.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                 <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-1 rounded-lg border border-amber-500/30 flex items-center gap-1 shadow-md">
@@ -42,6 +102,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                 </div>
             </div>
 
+            {/* SEÇÃO RECENTES */}
             <div className="mt-8 px-4 md:px-8 max-w-7xl mx-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
