@@ -24,10 +24,10 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                     </button>
                 </div>
                 
-                {/* CARROSSEL AJUSTADO: flex-nowrap e w-[105px] para caberem vários no ecrã e ficar óbvio o scroll */}
-                <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar flex-nowrap">
+                {/* CARROSSEL CORRIGIDO: flex-none impede que os itens sejam esmagados */}
+                <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar items-stretch" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {populares.map(manga => (
-                        <div key={manga.id} onClick={() => onNavigate('details', manga)} className="w-[105px] sm:w-[130px] md:w-[150px] flex-shrink-0 snap-start cursor-pointer group">
+                        <div key={manga.id} onClick={() => onNavigate('details', manga)} className="flex-none w-[130px] sm:w-[150px] snap-start cursor-pointer group">
                             <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-[#0d0d12] border border-white/5 shadow-lg group-hover:border-amber-500/50 transition-colors duration-300 ${dataSaver ? 'blur-[2px]' : ''}`}>
                                 <img src={manga.coverUrl} alt={manga.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                 <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-1 rounded-lg border border-amber-500/30 flex items-center gap-1 shadow-md">
@@ -36,7 +36,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                                 </div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </div>
-                            <h3 className="text-xs font-bold text-gray-200 mt-2 line-clamp-1 group-hover:text-amber-400 transition-colors">{manga.title}</h3>
+                            <h3 className="text-xs md:text-sm font-bold text-gray-200 mt-2 line-clamp-1 group-hover:text-amber-400 transition-colors">{manga.title}</h3>
                         </div>
                     ))}
                 </div>
