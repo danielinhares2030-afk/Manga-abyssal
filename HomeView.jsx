@@ -5,8 +5,8 @@ import { timeAgo } from './helpers';
 export function HomeView({ mangas, onNavigate, dataSaver }) {
     const [filter, setFilter] = useState('Todos');
 
-    const recentes = [...mangas].sort((a, b) => b.createdAt - a.createdAt);
-    const populares = [...mangas].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10); // Mostra os 10 primeiros no carrossel
+    const recentes = [...(mangas || [])].sort((a, b) => b.createdAt - a.createdAt);
+    const populares = [...(mangas || [])].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
 
     const filterOptions = ['Todos', 'Mangá', 'Manhwa', 'Manhua', 'Comic'];
     const filteredRecentes = filter === 'Todos' ? recentes : recentes.filter(m => m.type === filter);
@@ -14,7 +14,6 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
     return (
         <div className="pb-24 animate-in fade-in duration-500">
             
-            {/* SEÇÃO POPULARES (Agora com Scroll Horizontal e Botão Ver Todos) */}
             <div className="mt-4 md:mt-6 px-4 md:px-8 max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
@@ -25,7 +24,6 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                     </button>
                 </div>
                 
-                {/* Carrossel Horizontal */}
                 <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                     {populares.map(manga => (
                         <div key={manga.id} onClick={() => onNavigate('details', manga)} className="w-[130px] md:w-[160px] flex-shrink-0 snap-start cursor-pointer group">
@@ -43,14 +41,12 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                 </div>
             </div>
 
-            {/* SEÇÃO RECENTES */}
             <div className="mt-8 px-4 md:px-8 max-w-7xl mx-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
                         <Clock className="w-5 h-5 text-cyan-500" /> Atualizações Recentes
                     </h2>
                     
-                    {/* Filtros */}
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                         <ListFilter className="w-4 h-4 text-gray-500 flex-shrink-0 mr-1" />
                         {filterOptions.map(opt => (
