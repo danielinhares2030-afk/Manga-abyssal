@@ -2,8 +2,8 @@ import React from 'react';
 import { Flame, Star, ArrowLeft } from 'lucide-react';
 
 export function PopularView({ mangas, onNavigate, dataSaver }) {
-    // Pega todos os mangás, organiza do maior Rating (avaliação) para o menor, e corta os top 15
-    const topPopulares = [...mangas]
+    // Pega todos os mangás, organiza do maior Rating para o menor, e corta os top 15
+    const topPopulares = [...(mangas || [])]
         .sort((a, b) => (b.rating || 0) - (a.rating || 0))
         .slice(0, 15);
 
@@ -27,14 +27,12 @@ export function PopularView({ mangas, onNavigate, dataSaver }) {
                         <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-[#0d0d12] border border-white/5 shadow-md group-hover:border-amber-500/50 transition-all duration-300 ${dataSaver ? 'blur-[2px]' : ''}`}>
                             <img src={manga.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                             
-                            {/* Medalha de Posição do Ranking */}
                             <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-[#050508]/90 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg z-10">
                                 <span className={`text-xs font-black ${index === 0 ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-white'}`}>
                                     #{index + 1}
                                 </span>
                             </div>
 
-                            {/* Nota de Estrela */}
                             <div className="absolute top-2 right-2 bg-[#050508]/90 backdrop-blur-md px-2 py-1 rounded-lg border border-amber-500/30 flex items-center gap-1 shadow-lg z-10">
                                 <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                                 <span className="text-[10px] font-black text-amber-400">{manga.rating ? Number(manga.rating).toFixed(1) : "0.0"}</span>
