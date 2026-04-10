@@ -24,7 +24,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess }) {
       }
     } catch (err) { 
       let msg = "Falha no acesso. Verifique suas credenciais.";
-      if(err.code === 'auth/email-already-in-use') msg = "Este eco já pertence ao Abismo.";
+      if(err.code === 'auth/email-already-in-use') msg = "Esta conta já pertence ao Abismo.";
       if(err.code === 'auth/weak-password') msg = "A senha deve ter no mínimo 6 fragmentos.";
       if(err.code === 'custom/missing-name') msg = "Identifique-se, Viajante.";
       setError(msg); 
@@ -67,10 +67,10 @@ export function LoginView({ onLoginSuccess, onGuestAccess }) {
               </div>
             )}
             <div className="relative group">
-              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Eco Cósmico (E-mail)" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-5 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner text-center" required />
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail Cósmico" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-5 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner text-center" required />
             </div>
             <div className="relative group">
-              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Chave de Acesso (Senha)" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-5 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner text-center" required />
+              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="senha de Acesso" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-5 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner text-center" required />
             </div>
 
             <button type="submit" disabled={loading} className="w-full relative group overflow-hidden rounded-xl mt-4 shadow-[0_0_20px_rgba(37,99,235,0.15)]">
@@ -84,7 +84,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess }) {
 
           <div className="mt-8 pt-6 border-t border-blue-900/20 text-center flex flex-col gap-4 relative z-10">
             <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-blue-500/80 hover:text-amber-400 text-[11px] uppercase tracking-wider font-black transition-colors">
-              {isLogin ? 'Sem Elo? Despertar agora' : 'Já possui um Elo? Conectar-se'}
+              {isLogin ? 'sem cadastro? Despertar agora' : 'Já possui uma conta? Conectar-se'}
             </button>
             <button onClick={onGuestAccess} className="text-gray-600 hover:text-gray-400 text-[9px] font-black uppercase tracking-[0.2em] transition-colors">
               Vagar pelas sombras (Acesso Visitante)
