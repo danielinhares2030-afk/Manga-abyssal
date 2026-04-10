@@ -3,7 +3,7 @@ import { Star, Clock, ListFilter, BookmarkPlus, ChevronRight, Flame, Play, Chevr
 import { timeAgo } from './helpers';
 
 export function HomeView({ mangas, onNavigate, dataSaver }) {
-    const [filter, setFilter] = useState('Mangá');
+    const [filter, setFilter] = useState('Manhwa');
     const [currentSlide, setCurrentSlide] = useState(0);
     
     // Lógica de Paginação
