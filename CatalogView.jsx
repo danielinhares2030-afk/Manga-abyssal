@@ -1,17 +1,41 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ListFilter, BookmarkPlus, LayoutGrid } from 'lucide-react';
+import { Search, ListFilter, BookmarkPlus, LayoutGrid, Tags } from 'lucide-react';
 
 export function CatalogView({ mangas, onNavigate, dataSaver, catalogState, setCatalogState }) {
-    // Adicionado "Shoujo" na lista de tipos
     const typeFilters = ["Todos", "Mangá", "Manhwa", "Manhua", "Shoujo"];
+    const genreFilters = ["Ação", "Romance", "Fantasia", "Drama", "Comédia", "Artes Marciais", "Aventura", "Sobrenatural", "Isekai", "Mistério"];
 
     const filteredMangas = useMemo(() => {
         let result = [...(mangas || [])];
+        
+        // Filtro de Tipo (Mangá, Manhwa, etc) corrigindo a diferença de acento
         if (catalogState.filterType !== "Todos") {
-            result = result.filter(m => m.type === catalogState.filterType);
+            result = result.filter(m => {
+                const mType = m.type?.toLowerCase() || '';
+                const fType = catalogState.filterType.toLowerCase();
+                if (fType === 'mangá' && mType === 'manga') return true;
+                return mType === fType;
+            });
         }
+
+        // Filtro de Gêneros (Ação, Romance, etc)
+        if (catalogState.selectedGenres && catalogState.selectedGenres.length > 0) {
+            result = result.filter(m => {
+                if (!m.genres) return false;
+                return catalogState.selectedGenres.every(g => m.genres.includes(g));
+            });
+        }
+
         return result.sort((a, b) => a.title.localeCompare(b.title));
-    }, [mangas, catalogState.filterType]);
+    }, [mangas, catalogState.filterType, catalogState.selectedGenres]);
+
+    const toggleGenre = (genre) => {
+        const current = catalogState.selectedGenres || [];
+        const updated = current.includes(genre) 
+            ? current.filter(g => g !== genre)
+            : [...current, genre];
+        setCatalogState({...catalogState, selectedGenres: updated});
+    };
 
     return (
         <div className="pb-24 animate-in fade-in duration-500 px-4 md:px-8 max-w-7xl mx-auto">
@@ -21,15 +45,29 @@ export function CatalogView({ mangas, onNavigate, dataSaver, catalogState, setCa
                 </h2>
 
                 {/* Filtros de Tipo */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-4 mb-6">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-4 mb-2">
                     <ListFilter className="w-4 h-4 text-gray-500 mr-2 flex-shrink-0" />
                     {typeFilters.map(opt => (
                         <button 
                             key={opt} 
                             onClick={() => setCatalogState({...catalogState, filterType: opt})}
-                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${catalogState.filterType === opt ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg' : 'bg-[#0d0d12] text-gray-400 border-white/5 hover:text-gray-200'}`}
+                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${catalogState.filterType === opt ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg' : 'bg-[#0d0d12] text-gray-400 border-white/5 hover:text-gray-200'}`}
                         >
                             {opt}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Filtros de Gênero Restaurados */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-6 mb-4">
+                    <Tags className="w-4 h-4 text-gray-500 mr-2 flex-shrink-0" />
+                    {genreFilters.map(genre => (
+                        <button 
+                            key={genre} 
+                            onClick={() => toggleGenre(genre)}
+                            className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${(catalogState.selectedGenres || []).includes(genre) ? 'bg-fuchsia-600/20 border-fuchsia-500 text-fuchsia-300' : 'bg-transparent text-gray-500 border-white/5 hover:text-gray-300'}`}
+                        >
+                            {genre}
                         </button>
                     ))}
                 </div>
@@ -49,7 +87,7 @@ export function CatalogView({ mangas, onNavigate, dataSaver, catalogState, setCa
                 </div>
 
                 {filteredMangas.length === 0 && (
-                    <div className="text-center py-20 bg-[#0d0d12] rounded-3xl border border-white/5">
+                    <div className="text-center py-20 bg-[#0d0d12] rounded-3xl border border-white/5 mt-8">
                         <BookmarkPlus className="w-12 h-12 text-gray-700 mx-auto mb-4" />
                         <p className="text-gray-500 font-black uppercase tracking-widest text-sm">Nenhuma obra encontrada nesta categoria.</p>
                     </div>
