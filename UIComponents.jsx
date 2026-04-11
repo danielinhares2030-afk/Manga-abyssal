@@ -5,7 +5,7 @@ import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 export function AbyssalLogo({ className = "w-10 h-10" }) {
   return (
     <img 
-      src="https://i.ibb.co/zh5k9rkG/1775680662923-v4lypu-removebg-preview.png" 
+      src="https://i.ibb.co/0p41Zpz3/1775920563598.png" 
       alt="Logo Mangás Abissal" 
       className={`object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.4)] ${className}`}
     />
