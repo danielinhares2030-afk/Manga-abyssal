@@ -56,58 +56,59 @@ export function Footer() {
     );
 }
 
-/* ABERTURA: O ABISMO SE ABRINDO (SURREAL) */
-export function SplashScreen() {
+/* ABERTURA: O BURACO NEGRO ABISSAL (SURREAL E OTIMIZADO) */
+export const SplashScreen = React.memo(() => {
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#020203] flex flex-col items-center justify-center overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center overflow-hidden font-sans">
       <style>{`
-        @keyframes abismo-rasgando {
-          0% { transform: scaleY(0.01) scaleX(0); opacity: 0; box-shadow: 0 0 0 rgba(34, 211, 238, 0); }
-          40% { transform: scaleY(0.02) scaleX(1); opacity: 1; box-shadow: 0 0 50px rgba(34, 211, 238, 0.8); background: #22d3ee; }
-          70% { transform: scaleY(50) scaleX(50); opacity: 1; background: #050508; box-shadow: inset 0 0 100px rgba(34, 211, 238, 0.5); }
-          100% { transform: scaleY(100) scaleX(100); opacity: 1; background: #050508; box-shadow: none; }
+        @keyframes singularity {
+          0% { transform: scale(0) rotate(0deg); opacity: 0; filter: blur(20px); box-shadow: 0 0 0 rgba(34, 211, 238, 0); }
+          30% { transform: scale(1) rotate(180deg); opacity: 1; filter: blur(0px); box-shadow: 0 0 150px rgba(34, 211, 238, 0.8); }
+          60% { transform: scale(1.2) rotate(360deg); opacity: 1; box-shadow: inset 0 0 100px rgba(0, 0, 0, 1), 0 0 200px rgba(217, 70, 239, 0.6); }
+          100% { transform: scale(50) rotate(720deg); opacity: 1; background: #020204; box-shadow: none; }
         }
-        @keyframes abismo-conteudo {
-          0%, 60% { opacity: 0; filter: blur(30px); transform: translateY(20px) scale(0.9); }
-          100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
-        }
-        @keyframes levitar {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-15px); }
+        @keyframes reveal-logo {
+          0%, 50% { opacity: 0; transform: translateY(50px) scale(0.8) tracking-normal; filter: blur(10px); }
+          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
       `}</style>
       
-      {/* O Rasgo no Vazio */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-1 bg-white rounded-full z-10" style={{ animation: 'abismo-rasgando 2.5s cubic-bezier(0.8, 0, 0.2, 1) forwards' }}></div>
+      {/* O Horizonte de Eventos */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-black border-[4px] border-cyan-400 rounded-full z-10 mix-blend-screen" style={{ animation: 'singularity 3s cubic-bezier(0.7, 0, 0.3, 1) forwards' }}></div>
 
-      <div className="relative z-20 flex flex-col items-center" style={{ animation: 'abismo-conteudo 3s ease-out forwards' }}>
-        <div style={{ animation: 'levitar 4s ease-in-out infinite' }}>
-            <AbyssalLogo className="w-32 h-32 mb-10 drop-shadow-[0_0_40px_rgba(34,211,238,0.6)]" />
-        </div>
-        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-900 tracking-[0.5em] uppercase text-center ml-[0.5em] drop-shadow-2xl">ABISSAL</h1>
-        <div className="mt-14 text-cyan-500/60 text-[10px] font-black tracking-[1em] uppercase animate-pulse">A Fenda Está Aberta</div>
+      <div className="relative z-20 flex flex-col items-center pointer-events-none" style={{ animation: 'reveal-logo 3.5s ease-out forwards' }}>
+        <AbyssalLogo className="w-40 h-40 mb-8 drop-shadow-[0_0_50px_rgba(34,211,238,0.8)] animate-[pulse_2s_infinite]" />
+        <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-900 tracking-[0.6em] uppercase text-center ml-[0.6em] drop-shadow-2xl">ABISSAL</h1>
+        <div className="mt-12 text-cyan-400/80 text-[11px] font-black tracking-[1.5em] uppercase">Mergulhe no Vazio</div>
       </div>
     </div>
   );
-}
+});
 
-/* TRANSIÇÃO DE CAPÍTULO APRIMORADA */
-export function ChapterTransitionOverlay({ isVisible, chapterNumber }) {
+/* TRANSIÇÃO DE CAPÍTULO: SALTO DIMENSIONAL */
+export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }) => {
     if (!isVisible) return null;
     return (
-        <div className="fixed inset-0 z-[99999] bg-[#020203] flex items-center justify-center animate-in fade-in duration-500">
-            <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[1px] bg-white animate-[scale-x-150_1s_ease-in-out]"></div>
+        <div className="fixed inset-0 z-[99999] bg-[#020204] flex items-center justify-center overflow-hidden">
+            <style>{`
+                @keyframes warp-speed {
+                    0% { transform: scale(1) translateZ(0); opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { transform: scale(15) translateZ(500px); opacity: 0; }
+                }
+            `}</style>
+            
+            {/* Efeito de túnel de luz otimizado */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                <div className="w-[10px] h-[10px] rounded-full shadow-[0_0_100px_50px_#22d3ee,0_0_200px_100px_#d946ef] animate-[warp-speed_0.8s_ease-in_forwards]"></div>
             </div>
+
             <div className="relative z-10 flex flex-col items-center">
-                <div className="text-zinc-600 font-black tracking-[1em] text-[10px] uppercase mb-8 animate-pulse">Próxima Camada</div>
-                <h2 className="text-9xl font-black text-white tracking-tighter animate-in slide-in-from-bottom-10 duration-700">
+                <div className="text-cyan-500/80 font-black tracking-[1.5em] text-[10px] uppercase mb-6 animate-pulse ml-[1.5em]">Próxima Camada</div>
+                <h2 className="text-[150px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-900 drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] animate-in zoom-in-50 duration-500">
                     {chapterNumber}
                 </h2>
-                <div className="mt-12 h-0.5 w-48 bg-zinc-900 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-white/20 animate-[slide-in-from-left_1.5s_infinite]"></div>
-                </div>
             </div>
         </div>
     );
-}
+});
