@@ -3,19 +3,21 @@ import { Star, Clock, ListFilter, BookmarkPlus, ChevronRight, Flame, Play, Chevr
 import { timeAgo } from './helpers';
 
 export function HomeView({ mangas, onNavigate, dataSaver }) {
-    const [filter, setFilter] = useState('Manhwa');
+    const [filter, setFilter] = useState('Mangá');
     const [currentSlide, setCurrentSlide] = useState(0);
     
-    // Lógica de Paginação
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
-    const populares = [...(mangas || [])].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
-    const destaques = [...(mangas || [])].filter(m => m.coverUrl).slice(0, 5);
+    // FILTRO DOS POPULARES: Só entra quem tem nota 3.8 pra cima
+    const populares = [...(mangas || [])]
+        .filter(m => (m.rating || 0) >= 4.8)
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 10);
 
-    const filterOptions = ['Manhwa', 'Mangá', 'Manhua', 'Shoujo'];
+    const destaques = [...(mangas || [])].filter(m => m.coverUrl).slice(0, 5);
+    const filterOptions = ['Mangá', 'Manhwa', 'Manhua', 'Shoujo'];
     
-    // CORREÇÃO DO FILTRO: Agora ele aceita tanto "Mangá" quanto "Manga" sem acento da base de dados
     const filteredByPage = [...(mangas || [])]
         .filter(m => {
             if (!m.type) return false;
@@ -26,7 +28,6 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
         })
         .sort((a, b) => b.createdAt - a.createdAt);
 
-    // Cálculos da Paginação
     const totalPages = Math.ceil(filteredByPage.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -66,7 +67,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                                         <span className="flex items-center gap-1 text-amber-400 text-xs font-black bg-black/50 px-2 py-1 rounded-md backdrop-blur-sm border border-amber-500/20"><Star className="w-3 h-3 fill-amber-400"/> {manga.rating ? Number(manga.rating).toFixed(1) : "5.0"}</span>
                                     </div>
                                     <h2 className="text-3xl md:text-5xl font-black text-white mb-3 line-clamp-1 md:line-clamp-2 tracking-tight drop-shadow-lg">{manga.title}</h2>
-                                    <p className="text-gray-300 text-xs md:text-sm line-clamp-2 md:line-clamp-3 mb-6 max-w-2xl text-shadow-sm font-medium">{manga.synopsis || "Descubra esta obra épica nos registos do Vazio. Uma jornada inesquecível aguarda por si."}</p>
+                                    <p className="text-gray-300 text-xs md:text-sm line-clamp-2 md:line-clamp-3 mb-6 max-w-2xl text-shadow-sm font-medium">{manga.synopsis || "Descubra esta obra épica nos registos do Vazio."}</p>
                                     <button onClick={() => onNavigate('details', manga)} className="bg-white text-black hover:bg-cyan-400 hover:text-black font-black px-8 py-3.5 rounded-full flex items-center gap-2 transition-all duration-300 text-xs md:text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105">
                                         <Play className="w-4 h-4 fill-current" /> Ler Agora
                                     </button>
