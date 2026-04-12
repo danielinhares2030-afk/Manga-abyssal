@@ -56,14 +56,15 @@ export function Footer() {
     );
 }
 
-/* ABERTURA: FENDA DO ABISMO (Implementação Exata do Usuário) */
+/* ABERTURA: FENDA DO ABISMO (Versão Ultra - Sem Blocos Feios) */
 export const SplashScreen = React.memo(() => {
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 150);   // tremor + linha
-    const t2 = setTimeout(() => setPhase(2), 900);   // abre
-    const t3 = setTimeout(() => setPhase(3), 2600);  // mostra logo total
+    // Timings mais agressivos para impacto
+    const t1 = setTimeout(() => setPhase(1), 100);   // Tremor da energia instável
+    const t2 = setTimeout(() => setPhase(2), 800);   // Rompimento brutal
+    const t3 = setTimeout(() => setPhase(3), 2000);  // Foco total no logo
 
     return () => {
       clearTimeout(t1);
@@ -72,163 +73,155 @@ export const SplashScreen = React.memo(() => {
     };
   }, []);
 
-  const rocks = useMemo(
+  const debris = useMemo(
     () =>
-      Array.from({ length: 24 }).map((_, i) => ({
-        id: i,
-        size: Math.random() * 14 + 6,
-        left: 40 + Math.random() * 20,
-        delay: Math.random() * 1.5,
-        duration: Math.random() * 1.8 + 1.8,
-        rotate: Math.random() * 360,
-        drift: (Math.random() - 0.5) * 250,
-      })),
+      Array.from({ length: 30 }).map((_, i) => {
+        // Formatos irregulares para não parecer caixas
+        const isEnergy = Math.random() > 0.7;
+        return {
+          id: i,
+          size: Math.random() * 20 + 4,
+          left: 30 + Math.random() * 40, // Focadas mais no centro da ruptura
+          delay: Math.random() * 0.8,    // Caem quase todas juntas num desmoronamento
+          duration: Math.random() * 1.5 + 1.2,
+          rotate: Math.random() * 720,
+          drift: (Math.random() - 0.5) * 400,
+          isEnergy, // Algumas são pedras, outras são pura energia caindo
+          borderRadius: `${Math.random() * 50 + 20}% ${Math.random() * 50 + 20}% ${Math.random() * 50 + 20}% ${Math.random() * 50 + 20}%`,
+        };
+      }),
     []
   );
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] overflow-hidden bg-[#020204]
-      ${phase === 1 ? "animate-[shake_0.12s_ease-in-out_infinite]" : ""}`}
+      className={`fixed inset-0 z-[9999] overflow-hidden bg-black flex items-center justify-center perspective-[1000px]
+      ${phase === 1 ? "animate-[shake-violent_0.08s_ease-in-out_infinite]" : ""}`}
     >
       <style>{`
-        @keyframes shake {
-          0%,100% { transform: translate(0,0); }
-          25% { transform: translate(-3px,2px); }
-          50% { transform: translate(3px,-2px); }
-          75% { transform: translate(-2px,1px); }
+        @keyframes shake-violent {
+          0%,100% { transform: translate(0,0) rotate(0deg); }
+          25% { transform: translate(-4px,3px) rotate(-1deg); filter: blur(1px); }
+          50% { transform: translate(4px,-3px) rotate(1deg); filter: blur(0px); }
+          75% { transform: translate(-3px,2px) rotate(-0.5deg); filter: blur(1px); }
         }
 
-        @keyframes crackGlow {
-          0% { opacity: 0; transform: scaleY(0); }
-          100% { opacity: 1; transform: scaleY(1); }
+        @keyframes plasma-surge {
+          0% { transform: scaleY(0) scaleX(0.5); opacity: 0; }
+          50% { transform: scaleY(1.2) scaleX(1); opacity: 1; filter: brightness(2); }
+          100% { transform: scaleY(1) scaleX(0); opacity: 0; }
         }
 
-        @keyframes fallRock {
+        @keyframes shatter-fall {
           0% {
-            transform: translateY(-10vh) translateX(0) rotate(0deg) scale(1);
-            opacity: 0;
+            transform: translateY(-20vh) translateX(0) rotate(0deg) scale(1);
+            opacity: 1;
           }
-          10% { opacity: 1; }
           100% {
-            transform: translateY(110vh) translateX(var(--drift))
-              rotate(var(--rot)) scale(0.4);
+            transform: translateY(120vh) translateX(var(--drift)) rotate(var(--rot)) scale(0.2);
             opacity: 0;
           }
         }
 
-        .crack-left {
-          clip-path: polygon(
-            0 0,
-            100% 0,
-            94% 10%,
-            98% 22%,
-            92% 35%,
-            97% 48%,
-            90% 60%,
-            96% 75%,
-            92% 88%,
-            100% 100%,
-            0 100%
-          );
+        /* Recortes otimizados e mais caóticos */
+        .void-wall-left {
+          clip-path: polygon(0 0, 100% 0, 92% 8%, 98% 18%, 88% 28%, 96% 40%, 85% 55%, 95% 70%, 88% 85%, 100% 100%, 0 100%);
         }
-
-        .crack-right {
-          clip-path: polygon(
-            100% 0,
-            0 0,
-            6% 10%,
-            2% 22%,
-            8% 35%,
-            3% 48%,
-            10% 60%,
-            4% 75%,
-            8% 88%,
-            0 100%,
-            100% 100%
-          );
+        .void-wall-right {
+          clip-path: polygon(100% 0, 0 0, 8% 8%, 2% 18%, 12% 28%, 4% 40%, 15% 55%, 5% 70%, 12% 85%, 0 100%, 100% 100%);
         }
       `}</style>
 
-      {/* FUNDO DO ABISMO */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#05070d] to-[#020204]">
+      {/* O VAZIO VERDADEIRO (Fundo Revelado) */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#08152b] via-[#03050a] to-black">
+        {/* Nebulosa de Fundo */}
         <div
           className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-          h-full w-[28vw] bg-cyan-500/20 blur-[90px]
-          transition-all duration-1000
+          w-[120vw] h-[120vw] rounded-full bg-cyan-600/10 blur-[120px] mix-blend-screen
+          transition-all duration-[2000ms] ease-out
           ${phase >= 2 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}
         />
-
         <div
           className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-          w-[70vw] h-[70vw] rounded-full bg-fuchsia-600/10 blur-[120px]
-          transition-all duration-1000 delay-200
-          ${phase >= 2 ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}
+          w-[80vw] h-[80vw] rounded-full bg-fuchsia-700/10 blur-[150px] mix-blend-screen
+          transition-all duration-[2000ms] ease-out delay-150
+          ${phase >= 2 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}
         />
       </div>
 
-      {/* PEDRAS */}
+      {/* FRAGMENTOS ESTILHAÇADOS (Caindo) */}
       {phase >= 2 &&
-        rocks.map((rock) => (
+        debris.map((frag) => (
           <div
-            key={rock.id}
-            className="absolute -top-10 z-20 rounded-sm bg-zinc-800 border border-cyan-900/30"
+            key={frag.id}
+            className={`absolute top-0 z-20 shadow-2xl backdrop-blur-sm
+              ${frag.isEnergy 
+                ? 'bg-cyan-400 shadow-[0_0_20px_5px_rgba(34,211,238,0.8)] border border-white' 
+                : 'bg-[#0a0c10] border border-cyan-900/40 shadow-[inset_0_0_10px_rgba(0,0,0,1)]'
+              }
+            `}
             style={{
-              width: `${rock.size}px`,
-              height: `${rock.size}px`,
-              left: `${rock.left}%`,
-              animation: `fallRock ${rock.duration}s linear ${rock.delay}s infinite`,
-              "--drift": `${rock.drift}px`,
-              "--rot": `${rock.rotate}deg`,
+              width: `${frag.size}px`,
+              height: `${frag.size}px`,
+              left: `${frag.left}%`,
+              borderRadius: frag.borderRadius,
+              animation: `shatter-fall ${frag.duration}s cubic-bezier(0.25, 1, 0.5, 1) ${frag.delay}s forwards`,
+              "--drift": `${frag.drift}px`,
+              "--rot": `${frag.rotate}deg`,
             }}
           />
         ))}
 
-      {/* LINHA CENTRAL */}
+      {/* RAIO DE PLASMA CENTRAL QUE CORTA A TELA */}
       <div
         className={`absolute left-1/2 top-0 bottom-0 z-30
-        w-[3px] -translate-x-1/2 bg-cyan-300
-        shadow-[0_0_45px_18px_rgba(34,211,238,0.95)]
-        transition-all duration-500
-        ${phase >= 1 ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0"}`}
+        w-[6px] -translate-x-1/2 bg-white
+        shadow-[0_0_80px_25px_rgba(34,211,238,1),0_0_150px_50px_rgba(217,70,239,0.8)]
+        mix-blend-screen origin-center
+        ${phase === 1 ? "animate-[plasma-surge_0.8s_ease-out_forwards]" : "opacity-0"}`}
       />
 
-      {/* PAREDE ESQUERDA */}
+      {/* PAREDES DIMENSIONAIS QUE SE ABREM COM PROFUNDIDADE 3D */}
+      
+      {/* Parede Esquerda */}
       <div
-        className={`absolute inset-y-0 left-0 z-40 w-1/2 bg-[#020204] crack-left
-        transition-transform duration-[1400ms] ease-[cubic-bezier(0.7,0,0.2,1)]
-        ${phase >= 2 ? "-translate-x-full" : "translate-x-0"}`}
+        className={`absolute inset-y-0 left-0 z-40 w-[55%] bg-[#020203] void-wall-left
+        transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] origin-left shadow-[20px_0_100px_rgba(0,0,0,1)]
+        ${phase >= 2 ? "transform -translate-x-[120%] scale-110" : "transform translate-x-0 scale-100"}`}
       >
-        <div
-          className={`absolute right-0 inset-y-0 w-8 bg-gradient-to-l from-cyan-400/30 to-transparent
-          ${phase >= 1 ? "opacity-100" : "opacity-0"}`}
-        />
+        {/* Calor da borda rasgada */}
+        <div className={`absolute right-0 inset-y-0 w-12 bg-gradient-to-l from-cyan-400/50 via-cyan-600/10 to-transparent mix-blend-screen transition-opacity duration-300 ${phase === 1 ? "opacity-100" : "opacity-0"}`} />
       </div>
 
-      {/* PAREDE DIREITA */}
+      {/* Parede Direita */}
       <div
-        className={`absolute inset-y-0 right-0 z-40 w-1/2 bg-[#020204] crack-right
-        transition-transform duration-[1400ms] ease-[cubic-bezier(0.7,0,0.2,1)]
-        ${phase >= 2 ? "translate-x-full" : "translate-x-0"}`}
+        className={`absolute inset-y-0 right-0 z-40 w-[55%] bg-[#020203] void-wall-right
+        transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] origin-right shadow-[-20px_0_100px_rgba(0,0,0,1)]
+        ${phase >= 2 ? "transform translate-x-[120%] scale-110" : "transform translate-x-0 scale-100"}`}
       >
-        <div
-          className={`absolute left-0 inset-y-0 w-8 bg-gradient-to-r from-cyan-400/30 to-transparent
-          ${phase >= 1 ? "opacity-100" : "opacity-0"}`}
-        />
+        {/* Calor da borda rasgada */}
+        <div className={`absolute left-0 inset-y-0 w-12 bg-gradient-to-r from-cyan-400/50 via-cyan-600/10 to-transparent mix-blend-screen transition-opacity duration-300 ${phase === 1 ? "opacity-100" : "opacity-0"}`} />
       </div>
 
-      {/* LOGO */}
+      {/* LOGOTIPO E TEXTO (Surge do abismo) */}
       <div
-        className={`absolute inset-0 z-50 flex flex-col items-center justify-center
-        transition-all duration-1000
-        ${phase >= 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
+        className={`absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-none
+        transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+        ${phase >= 3 ? "opacity-100 transform translate-y-0 scale-100 filter-none" : "opacity-0 transform translate-y-10 scale-75 blur-sm"}`}
       >
-        <h1 className="text-5xl font-black tracking-[0.5em] text-white drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+        <AbyssalLogo className="w-40 h-40 mb-6 drop-shadow-[0_0_60px_rgba(34,211,238,0.7)] animate-[pulse_3s_ease-in-out_infinite]" />
+        
+        <h1 className="text-5xl md:text-7xl font-black tracking-[0.4em] md:tracking-[0.6em] text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-900 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] pl-[0.4em]">
           ABISSAL
         </h1>
-        <p className="mt-6 text-cyan-400/60 tracking-[0.8em] uppercase text-xs animate-pulse">
-          O Vazio Desperta
-        </p>
+        
+        <div className="mt-8 flex items-center gap-4 text-cyan-400/80">
+            <div className="w-12 h-[1px] bg-gradient-to-r from-transparent to-cyan-500/50"></div>
+            <p className="tracking-[1em] uppercase text-[10px] md:text-xs font-black animate-pulse">
+              O Vazio Desperta
+            </p>
+            <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-cyan-500/50"></div>
+        </div>
       </div>
     </div>
   );
@@ -247,7 +240,6 @@ export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }
                 }
             `}</style>
             
-            {/* Efeito de túnel de luz otimizado */}
             <div className="absolute inset-0 flex items-center justify-center opacity-40">
                 <div className="w-[10px] h-[10px] rounded-full shadow-[0_0_100px_50px_#22d3ee,0_0_200px_100px_#d946ef] animate-[warp-speed_0.8s_ease-in_forwards]"></div>
             </div>
