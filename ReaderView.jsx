@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star, ZoomIn, ZoomOut } from 'lucide-react';
+// Importamos a nova animação de transição que está no UIComponents
+import { ChapterTransitionOverlay } from './UIComponents';
 
 export default function ReaderView({ manga, chapter, user, userProfileData, onBack, onChapterClick, triggerRandomDrop, onMarkAsRead, readMode, onRequireLogin, showToast, libraryData, onToggleLibrary }) {
   const [showUI, setShowUI] = useState(true);
   const [zoom, setZoom] = useState(1); 
   const [isChapterFading, setIsChapterFading] = useState(false); 
   
+  // Estados para a animação de "Pula Capítulo"
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [nextChapNum, setNextChapNum] = useState(null);
+
   const readingTimeRef = useRef(0);
   const [currentPage, setCurrentPage] = useState(0);
 
-  // Transição super leve e imperceptível de 0.25s
+  // Transição de opacidade ao carregar as páginas
   useEffect(() => {
       setIsChapterFading(true); 
       window.scrollTo(0, 0);
@@ -48,10 +54,30 @@ export default function ReaderView({ manga, chapter, user, userProfileData, onBa
       setZoom(prev => prev === 1 ? 0.5 : prev === 0.5 ? 0.75 : 1);
   };
 
+  // FUNÇÃO DE PULAR CAPÍTULO COM ANIMAÇÃO SURREAL
+  const handleChapterChange = (targetChapter) => {
+      if (!targetChapter) return;
+      
+      // 1. Define o número que vai aparecer na animação
+      setNextChapNum(targetChapter.number);
+      // 2. Ativa o overlay do abismo
+      setIsTransitioning(true);
+      
+      // 3. Espera 800ms (tempo do brilho) e troca o conteúdo
+      setTimeout(() => {
+          onChapterClick(manga, targetChapter);
+          // 4. Esconde a animação
+          setIsTransitioning(false);
+      }, 800);
+  };
+
   return (
       <div className="min-h-screen bg-[#020202] text-white relative flex flex-col overflow-x-hidden select-none" onScroll={handleScroll}>
-         
-         {showUI && (
+          
+          {/* Componente de Animação de Transição */}
+          <ChapterTransitionOverlay isVisible={isTransitioning} chapterNumber={nextChapNum} />
+
+          {showUI && (
             <div className="fixed top-0 left-0 right-0 h-16 bg-[#020202]/95 backdrop-blur-2xl z-50 flex justify-between items-center px-4 border-b border-amber-900/20 shadow-[0_4px_20px_rgba(0,0,0,0.8)] transition-opacity animate-in slide-in-from-top-full">
                <div className="flex items-center gap-3 overflow-hidden">
                   <button onClick={onBack} className="p-2 hover:text-amber-500 transition-colors flex-shrink-0"><ChevronLeft className="w-6 h-6"/></button>
@@ -70,10 +96,9 @@ export default function ReaderView({ manga, chapter, user, userProfileData, onBa
                   </button>
                </div>
             </div>
-         )}
+          )}
 
-         {/* Transição de Opacidade (Fade In/Out Suave e Rápido) */}
-         <div className={`flex-1 w-full mx-auto cursor-pointer overflow-x-auto origin-center transition-opacity duration-300 ease-in-out ${isChapterFading ? 'opacity-0' : 'opacity-100'}`} onClick={() => setShowUI(!showUI)}>
+          <div className={`flex-1 w-full mx-auto cursor-pointer overflow-x-auto origin-center transition-opacity duration-300 ease-in-out ${isChapterFading ? 'opacity-0' : 'opacity-100'}`} onClick={() => setShowUI(!showUI)}>
             {readMode === 'Páginas' ? (
                <div className="w-full h-screen flex flex-col items-center justify-center pt-16 pb-20 px-2 relative overflow-hidden">
                   <img src={pages[currentPage]} className="max-h-full object-contain shadow-2xl transition-transform duration-300 rounded-sm" style={{ width: `${zoom * 100}%` }} />
@@ -90,11 +115,17 @@ export default function ReaderView({ manga, chapter, user, userProfileData, onBa
                   ))}
                </div>
             )}
-         </div>
+          </div>
 
-         {showUI && (
+          {showUI && (
             <div className="fixed bottom-0 left-0 right-0 bg-[#020202]/95 backdrop-blur-2xl z-50 p-4 border-t border-amber-900/20 shadow-[0_-4px_20px_rgba(0,0,0,0.8)] flex justify-between items-center transition-opacity animate-in slide-in-from-bottom-full">
-               <button onClick={() => prevChapter && onChapterClick(manga, prevChapter)} disabled={!prevChapter} className="bg-black disabled:opacity-30 disabled:hover:border-amber-900/10 border border-amber-900/20 hover:border-amber-600/40 px-4 py-3 rounded-xl font-black text-[10px] uppercase flex items-center gap-1.5 transition-colors tracking-widest"><ChevronLeft className="w-4 h-4"/> Anterior</button>
+               <button 
+                  onClick={() => handleChapterChange(prevChapter)} 
+                  disabled={!prevChapter} 
+                  className="bg-black disabled:opacity-30 disabled:hover:border-amber-900/10 border border-amber-900/20 hover:border-amber-600/40 px-4 py-3 rounded-xl font-black text-[10px] uppercase flex items-center gap-1.5 transition-colors tracking-widest"
+               >
+                  <ChevronLeft className="w-4 h-4"/> Anterior
+               </button>
                
                {readMode === 'Páginas' && (
                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
@@ -102,9 +133,15 @@ export default function ReaderView({ manga, chapter, user, userProfileData, onBa
                    </div>
                )}
 
-               <button onClick={() => nextChapter && onChapterClick(manga, nextChapter)} disabled={!nextChapter} className="bg-gradient-to-r from-amber-700 to-amber-500 disabled:from-gray-900 disabled:to-gray-900 disabled:opacity-30 disabled:text-gray-500 border border-transparent text-black px-4 py-3 rounded-xl font-black text-[10px] uppercase flex items-center gap-1.5 hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.2)] tracking-widest">Próximo <ChevronRight className="w-4 h-4"/></button>
+               <button 
+                  onClick={() => handleChapterChange(nextChapter)} 
+                  disabled={!nextChapter} 
+                  className="bg-gradient-to-r from-amber-700 to-amber-500 disabled:from-gray-900 disabled:to-gray-900 disabled:opacity-30 disabled:text-gray-500 border border-transparent text-black px-4 py-3 rounded-xl font-black text-[10px] uppercase flex items-center gap-1.5 hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.2)] tracking-widest"
+               >
+                  Próximo <ChevronRight className="w-4 h-4"/>
+               </button>
             </div>
-         )}
+          )}
       </div>
   );
 }
