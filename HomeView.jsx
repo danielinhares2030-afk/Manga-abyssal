@@ -5,17 +5,22 @@ import { timeAgo } from './helpers';
 export function HomeView({ mangas, onNavigate, dataSaver }) {
     const [filter, setFilter] = useState('Manhwa');
     const [currentSlide, setCurrentSlide] = useState(0);
-    
-    // Lógica de Paginação
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
-    const populares = [...(mangas || [])].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
-    const destaques = [...(mangas || [])].filter(m => m.coverUrl).slice(0, 5);
+    // FILTRO ADICIONADO: Populares exigem nota >= 4.0
+    const populares = [...(mangas || [])]
+        .filter(m => (m.rating || 0) >= 4.0)
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 10);
+
+    // FILTRO ADICIONADO: Destaques (Carrossel) exigem nota >= 4.5 e capa
+    const destaques = [...(mangas || [])]
+        .filter(m => m.coverUrl && (m.rating || 0) >= 4.5)
+        .slice(0, 5);
 
     const filterOptions = ['Manhwa', 'Mangá', 'Manhua', 'Shoujo'];
     
-    // CORREÇÃO DO FILTRO: Agora ele aceita tanto "Mangá" quanto "Manga" sem acento da base de dados
     const filteredByPage = [...(mangas || [])]
         .filter(m => {
             if (!m.type) return false;
@@ -26,7 +31,6 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
         })
         .sort((a, b) => b.createdAt - a.createdAt);
 
-    // Cálculos da Paginação
     const totalPages = Math.ceil(filteredByPage.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
