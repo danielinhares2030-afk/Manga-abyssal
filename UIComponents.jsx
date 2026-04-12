@@ -1,13 +1,14 @@
 import React from 'react';
 import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 
-/* ÍCONE PURO: Sem truques de cache para o ImgBB não bloquear */
+/* ÍCONE COM ANIMAÇÃO DE PULSAÇÃO E FLUTUAR */
 export function AbyssalLogo({ className = "w-10 h-10" }) {
   return (
     <img 
-      src="https://i.ibb.co/Ndc6gBXX/Gemini-Generated-Image-removebg-preview.png" 
+      src="https://i.ibb.co/zh5k9rkG/1775680662923-v4lypu-removebg-preview.png" 
       alt="Logo Mangás Abissal" 
-      className={`object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.4)] ${className}`}
+      className={`object-contain drop-shadow-[0_0_20px_rgba(34,211,238,0.6)] animate-[pulse_3s_ease-in-out_infinite] hover:scale-110 transition-transform ${className}`}
+      onError={(e) => e.target.style.display = 'none'}
     />
   );
 }
@@ -62,20 +63,55 @@ export function Footer() {
     );
 }
 
+/* NOVA ABERTURA: FENDA SURREAL DO ABISMO */
 export function SplashScreen() {
   return (
-    <div className="fixed inset-0 z-[600] bg-[#0b0e14] flex flex-col items-center justify-center overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[9999] bg-[#030407] flex flex-col items-center justify-center overflow-hidden font-sans">
       <style>{`
-        @keyframes vortex-open { 0% { transform: scale(0.8); opacity: 0; filter: blur(20px); } 50% { transform: scale(1.05); opacity: 1; filter: blur(0px); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes rasgo-abissal {
+          0% { transform: scaleY(0) scaleX(0.01); opacity: 0; box-shadow: 0 0 0px 0px rgba(192,38,211,0); }
+          40% { transform: scaleY(1) scaleX(0.05); opacity: 1; box-shadow: 0 0 50px 10px rgba(192,38,211,0.5); }
+          100% { transform: scaleY(1) scaleX(1); opacity: 1; box-shadow: 0 0 100px 30px rgba(34,211,238,0.3); background: transparent; }
+        }
       `}</style>
       
-      <div className="absolute w-[60rem] h-[60rem] bg-gradient-to-tr from-blue-900/10 via-[#0b0e14] to-red-900/5 rounded-full blur-[120px] animate-[spin_25s_linear_infinite]"></div>
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div 
+           className="w-full max-w-lg h-[150%] bg-gradient-to-r from-transparent via-[#0b0e14] to-transparent z-10"
+           style={{ animation: 'rasgo-abissal 2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards' }}
+        >
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/40 via-transparent to-transparent animate-pulse"></div>
+        </div>
+      </div>
 
-      <div className="relative z-20 flex flex-col items-center animate-[vortex-open_1.5s_cubic-bezier(0.2,0.8,0.2,1)_forwards] w-full max-w-sm mx-auto text-center">
-        <AbyssalLogo className="w-36 h-36 mx-auto mb-10 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
-        <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-blue-100 to-blue-700 tracking-[0.3em] ml-[0.3em] text-center leading-tight uppercase">MANGÁS<br/>ABISSAL</h1>
-        <div className="mt-12 text-amber-500 text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase animate-pulse bg-[#13151f]/80 px-6 py-2.5 rounded-full border border-amber-900/30 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] text-center mx-auto">CONECTANDO AO VAZIO...</div>
+      <div className="relative z-20 flex flex-col items-center w-full max-w-sm mx-auto text-center mt-12 animate-in zoom-in-50 duration-1000 delay-[1000ms] fill-mode-both">
+        <AbyssalLogo className="w-40 h-40 mx-auto mb-10 drop-shadow-[0_0_40px_rgba(34,211,238,0.8)]" />
+        <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-700 tracking-[0.3em] ml-[0.3em] text-center leading-tight uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+            MANGÁS<br/>ABISSAL
+        </h1>
+        <div className="mt-14 text-cyan-400 text-[10px] md:text-xs font-black tracking-[0.6em] uppercase animate-pulse text-shadow-sm border border-cyan-500/30 px-6 py-2 rounded-full bg-cyan-950/20 backdrop-blur-md">
+            RASGANDO O VAZIO...
+        </div>
       </div>
     </div>
   );
+}
+
+/* NOVO COMPONENTE: TRANSIÇÃO DE CAPÍTULO COM NÚMERO */
+export function ChapterTransitionOverlay({ isVisible, chapterNumber }) {
+    if (!isVisible) return null;
+    return (
+        <div className="fixed inset-0 z-[99999] bg-[#050508] flex items-center justify-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-[#050508] to-[#050508]"></div>
+            <div className="relative z-10 flex flex-col items-center">
+                <span className="text-gray-500 font-black tracking-[0.5em] text-sm uppercase mb-2 animate-pulse">Adentrando</span>
+                <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-blue-700 drop-shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+                    {chapterNumber}
+                </h2>
+                <div className="mt-8 w-32 h-1 bg-gray-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-500 animate-[shimmer_1s_infinite] w-full"></div>
+                </div>
+            </div>
+        </div>
+    );
 }
