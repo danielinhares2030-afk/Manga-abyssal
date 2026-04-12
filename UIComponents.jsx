@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 
-/* NOVO ÍCONE: PORTAL/OLHO DO ABISMO (100% CSS ANIMADO) */
+/* ÍCONE COM ANIMAÇÃO DE PULSAÇÃO ORGÂNICA */
 export const AbyssalLogo = React.memo(({ className = "w-16 h-16" }) => {
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
@@ -16,6 +17,49 @@ export const AbyssalLogo = React.memo(({ className = "w-16 h-16" }) => {
     </div>
   );
 });
+
+export class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#050508] text-red-500 p-10 flex flex-col items-center justify-center font-sans border border-red-900/30">
+          <ShieldAlert className="w-16 h-16 mb-4 animate-pulse text-red-600"/>
+          <h1 className="text-2xl font-black uppercase tracking-widest text-white text-center">Fenda no Sistema</h1>
+          <p className="mt-2 text-red-400/80 text-sm max-w-lg text-center break-words font-medium">{this.state.error?.message}</p>
+          <button onClick={() => window.location.reload()} className="mt-8 bg-zinc-900 border border-zinc-700 text-white px-8 py-3.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all">Restaurar Conexão</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export function GlobalToast({ toast }) {
+  if (!toast) return null;
+  const isError = toast.type === 'error';
+  const isSuccess = toast.type === 'success';
+  return (
+    <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[99999] px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border flex items-center gap-3 animate-in slide-in-from-top-5 duration-300 backdrop-blur-3xl shadow-2xl ${isError ? 'bg-red-950/90 text-red-200 border-red-600/50' : isSuccess ? 'bg-zinc-950/90 text-amber-400 border-amber-500/50' : 'bg-zinc-950/95 text-zinc-400 border-zinc-800'}`}>
+      <span className='text-center'>{toast.text}</span>
+    </div>
+  );
+}
+
+export function Footer() {
+    return (
+        <footer className="w-full bg-[#050508] border-t border-zinc-900/50 py-12 mt-auto pb-24 md:pb-12 relative overflow-hidden flex flex-col items-center justify-center">
+            <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
+                <div className="flex justify-center items-center gap-3 mb-5">
+                    <AbyssalLogo className="w-10 h-10 grayscale opacity-50" />
+                    <span className="font-black text-xl text-zinc-500 tracking-[0.2em] uppercase">MANGÁS ABISSAL</span>
+                </div>
+                <p className="text-zinc-600 text-[9px] uppercase font-black tracking-[0.2em]">O Vazio Resguarda - © 2026</p>
+            </div>
+        </footer>
+    );
+}
 
 /* ABERTURA: FENDA DO ABISMO (Sem tremor, com novo ícone e novo nome) */
 export const SplashScreen = React.memo(() => {
@@ -126,6 +170,7 @@ export const SplashScreen = React.memo(() => {
     </div>
   );
 });
+
 /* TRANSIÇÃO DE CAPÍTULO: SALTO DIMENSIONAL */
 export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }) => {
     if (!isVisible) return null;
