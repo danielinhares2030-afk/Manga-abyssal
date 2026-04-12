@@ -126,3 +126,29 @@ export const SplashScreen = React.memo(() => {
     </div>
   );
 });
+/* TRANSIÇÃO DE CAPÍTULO: SALTO DIMENSIONAL */
+export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }) => {
+    if (!isVisible) return null;
+    return (
+        <div className="fixed inset-0 z-[99999] bg-[#020204] flex items-center justify-center overflow-hidden">
+            <style>{`
+                @keyframes warp-speed {
+                    0% { transform: scale(1) translateZ(0); opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { transform: scale(15) translateZ(500px); opacity: 0; }
+                }
+            `}</style>
+            
+            <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                <div className="w-[10px] h-[10px] rounded-full shadow-[0_0_100px_50px_#22d3ee,0_0_200px_100px_#d946ef] animate-[warp-speed_0.8s_ease-in_forwards]"></div>
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center">
+                <div className="text-cyan-500/80 font-black tracking-[1.5em] text-[10px] uppercase mb-6 animate-pulse ml-[1.5em]">Próxima Camada</div>
+                <h2 className="text-[150px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-900 drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] animate-in zoom-in-50 duration-500">
+                    {chapterNumber}
+                </h2>
+            </div>
+        </div>
+    );
+});
