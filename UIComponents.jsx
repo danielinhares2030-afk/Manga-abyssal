@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock, Hexagon, User, Key } from 'lucide-react';
+import { ShieldAlert, AlertCircle } from 'lucide-react';
 
 /* ==========================================================================
    ÍCONE: INFINITO ELEGANTE (Minimalista e Suave)
@@ -10,16 +10,12 @@ export const InfinityLogo = React.memo(({ className = "w-24 h-12" }) => {
       <svg viewBox="0 0 100 50" className="relative z-10 w-full h-full opacity-90">
         <defs>
           <linearGradient id="calm-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#818cf8" /> {/* Indigo suave */}
-            <stop offset="50%" stopColor="#c084fc" /> {/* Violeta suave */}
-            <stop offset="100%" stopColor="#22d3ee" /> {/* Ciano suave */}
+            <stop offset="0%" stopColor="#818cf8" />
+            <stop offset="50%" stopColor="#c084fc" />
+            <stop offset="100%" stopColor="#22d3ee" />
           </linearGradient>
         </defs>
-        
-        {/* Linha de fundo quase invisível */}
         <path d="M25 15 C10 15 10 35 25 35 C40 35 50 15 75 15 C90 15 90 35 75 35 C60 35 50 15 25 15 Z" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5" />
-        
-        {/* Linha que flui calmamente */}
         <path d="M25 15 C10 15 10 35 25 35 C40 35 50 15 75 15 C90 15 90 35 75 35 C60 35 50 15 25 15 Z" fill="none" stroke="url(#calm-gradient)" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="100" className="animate-[flow-calm_5s_ease-in-out_infinite_alternate]" />
       </svg>
       <style>{`@keyframes flow-calm { 0% { stroke-dashoffset: 200; } 100% { stroke-dashoffset: 0; } }`}</style>
@@ -28,51 +24,37 @@ export const InfinityLogo = React.memo(({ className = "w-24 h-12" }) => {
 });
 
 /* ==========================================================================
-   ABERTURA: CALMA E SEM BUG BRANCO (Fade out suave corrigido)
+   ABERTURA: SEM PISCAR BRANCO
    ========================================================================== */
 export const SplashScreen = React.memo(() => {
-  const [visible, setVisible] = useState(true);
-  const [fade, setFade] = useState(false); // Controla o fade in inicial
-  const [fadeOut, setFadeOut] = useState(false); // NOVO: Controla a saída suave
+  const [fade, setFade] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // 1. Inicia o brilho das letras
     const t1 = setTimeout(() => setFade(true), 100);
-    
-    // 2. Começa a apagar a tela devagar (resolve o pulo branco)
-    const t2 = setTimeout(() => setFadeOut(true), 2500); 
-    
-    // 3. Remove a tela do DOM totalmente
-    const t3 = setTimeout(() => setVisible(false), 3500); 
-    
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    // Começa a sumir antes do App.jsx cortar a tela, evitando o pulo
+    const t2 = setTimeout(() => setFadeOut(true), 2800); 
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  if (!visible) return null;
-
   return (
-    // A classe transition-opacity lidará com o fadeOut final
-    <div className={`fixed inset-0 z-[9999] bg-[#030305] flex flex-col items-center justify-center font-sans transition-opacity duration-1000 ease-in-out ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+    <div className={`fixed inset-0 z-[9999] bg-[#030305] flex flex-col items-center justify-center font-sans transition-opacity duration-500 ease-in-out ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+      {/* Força o fundo do navegador a ser escuro para não piscar branco */}
+      <style>{`body { background-color: #030305 !important; }`}</style>
       
       <div className={`flex flex-col items-center justify-center transition-all duration-[1500ms] ease-out ${fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        
         <InfinityLogo className="w-32 h-16 md:w-40 md:h-20 mb-6" />
-        
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-light text-white/90 tracking-[0.3em] whitespace-nowrap">
           MANGA<span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">INFINITY</span>
         </h1>
         <p className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-[0.8em] font-medium mt-4 pl-[0.8em]">
           O refúgio da leitura
         </p>
-
       </div>
     </div>
   );
 });
 
-/* ==========================================================================
-   ERRO, TOAST E FOOTER (Leves)
-   ========================================================================== */
 export class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
   static getDerivedStateFromError(error) { return { hasError: true, error }; }
@@ -115,9 +97,6 @@ export function Footer() {
     );
 }
 
-/* ==========================================================================
-   TRANSIÇÃO DE CAPÍTULO: FADE SUAVE (Elegante e sem travar)
-   ========================================================================== */
 export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }) => {
     if (!isVisible) return null;
     return (
