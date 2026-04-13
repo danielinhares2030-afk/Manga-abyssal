@@ -5,7 +5,7 @@ import { doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, query, getDocs,
 import { app, auth, db } from './firebase'; 
 import { APP_ID, FALLBACK_SHOP_ITEMS } from './constants';
 import { getThemeClasses, removeXpLogic, addXpLogic, timeAgo, cleanCosmeticUrl } from './helpers';
-import { ErrorBoundary, GlobalToast, Footer, SplashScreen, AbyssalLogo } from './UIComponents';
+import { ErrorBoundary, GlobalToast, Footer, SplashScreen, InfinityLogo } from './UIComponents';
 import { LoginView } from './LoginView';
 import { HomeView } from './HomeView';
 import { SearchView } from './SearchView';
@@ -190,7 +190,7 @@ function MangaInfinityApp() {
   const synthesizeCrystal = async () => {
     if (userProfileData.crystals < 5) return null; const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
     if (Math.random() < 0.40) { await updateDoc(profileRef, { crystals: increment(-5) }); return { success: false }; }
-    const wonCoins = Math.floor(Math.random() * 10) + 5; const wonXp = Math.floor(Math.random() * 5) + 5;    
+    const wonCoins = Math.floor(Math.random() * 10) + 5; const wonXp = Math.floor(Math.random() * 5) + 5;   
     let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, wonXp);
     await updateDoc(profileRef, { crystals: increment(-5), coins: increment(wonCoins), xp: newXp, level: newLvl }); if(didLevelUp) handleLevelUpAnim(newLvl);
     return { success: true, wonCoins, wonXp, leveledUp: didLevelUp, newLvl };
@@ -211,13 +211,12 @@ function MangaInfinityApp() {
   const unreadNotifCount = notifications.filter(n => !n.read).length;
   const eq = userProfileData.equipped_items || {};
 
-  // FAREJADOR ABSOLUTO DE AVATAR: Procura a foto em qualquer variável que você tiver usado no Firebase
   const getAvatarSrc = () => {
     if (!eq.avatar) return null;
     const itemImg = eq.avatar.preview || eq.avatar.url || eq.avatar.img || eq.avatar.imagem || eq.avatar.image || eq.avatar.src || eq.avatar.foto || eq.avatar.link;
     return itemImg ? cleanCosmeticUrl(itemImg) : null;
   };
-  const activeAvatarSrc = getAvatarSrc() || cleanCosmeticUrl(userProfileData.avatarUrl) || user.photoURL || `https://placehold.co/100x100/0f111a/3b82f6?text=U`;
+  const activeAvatarSrc = getAvatarSrc() || cleanCosmeticUrl(userProfileData.avatarUrl) || user?.photoURL || `https://placehold.co/100x100/0f111a/3b82f6?text=U`;
 
   return (
     <div className={`min-h-screen font-sans selection:bg-cyan-600 selection:text-white flex flex-col transition-colors duration-300 ${getThemeClasses(userSettings.theme)}`}>
@@ -235,8 +234,8 @@ function MangaInfinityApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
-                <AbyssalLogo className="w-10 h-10 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" />
-                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-white to-amber-500 tracking-[0.2em] uppercase hidden sm:block">ABISSAL</span>
+                <InfinityLogo className="w-12 h-6 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
+                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-100 via-white to-fuchsia-500 tracking-[0.2em] uppercase hidden sm:block">INFINITY</span>
               </div>
               
               <div className="hidden md:block flex-1 max-w-lg mx-8 relative group">
@@ -249,10 +248,10 @@ function MangaInfinityApp() {
                   <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300" title="Pesquisar">{showMobileSearch ? <X className="w-5 h-5"/> : <Search className="w-5 h-5" />}</button>
                   <button onClick={handleRandomManga} className="p-2 text-gray-300/80 hover:text-fuchsia-400 transition-colors duration-300 group relative" title="Obra Aleatória"><Dices className="w-5 h-5 md:w-5 md:h-5 group-hover:text-fuchsia-400 transition-colors duration-300" /></button>
                   <div className="relative">
-                    <button onClick={() => {if(!user) return showToast("Faça login para ver mensagens", "info"); setShowNotifMenu(!showNotifMenu)}} className="relative p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300"><Bell className="w-5 h-5 md:w-5 md:h-5"/>{unreadNotifCount > 0 && <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-[#050508]"></span>}</button>
+                    <button onClick={() => {if(!user) return showToast("Faça login para ver mensagens", "info"); setShowNotifMenu(!showNotifMenu)}} className="relative p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300"><Bell className="w-5 h-5 md:w-5 md:h-5"/>{unreadNotifCount > 0 && <span className="absolute top-1 right-2 w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse border border-[#050508]"></span>}</button>
                     {showNotifMenu && user && (
                         <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 w-72 bg-[#0d0d12] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in slide-in-from-top-2">
-                            <div className="p-3 border-b border-white/10 bg-[#050508] flex items-center justify-between"><h3 className="font-black text-sm text-white flex items-center gap-2"><Bell className="w-4 h-4 text-cyan-400"/> Avisos e Comentários</h3>{unreadNotifCount > 0 && <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-black">{unreadNotifCount}</span>}</div>
+                            <div className="p-3 border-b border-white/10 bg-[#050508] flex items-center justify-between"><h3 className="font-black text-sm text-white flex items-center gap-2"><Bell className="w-4 h-4 text-cyan-400"/> Avisos e Comentários</h3>{unreadNotifCount > 0 && <span className="text-[10px] bg-fuchsia-500 text-white px-1.5 py-0.5 rounded font-black">{unreadNotifCount}</span>}</div>
                             <div className="max-h-64 overflow-y-auto no-scrollbar">
                                 {notifications.length === 0 ? <p className="text-center text-xs text-gray-400/60 py-6">Nenhum aviso no momento.</p> : notifications.map(n => <div key={n.id} onClick={async () => { await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'notifications', n.id), {read: true}); if(n.mangaId) { const m = mangas.find(mg=>mg.id===n.mangaId); if(m) navigateTo('details', m); setShowNotifMenu(false); } }} className={`p-3 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${!n.read ? 'bg-cyan-900/10' : ''}`}><p className="text-xs text-gray-200 font-medium leading-relaxed">{n.text}</p><p className="text-[9px] text-cyan-500 mt-1.5 font-bold uppercase">{timeAgo(n.createdAt)}</p></div>)}
                             </div>
