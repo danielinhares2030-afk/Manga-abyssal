@@ -1,101 +1,119 @@
 import React, { useState } from 'react';
-import { Loader2, Sparkles, Fingerprint, Lock } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from './firebase';
-import { AbyssalLogo } from './UIComponents';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebase'; // Confirme se o caminho do seu firebase.js está correto
+import { User, Key, Lock } from 'lucide-react';
+import { InfinityLogo } from './UIComponents';
 
 export function LoginView({ onLoginSuccess, onGuestAccess }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      if (isLogin) { await signInWithEmailAndPassword(auth, email, password); onLoginSuccess(); } 
-      else {
-        if (!name.trim()) throw { code: 'custom/missing-name' };
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCred.user, { displayName: name });
-        onLoginSuccess(); 
+      if (isRegistering) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
       }
-    } catch (err) { 
-      let msg = "Falha no acesso. Verifique suas credenciais.";
-      if(err.code === 'auth/email-already-in-use') msg = "Esta conta já pertence ao Abismo.";
-      if(err.code === 'auth/weak-password') msg = "A senha deve ter no mínimo 6 fragmentos.";
-      if(err.code === 'custom/missing-name') msg = "Identifique-se, Viajante.";
-      setError(msg); 
-    } finally { setLoading(false); }
+      onLoginSuccess();
+    } catch (err) {
+      setError(err.message.replace('Firebase: ', ''));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#020205] flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-      <style>{`@keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; } 50% { transform: translate(30px, -20px) scale(1.05); opacity: 0.3; } }`}</style>
-      <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-blue-900/10 rounded-full blur-[130px] animate-[drift_15s_ease-in-out_infinite]"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-red-900/5 rounded-full blur-[130px] animate-[drift_18s_ease-in-out_infinite_reverse]"></div>
+    <div className="min-h-screen bg-[#020105] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+      
+      {/* Fundo Cósmico */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#130a2a_0%,_#020105_80%)] pointer-events-none"></div>
 
-      <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        <div className="bg-[#050508]/80 backdrop-blur-3xl border border-blue-900/30 rounded-[2rem] p-8 sm:p-10 shadow-[0_0_80px_rgba(37,99,235,0.1)] relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center">
+        
+        {/* Logo e Título */}
+        <div className="mb-8 flex flex-col items-center">
+          <InfinityLogo className="w-32 h-16 md:w-40 md:h-20 mb-6" />
+          <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-600 tracking-[0.2em] drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+            MANGA-INFINITY
+          </h1>
+          <p className="text-[10px] text-fuchsia-400 uppercase tracking-[0.8em] font-black mt-3 text-center">
+            Além da Eternidade
+          </p>
+        </div>
+
+        {/* Card do Formulário */}
+        <div className="w-full bg-[#05030a]/80 backdrop-blur-3xl border border-cyan-900/30 p-8 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
           
-          <div className="text-center mb-10 relative z-10">
-            <AbyssalLogo className="w-24 h-24 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]" />
-            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-blue-50 to-blue-700 tracking-tight">
-              {isLogin ? 'O ABISMO' : 'SINGULARIDADE'}
-            <br/>
-            <span className='text-[10px] font-black text-amber-500 tracking-[0.4em] uppercase'>MANGÁS ABISSAL</span>
-            </h2>
-            <p className="text-blue-100/50 mt-3 text-xs font-medium tracking-wide">
-              {isLogin ? 'O Vazio aguarda seu retorno, Viajante.' : 'Forje sua existência na Escuridão.'}
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-950/40 border border-red-900/50 text-red-400 px-4 py-3 rounded-xl mb-6 text-xs font-bold text-center animate-in zoom-in-95 shadow-inner">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
-            {!isLogin && (
-              <div className="relative group">
-                <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 opacity-70"/>
-                <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="Identidade (Ex: Lorde Abissal)" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl pl-11 pr-4 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner" required />
-              </div>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="relative group">
-              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail Cósmico" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-5 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner text-center" required />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-600/50 group-focus-within:text-cyan-400 transition-colors" />
+              <input 
+                type="email" 
+                placeholder="E-mail Cósmico" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-[#020105] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-cyan-500/60 focus:shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all" 
+              />
             </div>
+            
             <div className="relative group">
-              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="senha de Acesso" className="w-full bg-[#020205] border border-blue-900/30 rounded-xl px-5 py-4 text-blue-50 outline-none focus:border-blue-500/50 transition-all font-medium text-xs peer shadow-inner text-center" required />
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-fuchsia-600/50 group-focus-within:text-fuchsia-400 transition-colors" />
+              <input 
+                type="password" 
+                placeholder="Código de Acesso" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-[#020105] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-fuchsia-500/60 focus:shadow-[0_0_15px_rgba(217,70,239,0.15)] transition-all" 
+              />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full relative group overflow-hidden rounded-xl mt-4 shadow-[0_0_20px_rgba(37,99,235,0.15)]">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-red-700 opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"></div>
-              <div className="relative px-6 py-4 flex justify-center items-center gap-2 text-white font-black text-xs tracking-widest uppercase shadow-md">
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isLogin ? 'Romper o Véu' : 'Manifestar Alma')}
-                {!loading && <Sparkles className="w-3.5 h-3.5 opacity-70 text-amber-400" />}
-              </div>
+            {error && <p className="text-red-500 text-xs text-center font-bold tracking-wider">{error}</p>}
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-800 to-purple-800 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl mt-4 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] group disabled:opacity-50"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-fuchsia-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <span className="relative z-10">{loading ? 'Sincronizando...' : (isRegistering ? 'Criar Entidade' : 'Conectar ao Infinito')}</span>
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-blue-900/20 text-center flex flex-col gap-4 relative z-10">
-            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-blue-500/80 hover:text-amber-400 text-[11px] uppercase tracking-wider font-black transition-colors">
-              {isLogin ? 'sem cadastro? Despertar agora' : 'Já possui uma conta? Conectar-se'}
+          {/* Links Auxiliares */}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <button 
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="text-[10px] text-cyan-500 font-black uppercase tracking-widest hover:text-cyan-300 transition-colors text-center"
+            >
+              {isRegistering ? 'JÁ TEM ACESSO? CONECTAR AGORA' : 'SEM CADASTRO? DESPERTAR AGORA'}
             </button>
-            <button onClick={onGuestAccess} className="text-gray-600 hover:text-gray-400 text-[9px] font-black uppercase tracking-[0.2em] transition-colors">
-              Vagar pelas sombras (Acesso Visitante)
+            
+            <button 
+              onClick={onGuestAccess}
+              className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] hover:text-white transition-colors text-center"
+            >
+              VAGAR PELO INFINITO (ACESSO VISITANTE)
             </button>
           </div>
+
         </div>
-        
-        <div className="mt-8 flex justify-center items-center gap-2 opacity-50">
-            <Lock className="w-3 h-3 text-blue-600" />
-            <span className="text-[9px] text-blue-500 uppercase tracking-widest font-black">Conexão Blindada SSL</span>
+
+        {/* Rodapé SSL */}
+        <div className="mt-12 flex items-center justify-center gap-2 text-cyan-900/50">
+          <Lock className="w-3 h-3" />
+          <span className="text-[9px] uppercase font-black tracking-[0.3em]">Conexão Blindada SSL</span>
         </div>
+
       </div>
     </div>
   );
