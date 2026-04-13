@@ -70,7 +70,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                                         <span className="flex items-center gap-1 text-amber-400 text-xs font-black bg-black/50 px-2 py-1 rounded-md backdrop-blur-sm border border-amber-500/20"><Star className="w-3 h-3 fill-amber-400"/> {manga.rating ? Number(manga.rating).toFixed(1) : "5.0"}</span>
                                     </div>
                                     <h2 className="text-3xl md:text-5xl font-black text-white mb-3 line-clamp-1 md:line-clamp-2 tracking-tight drop-shadow-lg">{manga.title}</h2>
-                                    <p className="text-gray-300 text-xs md:text-sm line-clamp-2 md:line-clamp-3 mb-6 max-w-2xl text-shadow-sm font-medium">{manga.synopsis || "Descubra esta obra épica nos registos do Vazio. Uma jornada inesquecível aguarda por si."}</p>
+                                    <p className="text-gray-300 text-xs md:text-sm line-clamp-2 md:line-clamp-3 mb-6 max-w-2xl text-shadow-sm font-medium">{manga.synopsis || "Descubra esta obra épica nos registros do Infinito. Uma jornada inesquecível aguarda por você."}</p>
                                     <button onClick={() => onNavigate('details', manga)} className="bg-white text-black hover:bg-cyan-400 hover:text-black font-black px-8 py-3.5 rounded-full flex items-center gap-2 transition-all duration-300 text-xs md:text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105">
                                         <Play className="w-4 h-4 fill-current" /> Ler Agora
                                     </button>
