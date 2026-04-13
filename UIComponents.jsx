@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock, Hexagon, User, Key } from 'lucide-react';
 
 /* ==========================================================================
-   ÍCONE RANK S: O OLHO SOBRENATURAL DO ABISMO (SURREAL & CINEMATOGRÁFICO)
+   ÍCONE RANK S: O OLHO SOBRENATURAL DO ABISMO (BLINDADO COM INLINE CSS)
    ========================================================================== */
 export const AbyssalLogo = React.memo(({ className = "w-20 h-20", phase = 6 }) => {
   // O olho só abre na fase 4 em diante
@@ -15,14 +15,24 @@ export const AbyssalLogo = React.memo(({ className = "w-20 h-20", phase = 6 }) =
       <div className={`absolute inset-[-30%] bg-gradient-to-tr from-fuchsia-700/40 via-purple-900/30 to-blue-600/40 rounded-full blur-[25px] transition-all duration-1000 ease-out
         ${phase >= 5 ? 'opacity-100 scale-125 animate-pulse' : 'opacity-50 scale-100'}`}></div>
 
-      {/* ESTRUTURA DO OLHO: Quadrado rotacionado para formar a amêndoa perfeita */}
-      <div className={`w-[90%] h-[90%] bg-[#010103] border border-blue-500/80 shadow-[0_0_30px_rgba(59,130,246,0.6),inset_0_0_20px_rgba(0,0,0,0.9)] rounded-[80%_0] rotate-45 overflow-hidden flex items-center justify-center relative z-10 transition-all duration-1000
-        ${phase === 5 ? 'shadow-[0_0_60px_rgba(59,130,246,0.9),inset_0_0_20px_rgba(0,0,0,0.9)]' : ''}`}>
+      {/* ESTRUTURA DO OLHO: BLINDADO CONTRA A VERCEL COM INLINE STYLES */}
+      <div 
+        className="relative z-10 flex items-center justify-center overflow-hidden transition-all duration-1000"
+        style={{
+          width: '90%',
+          height: '90%',
+          backgroundColor: '#010103',
+          borderRadius: '80% 0 80% 0', /* O Segredo do formato de Olho */
+          transform: 'rotate(45deg)',
+          border: '1px solid rgba(59,130,246,0.8)',
+          boxShadow: phase === 5 ? '0 0 60px rgba(59,130,246,0.9), inset 0 0 20px rgba(0,0,0,0.9)' : '0 0 30px rgba(59,130,246,0.6), inset 0 0 20px rgba(0,0,0,0.9)'
+        }}
+      >
         
         {/* DESFAZENDO A ROTAÇÃO PARA OS ELEMENTOS INTERNOS */}
-        <div className="absolute inset-0 -rotate-45 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'rotate(-45deg)' }}>
             
-            {/* ÍRIS CÓSMICA (Gira lentamente para dar vida) */}
+            {/* ÍRIS CÓSMICA */}
             <div className={`absolute w-[75%] h-[75%] rounded-full bg-[radial-gradient(circle_at_center,_#7dd3fc_5%,_#2563eb_40%,_#020617_90%)] shadow-[inset_0_0_15px_rgba(0,0,0,1)] flex items-center justify-center transition-all duration-[1500ms]
                 ${isEyeOpen ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
                 
@@ -30,7 +40,7 @@ export const AbyssalLogo = React.memo(({ className = "w-20 h-20", phase = 6 }) =
                 <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,_transparent_0%,_rgba(59,130,246,0.4)_25%,_transparent_50%,_rgba(192,38,211,0.3)_75%,_transparent_100%)] animate-[spin_12s_linear_infinite] mix-blend-screen"></div>
             </div>
 
-            {/* PUPILA VERTICAL (Criatura / Sobrenatural - Fica fixa enquanto a íris gira) */}
+            {/* PUPILA VERTICAL (Sobrenatural) */}
             <div className={`absolute w-[18%] h-[75%] bg-black rounded-[50%] shadow-[inset_0_0_15px_rgba(0,0,0,1),0_0_15px_rgba(59,130,246,0.8)] transition-all duration-[1000ms] delay-300
                 ${isEyeOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'}`}></div>
 
@@ -40,9 +50,16 @@ export const AbyssalLogo = React.memo(({ className = "w-20 h-20", phase = 6 }) =
 
         </div>
 
-        {/* PÁLPEBRAS (Abrem a partir do centro) */}
-        <div className={`absolute top-0 left-0 w-[150%] h-[150%] bg-[#010103] -rotate-45 origin-top transition-transform duration-[1200ms] ease-[cubic-bezier(0.85,0,0.15,1)] z-20 ${isEyeOpen ? 'scale-y-0' : 'scale-y-100'}`} style={{ top: '-25%', left: '-25%' }}></div>
-        <div className={`absolute bottom-0 left-0 w-[150%] h-[150%] bg-[#010103] -rotate-45 origin-bottom transition-transform duration-[1200ms] ease-[cubic-bezier(0.85,0,0.15,1)] z-20 ${isEyeOpen ? 'scale-y-0' : 'scale-y-100'}`} style={{ bottom: '-25%', left: '-25%' }}></div>
+        {/* PÁLPEBRAS: BLINDADAS COM INLINE STYLES */}
+        <div 
+          className={`absolute bg-[#010103] origin-top transition-transform duration-[1200ms] ease-[cubic-bezier(0.85,0,0.15,1)] z-20 ${isEyeOpen ? 'scale-y-0' : 'scale-y-100'}`}
+          style={{ top: '-50%', left: '-50%', width: '200%', height: '100%', transform: isEyeOpen ? 'rotate(-45deg) scaleY(0)' : 'rotate(-45deg) scaleY(1)' }}
+        ></div>
+        
+        <div 
+          className={`absolute bg-[#010103] origin-bottom transition-transform duration-[1200ms] ease-[cubic-bezier(0.85,0,0.15,1)] z-20 ${isEyeOpen ? 'scale-y-0' : 'scale-y-100'}`}
+          style={{ bottom: '-50%', left: '-50%', width: '200%', height: '100%', transform: isEyeOpen ? 'rotate(-45deg) scaleY(0)' : 'rotate(-45deg) scaleY(1)' }}
+        ></div>
 
       </div>
     </div>
@@ -148,7 +165,7 @@ export const SplashScreen = React.memo(() => {
             Desperte o seu Vazio
           </p>
 
-          {/* O Formulário de Login (Fake para compor a estética do SplahScreen) */}
+          {/* Formulário Fake para compor estética na abertura */}
           <div className="w-full bg-[#030407]/90 backdrop-blur-2xl border border-blue-900/40 p-6 md:p-8 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(59,130,246,0.05)]">
             <div className="space-y-5">
               <div className="relative group">
