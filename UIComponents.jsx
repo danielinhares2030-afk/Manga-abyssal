@@ -2,210 +2,126 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ShieldAlert, AlertCircle, CheckCircle, Zap, Lock, Hexagon, User, Key } from 'lucide-react';
 
 /* ==========================================================================
-   ÍCONE RANK S: O OLHO SOBRENATURAL DO ABISMO (BLINDADO COM INLINE CSS)
+   ÍCONE RANK S: A SINGULARIDADE DO ABISMO (Buraco Negro Cósmico)
    ========================================================================== */
-export const AbyssalLogo = React.memo(({ className = "w-20 h-20", phase = 6 }) => {
-  // O olho só abre na fase 4 em diante
-  const isEyeOpen = phase >= 4;
-
+export const AbyssalLogo = React.memo(({ className = "w-20 h-20" }) => {
   return (
-    <div className={`relative flex items-center justify-center group ${className}`}>
+    <div className={`relative flex items-center justify-center ${className}`}>
       
-      {/* GLOW PROFUNDO EXTERNO */}
-      <div className={`absolute inset-[-30%] bg-gradient-to-tr from-fuchsia-700/40 via-purple-900/30 to-blue-600/40 rounded-full blur-[25px] transition-all duration-1000 ease-out
-        ${phase >= 5 ? 'opacity-100 scale-125 animate-pulse' : 'opacity-50 scale-100'}`}></div>
+      {/* 1. Aura de Distorção (Glow de Fundo) */}
+      <div className="absolute inset-[-20%] bg-gradient-to-tr from-blue-900/40 via-cyan-600/20 to-purple-900/40 rounded-full blur-[20px] animate-[pulse_4s_ease-in-out_infinite]"></div>
 
-      {/* ESTRUTURA DO OLHO: BLINDADO CONTRA A VERCEL COM INLINE STYLES */}
-      <div 
-        className="relative z-10 flex items-center justify-center overflow-hidden transition-all duration-1000"
-        style={{
-          width: '90%',
-          height: '90%',
-          backgroundColor: '#010103',
-          borderRadius: '80% 0 80% 0', /* O Segredo do formato de Olho */
-          transform: 'rotate(45deg)',
-          border: '1px solid rgba(59,130,246,0.8)',
-          boxShadow: phase === 5 ? '0 0 60px rgba(59,130,246,0.9), inset 0 0 20px rgba(0,0,0,0.9)' : '0 0 30px rgba(59,130,246,0.6), inset 0 0 20px rgba(0,0,0,0.9)'
-        }}
-      >
+      {/* 2. Anéis de Acreção (Discos de energia girando) */}
+      <div className="absolute w-full h-full rounded-full border border-transparent border-t-cyan-400 border-b-blue-700 opacity-70 animate-[spin_3s_linear_infinite]"></div>
+      <div className="absolute w-[85%] h-[85%] rounded-full border border-transparent border-r-fuchsia-500 border-l-purple-800 opacity-60 animate-[spin_4s_linear_infinite_reverse]"></div>
+      <div className="absolute w-[70%] h-[70%] rounded-full border-[0.5px] border-dashed border-cyan-300/40 animate-[spin_10s_linear_infinite]"></div>
+
+      {/* 3. O Vazio Absoluto (O Buraco Negro no centro) */}
+      <div className="w-[65%] h-[65%] bg-[#010103] rounded-full shadow-[0_0_30px_rgba(0,0,0,1),inset_0_0_20px_rgba(0,0,0,0.8)] z-10 flex items-center justify-center relative overflow-hidden">
         
-        {/* DESFAZENDO A ROTAÇÃO PARA OS ELEMENTOS INTERNOS */}
-        <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'rotate(-45deg)' }}>
-            
-            {/* ÍRIS CÓSMICA */}
-            <div className={`absolute w-[75%] h-[75%] rounded-full bg-[radial-gradient(circle_at_center,_#7dd3fc_5%,_#2563eb_40%,_#020617_90%)] shadow-[inset_0_0_15px_rgba(0,0,0,1)] flex items-center justify-center transition-all duration-[1500ms]
-                ${isEyeOpen ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
-                
-                {/* Textura espiral da íris */}
-                <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,_transparent_0%,_rgba(59,130,246,0.4)_25%,_transparent_50%,_rgba(192,38,211,0.3)_75%,_transparent_100%)] animate-[spin_12s_linear_infinite] mix-blend-screen"></div>
-            </div>
-
-            {/* PUPILA VERTICAL (Sobrenatural) */}
-            <div className={`absolute w-[18%] h-[75%] bg-black rounded-[50%] shadow-[inset_0_0_15px_rgba(0,0,0,1),0_0_15px_rgba(59,130,246,0.8)] transition-all duration-[1000ms] delay-300
-                ${isEyeOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'}`}></div>
-
-            {/* REFLEXO REALISTA DE LUZ */}
-            <div className={`absolute top-[20%] right-[32%] w-[12%] h-[12%] bg-white rounded-full blur-[1px] shadow-[0_0_10px_rgba(255,255,255,1)] transition-opacity duration-1000 delay-500
-                ${isEyeOpen ? 'opacity-80' : 'opacity-0'}`}></div>
-
-        </div>
-
-        {/* PÁLPEBRAS: BLINDADAS COM INLINE STYLES */}
-        <div 
-          className={`absolute bg-[#010103] origin-top transition-transform duration-[1200ms] ease-[cubic-bezier(0.85,0,0.15,1)] z-20 ${isEyeOpen ? 'scale-y-0' : 'scale-y-100'}`}
-          style={{ top: '-50%', left: '-50%', width: '200%', height: '100%', transform: isEyeOpen ? 'rotate(-45deg) scaleY(0)' : 'rotate(-45deg) scaleY(1)' }}
-        ></div>
+        {/* Reflexo de evento no horizonte do buraco negro */}
+        <div className="absolute inset-0 rounded-full shadow-[inset_0_0_15px_rgba(34,211,238,0.3)]"></div>
         
-        <div 
-          className={`absolute bg-[#010103] origin-bottom transition-transform duration-[1200ms] ease-[cubic-bezier(0.85,0,0.15,1)] z-20 ${isEyeOpen ? 'scale-y-0' : 'scale-y-100'}`}
-          style={{ bottom: '-50%', left: '-50%', width: '200%', height: '100%', transform: isEyeOpen ? 'rotate(-45deg) scaleY(0)' : 'rotate(-45deg) scaleY(1)' }}
-        ></div>
-
+        {/* A Faísca da Singularidade no fundo do vazio */}
+        <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_3px_rgba(255,255,255,0.8)] animate-ping opacity-80"></div>
       </div>
     </div>
   );
 });
 
 /* ==========================================================================
-   ABERTURA: O DESPERTAR DO OLHO SOBRENATURAL (6 FASES)
+   ABERTURA: O NASCIMENTO DA SINGULARIDADE (CINEMÁTICA)
    ========================================================================== */
 export const SplashScreen = React.memo(() => {
-  const [phase, setPhase] = useState(1);
+  const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const p2 = setTimeout(() => setPhase(2), 1500);  // Energia subindo do vazio
-    const p3 = setTimeout(() => setPhase(3), 3000);  // Olho emerge
-    const p4 = setTimeout(() => setPhase(4), 4500);  // Olho abre (pálpebras)
-    const p5 = setTimeout(() => setPhase(5), 5800);  // Explosão de energia / Tremor
-    const p6 = setTimeout(() => setPhase(6), 7200);  // Revela o login
+    const p1 = setTimeout(() => setPhase(1), 500);   // Faísca no escuro
+    const p2 = setTimeout(() => setPhase(2), 1500);  // Colapso e expansão da Singularidade
+    const p3 = setTimeout(() => setPhase(3), 3000);  // Onda de choque e título
+    const p4 = setTimeout(() => setPhase(4), 4500);  // Formulário revelado
 
-    return () => { clearTimeout(p2); clearTimeout(p3); clearTimeout(p4); clearTimeout(p5); clearTimeout(p6); };
+    return () => { clearTimeout(p1); clearTimeout(p2); clearTimeout(p3); clearTimeout(p4); };
   }, []);
 
-  // Partículas de poeira do vazio (Fase 1)
-  const ambientParticles = useMemo(() => Array.from({ length: 30 }).map((_, i) => ({
-    id: i,
-    x: Math.random() * 100, y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    duration: Math.random() * 10 + 10,
-    delay: Math.random() * -10,
-  })), []);
-
-  // Partículas de explosão (Fase 5)
-  const burstParticles = useMemo(() => Array.from({ length: 40 }).map((_, i) => ({
-    id: i,
-    angle: Math.random() * 360,
-    distance: Math.random() * 200 + 50,
-    size: Math.random() * 5 + 2,
-    duration: Math.random() * 1.5 + 0.8,
-  })), []);
-
   return (
-    <div className={`fixed inset-0 z-[9999] overflow-hidden bg-[#000000] flex items-center justify-center font-sans
-      ${phase === 5 ? "animate-[shake-cinematic_0.4s_ease-in-out]" : ""}`}>
+    <div className="fixed inset-0 z-[9999] overflow-hidden bg-[#000000] flex items-center justify-center font-sans perspective-[1000px]">
       
       <style>{`
-        @keyframes shake-cinematic {
-          0%, 100% { transform: translate(0, 0); }
-          20% { transform: translate(-3px, 3px); }
-          40% { transform: translate(3px, -2px); }
-          60% { transform: translate(-2px, -3px); }
-          80% { transform: translate(2px, 2px); }
+        @keyframes shockwave {
+          0% { transform: scale(0); opacity: 1; border-width: 10px; }
+          100% { transform: scale(15); opacity: 0; border-width: 0px; }
         }
-        @keyframes float-ambient {
-          0% { transform: translateY(0) translateX(0); opacity: 0; }
-          50% { opacity: 0.5; }
-          100% { transform: translateY(-20vh) translateX(5vw); opacity: 0; }
-        }
-        @keyframes particle-burst {
-          0% { transform: translate(0, 0) scale(1); opacity: 1; }
-          100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        @keyframes float-up {
+          0% { transform: translateY(30px) scale(0.9); opacity: 0; filter: blur(10px); }
+          100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
         }
       `}</style>
 
-      {/* FASE 1: Vazio Absoluto & FASE 2: Energia Surgindo */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_#1e1b4b_0%,_#000000_60%)] opacity-60"></div>
-      
-      {/* Energia subindo do fundo (Fase 2) */}
-      <div className={`absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[60vw] h-[40vh] bg-blue-600/30 blur-[80px] rounded-[100%] transition-all duration-[2000ms] ease-out mix-blend-screen
-        ${phase >= 2 ? 'opacity-100 translate-y-[-20%]' : 'opacity-0 translate-y-0'}`}></div>
+      {/* AMBIENTE: Fundo absoluto que clareia suavemente */}
+      <div className={`absolute inset-0 transition-opacity duration-[3000ms] ease-out pointer-events-none
+        ${phase >= 2 ? 'bg-[radial-gradient(circle_at_center,_#0b1836_0%,_#000000_70%)] opacity-100' : 'opacity-0'}`}></div>
 
-      {/* Poeira do Vazio (Fase 1+) */}
-      {ambientParticles.map(p => (
-        <div key={`amb-${p.id}`} className="absolute rounded-full bg-blue-200/40 blur-[1px]"
-             style={{
-               width: `${p.size}px`, height: `${p.size}px`, left: `${p.x}%`, top: `${p.y}%`,
-               animation: `float-ambient ${p.duration}s linear infinite ${p.delay}s`
-             }}></div>
-      ))}
+      {/* FASE 1: A Faísca Solitária */}
+      <div className={`absolute z-20 w-1 h-1 bg-white rounded-full shadow-[0_0_30px_10px_#fff] transition-all duration-[1000ms] ease-in
+        ${phase === 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}></div>
 
-      {/* FASE 5: Explosão de Energia (Glow central forte) */}
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] md:w-[60vw] md:h-[60vw] rounded-full bg-[radial-gradient(circle,_rgba(59,130,246,0.4)_0%,_rgba(192,38,211,0.1)_40%,_transparent_70%)] blur-[50px] transition-all duration-[1000ms] ease-out pointer-events-none mix-blend-screen
-        ${phase >= 5 ? 'opacity-100 scale-150' : 'opacity-0 scale-50'}`}></div>
+      {/* FASE 3: Onda de Choque da Expansão */}
+      {phase === 3 && (
+        <div className="absolute z-10 w-32 h-32 rounded-full border-cyan-400/50 animate-[shockwave_1.5s_cubic-bezier(0.1,0.8,0.3,1)_forwards]"></div>
+      )}
 
-      {/* CONTAINER PRINCIPAL: OLHO + LOGIN */}
-      <div className={`relative z-20 flex flex-col items-center w-full max-w-md px-6 transition-all duration-[1500ms] ease-[cubic-bezier(0.25,1,0.5,1)]
-        ${phase === 3 ? 'translate-y-[10vh] opacity-100' : phase >= 4 ? 'translate-y-0 opacity-100' : 'translate-y-[30vh] opacity-0'}`}>
+      {/* CONTAINER PRINCIPAL */}
+      <div className={`relative z-30 flex flex-col items-center w-full max-w-md px-6 transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+        ${phase >= 4 ? '-translate-y-6' : 'translate-y-0'}`}>
         
-        {/* FASE 3 & 4: Olho Emergindo e Abrindo */}
-        <div className={`relative flex items-center justify-center transition-all duration-[1500ms] ease-out
-          ${phase >= 6 ? 'w-24 h-24 md:w-28 md:h-28 mb-8' : 'w-36 h-36 md:w-48 md:h-48 mb-0'}`}>
-          
-          <AbyssalLogo className="w-full h-full" phase={phase} />
+        {/* FASE 2: A Singularidade Surge */}
+        <div className={`relative flex items-center justify-center transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+          ${phase >= 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}
+          ${phase >= 4 ? 'w-24 h-24 md:w-28 md:h-28 mb-8' : 'w-40 h-40 md:w-48 md:h-48 mb-0'}`}>
+          <AbyssalLogo className="w-full h-full" />
         </div>
 
-        {/* FASE 6: Revelação da Tela de Login */}
-        <div className={`w-full flex flex-col items-center transition-all duration-[1500ms] ease-out delay-300
-          ${phase >= 6 ? 'opacity-100 translate-y-0 filter-none' : 'opacity-0 translate-y-10 blur-md'}`}>
-          
-          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-blue-100 to-blue-700 tracking-[0.5em] whitespace-nowrap pl-[0.5em] drop-shadow-[0_0_25px_rgba(59,130,246,0.6)] mb-3">
-            O ABISMO
+        {/* FASE 3: O Título Desperta da Escuridão */}
+        <div className={`w-full flex flex-col items-center transition-all duration-[1500ms] ease-out
+          ${phase >= 3 ? 'opacity-100' : 'opacity-0'}
+          ${phase < 3 ? 'hidden' : 'block'}`}
+          style={{ animation: phase === 3 ? 'float-up 1.5s cubic-bezier(0.16,1,0.3,1) forwards' : 'none' }}
+        >
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-50 to-cyan-800 tracking-[0.4em] whitespace-nowrap pl-[0.4em] drop-shadow-[0_0_25px_rgba(34,211,238,0.4)] mb-3">
+            MANGÁS ABISSAL
           </h1>
-          <p className="text-[9px] md:text-[10px] text-blue-400 uppercase tracking-[1em] font-black animate-pulse mb-10 pl-[1em]">
-            Desperte o seu Vazio
+          <p className="text-[9px] md:text-[10px] text-cyan-400 uppercase tracking-[1.2em] font-black animate-pulse mb-10 pl-[1.2em]">
+            A Singularidade
           </p>
 
-          {/* Formulário Fake para compor estética na abertura */}
-          <div className="w-full bg-[#030407]/90 backdrop-blur-2xl border border-blue-900/40 p-6 md:p-8 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(59,130,246,0.05)]">
-            <div className="space-y-5">
+          {/* FASE 4: O Acesso ao Sistema */}
+          <div className={`w-full bg-[#030407]/80 backdrop-blur-xl border border-cyan-900/30 p-6 md:p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(34,211,238,0.05)] transition-all duration-[1500ms] ease-out
+            ${phase >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="space-y-4">
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500/50 group-focus-within:text-blue-400 transition-colors" />
-                <input type="text" placeholder="Entidade" className="w-full bg-[#010103] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-blue-500/80 focus:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-600/50 group-focus-within:text-cyan-400 transition-colors" />
+                <input type="text" placeholder="Entidade" className="w-full bg-[#010103] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-cyan-500/80 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all" />
               </div>
               <div className="relative group">
-                <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500/50 group-focus-within:text-blue-400 transition-colors" />
-                <input type="password" placeholder="Chave Cósmica" className="w-full bg-[#010103] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-blue-500/80 focus:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all" />
+                <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-600/50 group-focus-within:text-cyan-400 transition-colors" />
+                <input type="password" placeholder="Chave Cósmica" className="w-full bg-[#010103] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-cyan-500/80 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all" />
               </div>
-              <button className="w-full relative overflow-hidden bg-blue-700 text-white font-black text-[10px] md:text-xs uppercase tracking-widest py-4 rounded-xl mt-4 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-fuchsia-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <span className="relative z-10">Mergulhar no Vazio</span>
+              <button className="w-full relative overflow-hidden bg-cyan-800 text-white font-black text-[10px] md:text-xs uppercase tracking-widest py-4 rounded-xl mt-4 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] group">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <span className="relative z-10">Cruzar o Horizonte</span>
               </button>
             </div>
           </div>
         </div>
 
       </div>
-
-      {/* Partículas da Explosão de Energia (Fase 5) */}
-      {phase === 5 && burstParticles.map(p => {
-        const tx = Math.cos(p.angle * (Math.PI / 180)) * p.distance;
-        const ty = Math.sin(p.angle * (Math.PI / 180)) * p.distance;
-        return (
-          <div key={`burst-${p.id}`} className="absolute top-1/2 left-1/2 rounded-full bg-blue-400 shadow-[0_0_15px_#fff] z-30"
-               style={{
-                 width: `${p.size}px`, height: `${p.size}px`,
-                 '--tx': `${tx}px`, '--ty': `${ty}px`,
-                 animation: `particle-burst ${p.duration}s cubic-bezier(0.1, 0.8, 0.3, 1) forwards`
-               }}>
-          </div>
-        );
-      })}
     </div>
   );
 });
 
 /* ==========================================================================
-   RESTANTE DOS COMPONENTES DA APLICAÇÃO
+   RESTANTE DOS COMPONENTES (ERROS, TOASTS E TRANSIÇÃO)
    ========================================================================== */
 
 export class ErrorBoundary extends React.Component {
@@ -234,7 +150,7 @@ export function GlobalToast({ toast }) {
   const isInfo = toast.type === 'info';
 
   return (
-    <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[99999] px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border flex items-center gap-3 animate-in slide-in-from-top-5 duration-300 backdrop-blur-3xl shadow-2xl ${isError ? 'bg-red-950/90 text-red-200 border-red-600/50' : isSuccess ? 'bg-blue-950/90 text-cyan-400 border-blue-500/50' : isInfo ? 'bg-blue-950/90 text-blue-300 border-blue-600/50' : 'bg-zinc-950/95 text-zinc-400 border-zinc-800'}`}>
+    <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[99999] px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border flex items-center gap-3 animate-in slide-in-from-top-5 duration-300 backdrop-blur-3xl shadow-2xl ${isError ? 'bg-red-950/90 text-red-200 border-red-600/50' : isSuccess ? 'bg-cyan-950/90 text-cyan-400 border-cyan-500/50' : isInfo ? 'bg-blue-950/90 text-blue-300 border-blue-600/50' : 'bg-zinc-950/95 text-zinc-400 border-zinc-800'}`}>
       {isError && <AlertCircle className="w-5 h-5 text-red-500" />}
       {isSuccess && <CheckCircle className="w-5 h-5 text-cyan-500" />}
       {isInfo && <Hexagon className="w-5 h-5 text-blue-400" />}
@@ -246,11 +162,11 @@ export function GlobalToast({ toast }) {
 export function Footer() {
     return (
         <footer className="w-full bg-[#030407] border-t border-white/5 py-12 mt-auto pb-24 md:pb-12 flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-blue-900/50 to-transparent"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-cyan-900/50 to-transparent"></div>
             <div className="max-w-7xl mx-auto px-4 text-center">
                 <div className="flex justify-center items-center gap-3 mb-5 group cursor-pointer">
-                    <AbyssalLogo className="w-8 h-8 grayscale group-hover:grayscale-0 transition-all duration-700 opacity-50 group-hover:opacity-100" phase={6}/>
-                    <span className="font-black text-xl text-zinc-500 group-hover:text-blue-400 transition-colors tracking-[0.2em] uppercase">O ABISMO</span>
+                    <AbyssalLogo className="w-8 h-8 grayscale group-hover:grayscale-0 transition-all duration-700 opacity-50 group-hover:opacity-100" />
+                    <span className="font-black text-xl text-zinc-500 group-hover:text-cyan-400 transition-colors tracking-[0.2em] uppercase">MANGÁS ABISSAL</span>
                 </div>
                 <p className="text-zinc-600 text-[9px] uppercase font-black tracking-[0.3em]">O Vazio Resguarda - © 2026</p>
             </div>
@@ -264,14 +180,14 @@ export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }
         <div className="fixed inset-0 z-[99999] bg-[#010103] flex items-center justify-center overflow-hidden font-sans">
             <style>{`
                 @keyframes warp-speed { 0% { transform: scale(1); opacity: 0; filter: blur(10px); } 50% { opacity: 1; filter: blur(0px); } 100% { transform: scale(10); opacity: 0; filter: blur(20px); } }
-                @keyframes glow-text { 0%, 100% { text-shadow: 0 0 20px rgba(59,130,246,0.5); } 50% { text-shadow: 0 0 40px rgba(59,130,246,0.8); } }
+                @keyframes glow-text { 0%, 100% { text-shadow: 0 0 20px rgba(34,211,238,0.5); } 50% { text-shadow: 0 0 40px rgba(34,211,238,0.8); } }
             `}</style>
             <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                <div className="w-[1px] h-[1px] rounded-full shadow-[0_0_80px_60px_#3b82f6,0_0_150px_100px_#1e3a8a] animate-[warp-speed_0.8s_ease-in_forwards]"></div>
+                <div className="w-[1px] h-[1px] rounded-full shadow-[0_0_80px_60px_#22d3ee,0_0_150px_100px_#0284c7] animate-[warp-speed_0.8s_ease-in_forwards]"></div>
             </div>
             <div className="relative z-10 flex flex-col items-center">
-                <div className="text-blue-500/80 font-black tracking-[1.5em] text-[10px] uppercase mb-6 animate-pulse ml-[1.5em]">Transcendendo</div>
-                <h2 className="text-[120px] md:text-[200px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-700 tracking-tight" style={{ animation: 'glow-text 2s ease-in-out infinite' }}>{chapterNumber}</h2>
+                <div className="text-cyan-500/80 font-black tracking-[1.5em] text-[10px] uppercase mb-6 animate-pulse ml-[1.5em]">Transcendendo</div>
+                <h2 className="text-[120px] md:text-[200px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-700 tracking-tight" style={{ animation: 'glow-text 2s ease-in-out infinite' }}>{chapterNumber}</h2>
             </div>
         </div>
     );
