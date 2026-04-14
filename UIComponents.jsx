@@ -100,36 +100,8 @@ export const SplashScreen = React.memo(() => {
 });
 
 /* ==========================================================================
-   ERROR BOUNDARY
+   CHAPTER TRANSITION OVERLAY
    ========================================================================== */
-export class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-[#030305] flex flex-col items-center justify-center">
-          <ShieldAlert className="w-16 h-16 text-red-500 animate-pulse mb-4" />
-          <h1 className="text-white text-2xl font-black">
-            Erro no sistema
-          </h1>
-          <p className="text-gray-400 mt-2">
-            {this.state.error?.message}
-          </p>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 export const ChapterTransitionOverlay = React.memo(
   ({ isVisible, chapterNumber }) => {
     if (!isVisible) return null;
@@ -151,3 +123,37 @@ export const ChapterTransitionOverlay = React.memo(
     );
   }
 );
+
+/* ==========================================================================
+   ERROR BOUNDARY
+   ========================================================================== */
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#030305] flex flex-col items-center justify-center">
+          <ShieldAlert className="w-16 h-16 text-red-500 animate-pulse mb-4" />
+
+          <h1 className="text-white text-2xl font-black">
+            Erro no sistema
+          </h1>
+
+          <p className="text-gray-400 mt-2">
+            {this.state.error?.message}
+          </p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
