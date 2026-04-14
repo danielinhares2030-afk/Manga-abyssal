@@ -130,3 +130,24 @@ export class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+export const ChapterTransitionOverlay = React.memo(
+  ({ isVisible, chapterNumber }) => {
+    if (!isVisible) return null;
+
+    return (
+      <div className="fixed inset-0 z-[99999] bg-[#030305] flex flex-col items-center justify-center animate-in fade-in duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20 animate-pulse"></div>
+
+        <div className="relative z-10 flex flex-col items-center">
+          <span className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.4em] mb-2">
+            Abrindo Capítulo
+          </span>
+
+          <h2 className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 tracking-tight drop-shadow-2xl">
+            {chapterNumber}
+          </h2>
+        </div>
+      </div>
+    );
+  }
+);
