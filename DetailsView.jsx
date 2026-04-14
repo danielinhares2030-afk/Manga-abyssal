@@ -3,7 +3,7 @@ import { ArrowLeft, Star, Play, Library, Share2, BookOpen, CheckCircle, Clock, S
 import { doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { APP_ID } from './constants';
 import { CommentsSection } from './CommentsSection';
-import { timeAgo } from './helpers'; // <--- AQUI ESTÁ A CORREÇÃO DO SEU ERRO!
+import { timeAgo } from './helpers';
 
 export default function DetailsView({ manga, libraryData, historyData, user, userProfileData, onBack, onChapterClick, onRequireLogin, showToast, db }) {
     const [isSharing, setIsSharing] = useState(false);
@@ -95,19 +95,21 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                             <span className="text-white font-black ml-3 text-lg border-l border-white/10 pl-3 drop-shadow-md">{localRating.toFixed(1)}</span>
                         </div>
 
+                        {/* BOTÕES COM O MENU CORRIGIDO */}
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                             <button onClick={() => nextChapterToRead ? onChapterClick(manga, nextChapterToRead) : showToast("Nenhum capítulo", "warning")} className="flex-1 md:flex-none bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-black px-8 py-4 rounded-2xl transition-all duration-300 hover:scale-105 text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(8,145,178,0.4)] border border-cyan-400/30">
                                 <Play className="w-4 h-4 fill-white" /> {lastRead ? 'Continuar Leitura' : 'Iniciar Leitura'}
                             </button>
                             
-                            <div className="relative">
+                            {/* Menu Dropdown z-index máximo para ficar sempre acima */}
+                            <div className="relative z-50">
                                 <button onClick={() => setShowLibraryMenu(!showLibraryMenu)} className={`px-5 py-4 rounded-2xl border flex items-center justify-center transition-all duration-300 shadow-sm gap-2 font-black text-[10px] uppercase tracking-widest ${inLibrary ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-cyan-400'}`}>
                                     {inLibrary ? <CheckCircle className="w-4 h-4" /> : <Library className="w-4 h-4" />}
                                     {inLibrary ? inLibrary : 'Salvar'}
                                     <ChevronDown className="w-3 h-3 ml-1" />
                                 </button>
                                 {showLibraryMenu && (
-                                    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 md:left-0 md:-translate-x-0 w-48 bg-[#08080a] border border-cyan-900/50 rounded-2xl p-2 z-50 shadow-[0_20px_40px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95">
+                                    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 md:left-0 md:-translate-x-0 w-48 bg-[#08080a] border border-cyan-900/50 rounded-2xl p-2 shadow-[0_20px_40px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95">
                                         {libraryStatuses.map(status => (
                                             <button key={status} onClick={() => updateLibraryStatus(status)} className="w-full text-left px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-gray-300 hover:bg-cyan-900/40 hover:text-cyan-400 transition-colors">{status}</button>
                                         ))}
@@ -115,6 +117,7 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                                     </div>
                                 )}
                             </div>
+                            
                             <button onClick={handleShare} className="p-4 bg-white/5 rounded-2xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-colors shadow-sm"><Share2 className="w-5 h-5" /></button>
                         </div>
                     </div>
