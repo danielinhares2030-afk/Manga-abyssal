@@ -198,7 +198,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 </div>
             )}
 
-            {/* NAVEGAÇÃO DE ABAS CORRIGIDA */}
+            {/* NAVEGAÇÃO DE ABAS */}
             <div className="flex justify-start gap-4 mb-12 overflow-x-auto no-scrollbar pb-4 relative z-20 w-full px-2 snap-x">
                 {['Missões', 'Forja', 'Loja', 'Ranking'].map((tab) => (
                     <button 
@@ -356,7 +356,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 </div>
             )}
 
-            {/* CONTEÚDO: LOJA (ATUALIZADA CIRURGICAMENTE) */}
+            {/* CONTEÚDO: LOJA (ATUALIZADA PARA LER ITENS NOVOS E ANTIGOS COM LÓGICA BILÍNGUE) */}
             {activeTab === "Loja" && (
                 <div className="animate-in fade-in duration-500 relative z-10">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-8 mb-12 max-w-7xl mx-auto bg-white/[0.02] p-8 rounded-[2rem] border border-white/5 backdrop-blur-md">
@@ -373,8 +373,15 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 max-w-7xl mx-auto">
                         {shopItems.filter(item => item.ativo !== false).map(item => {
                           const hasItem = userProfileData.inventory?.includes(item.id);
-                          const isEquipped = userProfileData.equipped_items?.[item.tipo]?.id === item.id;
-                          const cat = item.tipo || '';
+                          
+                          // LÓGICA BILÍNGUE (Lê itens antigos em inglês e itens novos em PT-BR)
+                          const cat = item.tipo || item.type || '';
+                          const itemName = item.nome || item.name || 'Item Desconhecido';
+                          const itemPrice = item.preco || item.price || 0;
+                          const itemRarity = item.raridade || item.rarity || 'Comum';
+                          const itemUrl = item.url || item.preview || item.image || '';
+
+                          const isEquipped = userProfileData.equipped_items?.[cat]?.id === item.id;
 
                           return (
                             <div key={item.id} className={`bg-[#05030a] border p-6 rounded-[2rem] flex flex-col items-center text-center transition-all duration-500 group relative overflow-hidden ${isEquipped ? 'border-fuchsia-500/50 shadow-[0_0_30px_rgba(217,70,239,0.2)]' : 'border-white/5 hover:border-cyan-500/40 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)]'}`}>
@@ -383,14 +390,14 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                               {/* VITRINE DINÂMICA */}
                               <div className="w-28 h-28 rounded-2xl mb-6 bg-[#020105] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 shadow-inner">
                                 
-                                {/* Avatar ou Capa de Fundo */}
-                                {(cat === 'avatar' || cat === 'capa_fundo') && item.url && (
-                                    <img src={item.url} alt={item.nome} className="w-full h-full object-cover grayscale-[0.4] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700" />
+                                {/* Avatar, Capa de Fundo, Moldura Antiga, Partículas Antigas, etc */}
+                                {['avatar', 'capa_fundo', 'moldura', 'particulas', 'efeito', 'background', 'frame'].includes(cat.toLowerCase()) && itemUrl && (
+                                    <img src={itemUrl} alt={itemName} className={`w-full h-full transition-all duration-700 group-hover:scale-110 ${['avatar', 'capa_fundo'].includes(cat) ? 'object-cover grayscale-[0.4] group-hover:grayscale-0' : 'object-contain'}`} />
                                 )}
 
                                 {/* Animação CSS */}
                                 {cat === 'animacao_css' && item.codigo && (
-                                    <iframe srcDoc={item.codigo} title={item.nome} className="w-full h-full border-none pointer-events-none scale-110" scrolling="no" />
+                                    <iframe srcDoc={item.codigo} title={itemName} className="w-full h-full border-none pointer-events-none scale-110" scrolling="no" />
                                 )}
 
                                 {/* Nick */}
@@ -400,15 +407,16 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     </span>
                                 )}
                                 
-                                {(!['avatar', 'capa_fundo', 'animacao_css', 'nick'].includes(cat)) && (
+                                {/* Fallback Se der erro de leitura */}
+                                {(!itemUrl && !item.codigo && !item.texto) && (
                                     <Sparkles className="w-8 h-8 text-gray-600 relative z-10"/>
                                 )}
                               </div>
 
-                              <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-2 px-2 py-1 rounded bg-black/40 border border-white/5 relative z-10 ${getRarityColor(item.raridade)}`}>
+                              <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-2 px-2 py-1 rounded bg-black/40 border border-white/5 relative z-10 ${getRarityColor(itemRarity)}`}>
                                 {cat.replace('_', ' ')}
                               </p>
-                              <h4 className="text-white font-black mb-6 text-sm line-clamp-1 relative z-10">{item.nome}</h4>
+                              <h4 className="text-white font-black mb-6 text-sm line-clamp-1 relative z-10">{itemName}</h4>
                               
                               {hasItem ? (
                                 <button onClick={() => equipItem(item)} className={`w-full font-black py-3 rounded-xl transition-all text-[10px] uppercase tracking-widest relative z-10 ${isEquipped ? 'bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/50 hover:bg-fuchsia-500 hover:text-white' : 'bg-transparent text-gray-400 hover:text-cyan-400 hover:border-cyan-500/50 border border-white/10'}`}>
@@ -416,7 +424,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                 </button>
                               ) : (
                                 <button onClick={() => buyItem(item)} className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-black py-3 rounded-xl transition-transform hover:scale-105 text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.4)] relative z-10">
-                                    Comprar • {item.preco}
+                                    Comprar • {itemPrice}
                                 </button>
                               )}
                             </div>
