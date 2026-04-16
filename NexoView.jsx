@@ -356,7 +356,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 </div>
             )}
 
-            {/* CONTEÚDO: LOJA (FOCO 100% NOS DADOS NOVOS) */}
+            {/* CONTEÚDO: LOJA (FILTRO DE FAXINA APLICADO) */}
             {activeTab === "Loja" && (
                 <div className="animate-in fade-in duration-500 relative z-10">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-8 mb-12 max-w-7xl mx-auto bg-white/[0.02] p-8 rounded-[2rem] border border-white/5 backdrop-blur-md">
@@ -371,12 +371,14 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                       
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 max-w-7xl mx-auto">
-                        {shopItems.filter(item => item.ativo !== false).map(item => {
+                        {shopItems
+                          // ESTE É O FILTRO DE FAXINA: Só deixa passar itens que tenham o campo 'nome' e 'tipo' salvos!
+                          .filter(item => item.ativo !== false && item.nome && item.tipo)
+                          .map(item => {
                           const hasItem = userProfileData.inventory?.includes(item.id);
                           
-                          // Lógica Simples e Direta (Lê apenas os dados novos gerados pelo seu Painel)
-                          const cat = item.tipo || '';
-                          const itemName = item.nome || 'Item Desconhecido';
+                          const cat = item.tipo;
+                          const itemName = item.nome;
                           const itemPrice = item.preco || 0;
                           const itemRarity = item.raridade || 'Comum';
                           const itemUrl = item.url || '';
@@ -407,7 +409,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                               <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-2 px-2 py-1 rounded bg-black/40 border border-white/5 relative z-10 ${getRarityColor(itemRarity)}`}>
                                 {cat.replace('_', ' ')}
                               </p>
-                              <h4 className="text-white font-black mb-6 text-sm line-clamp-1 relative z-10">{itemName}</h4>
+                              <h4 className="text-white font-black mb-6 text-sm line-clamp-2 px-2 leading-tight relative z-10">{itemName}</h4>
                               
                               {hasItem ? (
                                 <button onClick={() => equipItem(item)} className={`w-full font-black py-3 rounded-xl transition-all text-[10px] uppercase tracking-widest relative z-10 ${isEquipped ? 'bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/50 hover:bg-fuchsia-500 hover:text-white' : 'bg-transparent text-gray-400 hover:text-cyan-400 hover:border-cyan-500/50 border border-white/10'}`}>
@@ -445,7 +447,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                         #{index + 1}
                                     </div>
                                     
-                                    {/* Exibição do Avatar no Ranking (Usa apenas a imagem) */}
                                     <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center flex-shrink-0 group">
                                         <div className="w-full h-full rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#020105]">
                                             <img src={player.equipped_items?.avatar?.url || player.avatarUrl || `https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover z-0" onError={(e)=>e.target.src=`https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} />
