@@ -20,9 +20,9 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         'Rank E': { rxp: 30, rcoin: 15, pxp: 15, pcoin: 10, time: 15, charLimit: 300, enigmaTries: 3, color: 'text-gray-400', border: 'border-gray-500/30' },
         'Rank C': { rxp: 100, rcoin: 50, pxp: 50, pcoin: 25, time: 10, charLimit: 200, enigmaTries: 3, color: 'text-emerald-400', border: 'border-emerald-500/30' },
         'Rank B': { rxp: 150, rcoin: 80, pxp: 80, pcoin: 40, time: 8, charLimit: 120, enigmaTries: 2, color: 'text-blue-400', border: 'border-blue-500/30' },
-        'Rank A': { rxp: 300, rcoin: 150, pxp: 150, pcoin: 80, time: 5, charLimit: 80, enigmaTries: 2, color: 'text-red-400', border: 'border-red-500/40' },
-        'Rank S': { rxp: 800, rcoin: 400, pxp: 400, pcoin: 200, time: 3, charLimit: 60, enigmaTries: 1, color: 'text-red-500', border: 'border-red-500/50' },
-        'Rank SSS':{ rxp: 2000, rcoin: 1000, pxp: 1000, pcoin: 500, time: 1, charLimit: 40, enigmaTries: 1, color: 'text-red-600', border: 'border-red-600/60' }
+        'Rank A': { rxp: 300, rcoin: 150, pxp: 150, pcoin: 80, time: 5, charLimit: 80, enigmaTries: 2, color: 'text-cyan-400', border: 'border-cyan-500/40' },
+        'Rank S': { rxp: 800, rcoin: 400, pxp: 400, pcoin: 200, time: 3, charLimit: 60, enigmaTries: 1, color: 'text-fuchsia-400', border: 'border-fuchsia-500/50' },
+        'Rank SSS':{ rxp: 2000, rcoin: 1000, pxp: 1000, pcoin: 500, time: 1, charLimit: 40, enigmaTries: 1, color: 'text-rose-500', border: 'border-rose-500/60' }
     };
 
     const RANK_CARDS = Object.keys(rankConfigs);
@@ -172,41 +172,40 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             
             {confirmModal && (
                 <div className="fixed inset-0 z-[3000] bg-[#020105]/80 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setConfirmModal(null)}>
-                    <div className="bg-[#05030a] border border-red-600 p-8 shadow-2xl max-w-md w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <Target className="w-16 h-16 text-red-600 mx-auto mb-6 animate-pulse" />
+                    <div className="bg-[#05030a] border border-cyan-500/50 p-8 rounded-[2rem] shadow-2xl max-w-md w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <Target className="w-16 h-16 text-cyan-400 mx-auto mb-6 animate-pulse" />
                         <h3 className="text-2xl font-black text-white mb-2 tracking-widest uppercase">Firmar Pacto?</h3>
                         <p className="text-xs text-gray-400 font-bold px-2 mb-6 uppercase tracking-wider">A desistência ou falha resultará em severas punições do Sistema.</p>
                         
-                        <div className="bg-red-950/40 border border-red-500/30 p-5 mb-8">
+                        <div className="bg-red-950/40 border border-red-500/30 rounded-2xl p-5 mb-8">
                             <p className="text-[10px] text-red-500 uppercase tracking-[0.3em] font-black mb-2">Preço da Falha</p>
                             <p className="text-xl font-black text-white">-{rankConfigs[confirmModal]?.pxp} XP <span className="text-gray-600 px-2">|</span> -{rankConfigs[confirmModal]?.pcoin} M</p>
                         </div>
                         
                         <div className="flex gap-4">
-                            <button onClick={() => setConfirmModal(null)} className="flex-1 bg-transparent border border-white/10 text-gray-400 font-black py-4 hover:bg-white/5 hover:text-white transition-colors text-xs uppercase tracking-widest">Recuar</button>
-                            <button onClick={() => triggerForgeMission(confirmModal)} className="flex-1 bg-red-600 text-white font-black py-4 transition-all hover:bg-red-500 text-xs uppercase tracking-widest relative overflow-hidden group">
-                                <span className="relative z-10">Aceitar</span>
+                            <button onClick={() => setConfirmModal(null)} className="flex-1 bg-transparent border border-white/10 text-gray-400 font-black py-4 rounded-xl hover:bg-white/5 hover:text-white transition-colors text-xs uppercase tracking-widest">Recuar</button>
+                            <button onClick={() => triggerForgeMission(confirmModal)} className="flex-1 bg-cyan-500 text-black rounded-xl font-black py-4 transition-all hover:bg-cyan-400 text-xs uppercase tracking-widest">
+                                Aceitar
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="flex justify-start gap-4 mb-12 overflow-x-auto no-scrollbar pb-4 relative z-20 w-full px-2 snap-x">
+            {/* ABA CORRIGIDA AQUI: Flex-shrink-0 e whitespace-nowrap evitam cortes no mobile */}
+            <div className="flex justify-start sm:justify-center gap-3 mb-12 overflow-x-auto no-scrollbar pb-4 relative z-20 w-full px-2 snap-x">
                 {['Missões', 'Forja', 'Loja', 'Ranking'].map((tab) => (
                     <button 
                         key={tab}
                         onClick={() => setActiveTab(tab)} 
-                        className={`snap-start px-8 py-3.5 font-black transition-all whitespace-nowrap flex items-center gap-3 text-[10px] sm:text-xs uppercase tracking-[0.2em] relative overflow-hidden group
-                        ${activeTab === tab ? 'text-white border-transparent bg-red-600' : 'text-gray-500 border border-white/5 hover:text-red-500'}`}
+                        className={`snap-center flex-shrink-0 whitespace-nowrap px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 text-[11px] sm:text-xs uppercase tracking-wider
+                        ${activeTab === tab ? 'text-white border-transparent bg-cyan-600 shadow-md' : 'text-gray-500 border border-white/5 hover:text-cyan-400 hover:bg-white/5'}`}
                     >
-                        <div className="relative z-10 flex items-center gap-3">
-                            {tab === "Missões" && <Target className="w-4 h-4"/>}
-                            {tab === "Forja" && <Hexagon className="w-4 h-4"/>}
-                            {tab === "Loja" && <ShoppingCart className="w-4 h-4"/>}
-                            {tab === "Ranking" && <Trophy className="w-4 h-4"/>}
-                            {tab}
-                        </div>
+                        {tab === "Missões" && <Target className="w-4 h-4"/>}
+                        {tab === "Forja" && <Hexagon className="w-4 h-4"/>}
+                        {tab === "Loja" && <ShoppingCart className="w-4 h-4"/>}
+                        {tab === "Ranking" && <Trophy className="w-4 h-4"/>}
+                        {tab}
                     </button>
                 ))}
             </div>
@@ -215,78 +214,78 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             {activeTab === "Missões" && (
                 <div className="animate-in fade-in duration-500 relative z-10">
                     {userProfileData.activeMission ? (
-                        <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 p-8 md:p-12 relative overflow-hidden max-w-4xl mx-auto group">
+                        <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 p-8 md:p-12 rounded-[3rem] relative overflow-hidden max-w-4xl mx-auto">
                             
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 relative z-10">
                                <div>
-                                  <span className={`text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 border ${rankConfigs[userProfileData.activeMission.difficulty].color} ${rankConfigs[userProfileData.activeMission.difficulty].border}`}>
+                                  <span className={`text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-xl border ${rankConfigs[userProfileData.activeMission.difficulty].color} ${rankConfigs[userProfileData.activeMission.difficulty].border}`}>
                                     {userProfileData.activeMission.difficulty}
                                   </span>
                                   <h3 className="text-3xl md:text-5xl font-black text-white mt-6 tracking-tighter uppercase">{userProfileData.activeMission.title}</h3>
                                </div>
-                               <div className="flex items-center gap-3 text-red-500 font-black bg-red-950/20 px-6 py-3 border border-red-500/30">
+                               <div className="flex items-center gap-3 text-cyan-400 font-black bg-cyan-950/20 px-6 py-3 rounded-2xl border border-cyan-500/30">
                                    <Timer className="w-5 h-5 animate-pulse" /> <span className="tracking-[0.2em] text-sm md:text-base">{timeLeft}</span>
                                </div>
                             </div>
                             
                             {userProfileData.activeMission.type === 'read' && (
-                                <div className="bg-[#020105]/80 p-8 border border-white/5 mb-10 relative z-10">
+                                <div className="bg-[#020105]/80 p-8 rounded-3xl border border-white/5 mb-10 relative z-10">
                                    <p className="text-gray-300 font-bold text-sm md:text-base mb-8 leading-relaxed uppercase tracking-wider">{userProfileData.activeMission.desc}</p>
                                    
-                                   <div className="w-full bg-[#05030a] h-3 overflow-hidden mb-4 border border-white/5">
-                                       <div className="bg-red-600 h-full transition-all duration-1000 ease-out relative" style={{width: `${(userProfileData.activeMission.currentCount / userProfileData.activeMission.targetCount) * 100}%`}}>
+                                   <div className="w-full bg-[#05030a] rounded-full h-3 overflow-hidden mb-4 border border-white/5">
+                                       <div className="bg-cyan-500 h-full transition-all duration-1000 ease-out relative" style={{width: `${(userProfileData.activeMission.currentCount / userProfileData.activeMission.targetCount) * 100}%`}}>
                                        </div>
                                    </div>
-                                   <div className="flex justify-between text-[10px] text-red-500 font-black tracking-[0.2em] uppercase">
+                                   <div className="flex justify-between text-[10px] text-cyan-500 font-black tracking-[0.2em] uppercase">
                                        <span>Poder Extraído</span>
                                        <span>{userProfileData.activeMission.currentCount} / {userProfileData.activeMission.targetCount} Caps</span>
                                    </div>
 
-                                   <button onClick={() => { const m = mangas.find(mg => mg.id === userProfileData.activeMission.targetManga); if(m) onNavigate('details', m); }} className="w-full mt-10 bg-transparent border border-red-600 text-red-500 hover:bg-red-600 hover:text-white font-black py-4 flex items-center justify-center gap-3 transition-all text-xs uppercase tracking-widest group/btn">
+                                   <button onClick={() => { const m = mangas.find(mg => mg.id === userProfileData.activeMission.targetManga); if(m) onNavigate('details', m); }} className="w-full mt-10 bg-transparent border border-cyan-600 text-cyan-400 hover:bg-cyan-600 hover:text-black rounded-2xl font-black py-4 flex items-center justify-center gap-3 transition-all text-xs uppercase tracking-widest group/btn">
                                         Rastrear Obra <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
                                    </button>
                                 </div>
                             )}
 
                             {userProfileData.activeMission.type === 'search_local' && (
-                                <div className="bg-[#020105]/80 p-8 border border-white/5 mb-10 relative z-10">
+                                <div className="bg-[#020105]/80 p-8 rounded-3xl border border-white/5 mb-10 relative z-10">
                                     <p className="text-gray-100 font-bold text-sm leading-relaxed whitespace-pre-wrap tracking-wider uppercase">{userProfileData.activeMission.question}</p>
                                 </div>
                             )}
                             
                             {userProfileData.activeMission.type === 'enigma' && (
-                                <div className="bg-[#020105]/80 p-8 border border-white/5 mb-10 relative z-10">
+                                <div className="bg-[#020105]/80 p-8 rounded-3xl border border-white/5 mb-10 relative z-10">
                                    <p className="text-gray-100 font-bold text-sm leading-relaxed whitespace-pre-wrap mb-8 uppercase tracking-wider">{userProfileData.activeMission.question}</p>
                                    <form onSubmit={handleEnigmaSubmit} className="flex flex-col gap-4">
-                                      <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="Sua Resposta..." className="w-full bg-[#05030a] border border-red-600/30 px-6 py-5 text-white font-black outline-none focus:border-red-600 transition-all text-sm uppercase tracking-widest" />
-                                      <button type="submit" className="w-full bg-transparent border border-red-600 text-red-500 hover:bg-red-600 hover:text-white font-black py-4 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 group/btn">
+                                      <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="Sua Resposta..." className="w-full bg-[#05030a] border border-cyan-600/30 rounded-2xl px-6 py-5 text-white font-black outline-none focus:border-cyan-600 transition-all text-sm uppercase tracking-widest" />
+                                      <button type="submit" className="w-full bg-transparent border border-cyan-600 text-cyan-400 hover:bg-cyan-600 hover:text-black rounded-2xl font-black py-4 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 group/btn">
                                           Decifrar <Key className="w-4 h-4 group-hover/btn:rotate-45 transition-transform" />
                                       </button>
                                    </form>
-                                   <p className="text-center mt-6 text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Tentativas Restantes: <span className="text-red-600 text-sm ml-2">{userProfileData.activeMission.attemptsLeft}</span></p>
+                                   <p className="text-center mt-6 text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Tentativas Restantes: <span className="text-cyan-400 text-sm ml-2">{userProfileData.activeMission.attemptsLeft}</span></p>
                                 </div>
                             )}
 
                             <div className="flex flex-col sm:flex-row items-center justify-between border-t border-white/10 pt-8 relative z-10 gap-6">
-                               <div className="flex gap-8 bg-black/40 px-6 py-3 border border-white/5">
+                               <div className="flex gap-8 bg-black/40 rounded-xl px-6 py-3 border border-white/5">
                                   <span className="flex items-center gap-2 text-white font-black text-sm uppercase tracking-widest"><Sparkles className="w-4 h-4 text-white"/> +{userProfileData.activeMission.rewardXp} XP</span>
-                                  <span className="flex items-center gap-2 text-amber-400 font-black text-sm uppercase tracking-widest"><div className="w-3 h-3 bg-amber-400"></div> +{userProfileData.activeMission.rewardCoins} M</span>
+                                  <span className="flex items-center gap-2 text-amber-400 font-black text-sm uppercase tracking-widest"><div className="w-3 h-3 rounded-full bg-amber-400"></div> +{userProfileData.activeMission.rewardCoins} M</span>
                                </div>
-                               <button onClick={cancelMission} className="text-[10px] text-red-500 hover:text-red-400 hover:bg-red-950/20 px-4 py-2 font-black uppercase tracking-[0.2em] transition-colors flex items-center gap-2 border border-transparent hover:border-red-900/50"><Skull className="w-4 h-4"/> Abortar</button>
+                               <button onClick={cancelMission} className="text-[10px] text-red-500 hover:text-red-400 hover:bg-red-950/20 px-4 py-2 rounded-xl font-black uppercase tracking-[0.2em] transition-colors flex items-center gap-2 border border-transparent hover:border-red-900/50"><Skull className="w-4 h-4"/> Abortar</button>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-8">
                             {isForgingMission ? (
-                                <div className="bg-white/[0.02] border border-red-600/30 p-20 flex flex-col items-center justify-center text-center max-w-3xl mx-auto relative overflow-hidden">
-                                   <Loader2 className="w-12 h-12 text-red-600 animate-spin mb-8 relative z-10" />
+                                <div className="bg-white/[0.02] border border-cyan-500/30 rounded-[3rem] p-20 flex flex-col items-center justify-center text-center max-w-3xl mx-auto relative overflow-hidden">
+                                   <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-8 relative z-10" />
                                    <h3 className="text-2xl font-black text-white mb-3 uppercase tracking-widest relative z-10">Buscando Contrato...</h3>
-                                   <p className="text-xs text-red-500/80 font-bold uppercase tracking-[0.4em] relative z-10">Sincronizando com o Sistema.</p>
+                                   <p className="text-xs text-cyan-500/80 font-bold uppercase tracking-[0.4em] relative z-10">Sincronizando com o Sistema.</p>
                                 </div>
                             ) : (
                                 <>
                                     <div className="text-center max-w-3xl mx-auto mb-16">
-                                        <h2 className="text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter">Painel de <span className="text-red-600">Contratos</span></h2>
+                                        <h2 className="text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter">Painel de <span className="text-cyan-400">Contratos</span></h2>
                                         <p className="text-gray-400 text-sm md:text-base leading-relaxed font-medium">Selecione uma patente. O sistema forjará um desafio aleatório baseado nos registros da biblioteca. Risco e recompensa andam juntos.</p>
                                     </div>
                                     
@@ -294,21 +293,21 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                         {RANK_CARDS.map(rId => {
                                             const r = rankConfigs[rId];
                                             return (
-                                                <div key={rId} className={`bg-white/[0.02] backdrop-blur-md border ${r.border} p-8 md:p-10 flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 group relative overflow-hidden`}>
+                                                <div key={rId} className={`bg-white/[0.02] backdrop-blur-md border ${r.border} rounded-3xl p-8 md:p-10 flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 group relative overflow-hidden`}>
                                                     <div className="mb-10 relative z-10">
                                                         <h3 className={`text-3xl font-black tracking-tighter uppercase mb-8 ${r.color}`}>{rId}</h3>
                                                         <div className="space-y-4">
-                                                            <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest bg-black/40 px-4 py-2.5 border border-white/5">
+                                                            <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest bg-black/40 rounded-xl px-4 py-2.5 border border-white/5">
                                                                 <span className="text-gray-500">Poder</span>
                                                                 <span className="text-white flex items-center gap-2"><Sparkles className={`w-4 h-4 ${r.color} opacity-80`}/> {r.rxp} XP</span>
                                                             </div>
-                                                            <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest bg-black/40 px-4 py-2.5 border border-white/5">
+                                                            <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest bg-black/40 rounded-xl px-4 py-2.5 border border-white/5">
                                                                 <span className="text-gray-500">Tesouro</span>
-                                                                <span className="text-white flex items-center gap-2"><div className="w-3 h-3 bg-amber-400 opacity-80"></div> {r.rcoin} M</span>
+                                                                <span className="text-white flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-400 opacity-80"></div> {r.rcoin} M</span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => setConfirmModal(rId)} className={`w-full py-4 font-black text-[10px] uppercase tracking-[0.2em] transition-all bg-transparent border border-white/20 text-white hover:bg-white hover:text-black relative z-10`}>
+                                                    <button onClick={() => setConfirmModal(rId)} className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all bg-transparent border border-white/20 text-white hover:bg-white hover:text-black relative z-10`}>
                                                         Firmar Pacto
                                                     </button>
                                                 </div>
@@ -325,17 +324,17 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             {/* CONTEÚDO: FORJA */}
             {activeTab === "Forja" && (
                 <div className="animate-in fade-in duration-500 max-w-2xl mx-auto mt-10 relative z-10">
-                    <div className="bg-white/[0.02] backdrop-blur-2xl border border-red-600/30 p-10 md:p-16 text-center relative overflow-hidden">
-                        <Hexagon className="w-20 h-20 mx-auto mb-10 text-red-600 opacity-90 animate-[spin_10s_linear_infinite] relative z-10" />
-                        <h2 className="text-3xl md:text-5xl font-black text-white mb-6 relative z-10 uppercase tracking-tighter">Fornalha <span className="text-red-600">Cósmica</span></h2>
-                        <p className="text-gray-400 text-sm mb-12 leading-relaxed font-medium relative z-10">Sintetize <b className="text-red-500 font-black">5 Cristais</b> encontrados durante a leitura. Recompensas massivas aguardam, mas a anomalia possui <span className="text-red-500 font-black">40% de chance</span> de desintegrar os materiais.</p>
-                        <div className="bg-[#020105]/80 border border-white/10 p-8 mb-12 relative z-10 max-w-xs mx-auto">
+                    <div className="bg-white/[0.02] backdrop-blur-2xl border border-cyan-500/30 rounded-[3rem] p-10 md:p-16 text-center relative overflow-hidden">
+                        <Hexagon className="w-20 h-20 mx-auto mb-10 text-cyan-400 opacity-90 animate-[spin_10s_linear_infinite] relative z-10" />
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-6 relative z-10 uppercase tracking-tighter">Fornalha <span className="text-cyan-400">Cósmica</span></h2>
+                        <p className="text-gray-400 text-sm mb-12 leading-relaxed font-medium relative z-10">Sintetize <b className="text-cyan-500 font-black">5 Cristais</b> encontrados durante a leitura. Recompensas massivas aguardam, mas a anomalia possui <span className="text-red-500 font-black">40% de chance</span> de desintegrar os materiais.</p>
+                        <div className="bg-[#020105]/80 border border-white/10 rounded-3xl p-8 mb-12 relative z-10 max-w-xs mx-auto">
                             <span className="text-[10px] uppercase font-black text-gray-500 tracking-[0.3em] mb-4 block">Energia Armazenada</span>
                             <div className="flex items-center justify-center gap-4 text-5xl font-black text-white">
-                                {userProfileData.crystals || 0} <Hexagon className="w-10 h-10 text-red-600" />
+                                {userProfileData.crystals || 0} <Hexagon className="w-10 h-10 text-cyan-400" />
                             </div>
                         </div>
-                        <button onClick={runSynthesis} disabled={synthesizing || (userProfileData.crystals || 0) < 5} className="w-full bg-transparent border-2 border-red-600 text-red-500 hover:bg-red-600 hover:text-white disabled:bg-transparent disabled:border-white/5 disabled:text-gray-600 font-black py-5 px-8 transition-all duration-300 relative z-10 text-xs uppercase tracking-widest flex items-center justify-center gap-3">
+                        <button onClick={runSynthesis} disabled={synthesizing || (userProfileData.crystals || 0) < 5} className="w-full bg-transparent border-2 rounded-2xl border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-black disabled:bg-transparent disabled:border-white/5 disabled:text-gray-600 font-black py-5 px-8 transition-all duration-300 relative z-10 text-xs uppercase tracking-widest flex items-center justify-center gap-3">
                             {synthesizing ? <><Loader2 className="w-5 h-5 animate-spin" /> Fundindo Matéria...</> : 'Iniciar Fusão (Custa 5)'}
                         </button>
                     </div>
@@ -345,13 +344,13 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             {/* CONTEÚDO: LOJA (FILTRADA) */}
             {activeTab === "Loja" && (
                 <div className="animate-in fade-in duration-500 relative z-10">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 mb-12 max-w-7xl mx-auto bg-white/[0.02] p-8 border border-white/5 backdrop-blur-md">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 mb-12 max-w-7xl mx-auto bg-white/[0.02] rounded-[2.5rem] p-8 border border-white/5 backdrop-blur-md">
                         <div className="text-center sm:text-left">
-                            <h3 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Cosméticos <span className="text-red-600">Astral</span></h3>
+                            <h3 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Cosméticos <span className="text-cyan-400">Astral</span></h3>
                             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Forje sua identidade visual.</p>
                         </div>
-                        <div className="bg-black/60 border border-amber-500/30 text-amber-400 font-black px-8 py-4 flex items-center gap-3 text-lg">
-                            <div className="w-4 h-4 bg-amber-400"></div>
+                        <div className="bg-black/60 border rounded-2xl border-amber-500/30 text-amber-400 font-black px-8 py-4 flex items-center gap-3 text-lg">
+                            <div className="w-4 h-4 rounded-full bg-amber-400"></div>
                             {userProfileData.coins || 0}
                         </div>
                     </div>
@@ -367,8 +366,8 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                           const cat = (item.categoria || item.type || '').toLowerCase();
 
                           return (
-                            <div key={item.id} className={`bg-[#05030a] border p-6 flex flex-col items-center text-center transition-all duration-500 group relative overflow-hidden ${isEquipped ? 'border-red-600 bg-red-950/20' : 'border-white/5 hover:border-red-500/40'}`}>
-                              <div className={`w-28 h-28 mb-6 bg-[#020105] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${(!item.preview && ['moldura', 'efeito'].includes(cat)) ? item.cssClass : ''}`}>
+                            <div key={item.id} className={`bg-[#05030a] border rounded-[2rem] p-6 flex flex-col items-center text-center transition-all duration-500 group relative overflow-hidden ${isEquipped ? 'border-cyan-500 bg-cyan-950/20' : 'border-white/5 hover:border-cyan-500/40'}`}>
+                              <div className={`w-28 h-28 rounded-2xl mb-6 bg-[#020105] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${(!item.preview && ['moldura', 'efeito'].includes(cat)) ? item.cssClass : ''}`}>
                                 {(cat === 'capa_fundo' || cat === 'tema_perfil') ? (
                                     cleanCosmeticUrl(item.preview) ? <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className="w-full h-full object-cover opacity-80" /> : <div className="w-full h-full bg-gray-900"></div>
                                 ) : null}
@@ -377,13 +376,13 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     <Sparkles className="w-8 h-8 text-gray-600 relative z-10"/>
                                 )}
                               </div>
-                              <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-2 px-2 py-1 bg-black/40 border border-white/5 relative z-10 ${getRarityColor(item.raridade)}`}>{item.categoria || item.type}</p>
+                              <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-2 px-2 py-1 rounded bg-black/40 border border-white/5 relative z-10 ${getRarityColor(item.raridade)}`}>{item.categoria || item.type}</p>
                               <h4 className="text-white font-black mb-6 text-sm line-clamp-1 relative z-10">{item.nome || item.name}</h4>
                               
                               {hasItem ? (
-                                <button onClick={() => equipItem(item)} className={`w-full font-black py-3 transition-all text-[10px] uppercase tracking-widest relative z-10 ${isEquipped ? 'bg-red-600 text-white border border-red-500' : 'bg-transparent text-gray-400 hover:text-white hover:border-white/50 border border-white/10'}`}>{isEquipped ? 'Desequipar' : 'Equipar'}</button>
+                                <button onClick={() => equipItem(item)} className={`w-full rounded-xl font-black py-3 transition-all text-[10px] uppercase tracking-widest relative z-10 ${isEquipped ? 'bg-cyan-500 text-black' : 'bg-transparent text-gray-400 hover:text-white hover:border-white/50 border border-white/10'}`}>{isEquipped ? 'Desequipar' : 'Equipar'}</button>
                               ) : (
-                                <button onClick={() => buyItem(item)} className="w-full bg-amber-500 text-black hover:bg-amber-400 font-black py-3 transition-colors text-[10px] uppercase tracking-widest relative z-10">Comprar • {item.preco || item.price}</button>
+                                <button onClick={() => buyItem(item)} className="w-full rounded-xl bg-amber-500 text-black hover:bg-amber-400 font-black py-3 transition-colors text-[10px] uppercase tracking-widest relative z-10">Comprar • {item.preco || item.price}</button>
                               )}
                             </div>
                           )
@@ -396,35 +395,35 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             {activeTab === "Ranking" && (
                 <div className="animate-in fade-in duration-500 max-w-5xl mx-auto relative z-10">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-black text-white mb-4 uppercase tracking-tighter">Hierarquia <span className="text-red-600">Global</span></h2>
+                        <h2 className="text-4xl md:text-5xl font-black text-white mb-4 uppercase tracking-tighter">Hierarquia <span className="text-cyan-400">Global</span></h2>
                         <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.3em]">As entidades supremas da plataforma.</p>
                     </div>
                     
                     {loadingRank ? (
-                        <div className="flex flex-col items-center justify-center py-24"><Loader2 className="w-12 h-12 text-red-600 animate-spin mb-6"/><p className="text-red-500 text-[10px] font-black uppercase tracking-[0.4em]">Sincronizando Matriz...</p></div>
+                        <div className="flex flex-col items-center justify-center py-24"><Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-6"/><p className="text-cyan-500 text-[10px] font-black uppercase tracking-[0.4em]">Sincronizando Matriz...</p></div>
                     ) : rankingList.length === 0 ? (
                         <p className="text-center text-gray-600 py-20 font-black uppercase tracking-[0.2em] text-sm">O ranking aguarda os primeiros conquistadores.</p>
                     ) : (
                         <div className="space-y-4">
                             {rankingList.map((player, index) => (
-                                <div key={player.id} className={`bg-white/[0.02] backdrop-blur-md border p-5 sm:p-6 flex items-center gap-4 sm:gap-8 transition-all duration-500 hover:scale-[1.02] ${index < 3 ? 'border-red-600/30 bg-red-950/10' : 'border-white/5 hover:bg-white/[0.05] hover:border-white/10'}`}>
+                                <div key={player.id} className={`bg-white/[0.02] backdrop-blur-md rounded-3xl border p-5 sm:p-6 flex items-center gap-4 sm:gap-8 transition-all duration-500 hover:scale-[1.02] ${index < 3 ? 'border-cyan-500/30 bg-cyan-950/10' : 'border-white/5 hover:bg-white/[0.05] hover:border-white/10'}`}>
                                     <div className={`w-8 sm:w-12 font-black text-center text-lg sm:text-2xl ${index === 0 ? 'text-amber-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-700' : 'text-gray-600'}`}>
                                         #{index + 1}
                                     </div>
                                     
-                                    <div className={`relative w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0 group ${(!player.equipped_items?.moldura?.preview && player.equipped_items?.moldura) ? player.equipped_items.moldura.cssClass : ''}`}>
-                                        <div className="w-full h-full overflow-hidden border border-white/10 relative z-10 bg-[#020105]">
-                                            <img src={cleanCosmeticUrl(player.avatarUrl) || `https://placehold.co/100x100/020105/ef4444?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover z-0" onError={(e)=>e.target.src=`https://placehold.co/100x100/020105/ef4444?text=${player.displayName?.charAt(0) || 'U'}`} />
+                                    <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center flex-shrink-0 group ${(!player.equipped_items?.moldura?.preview && player.equipped_items?.moldura) ? player.equipped_items.moldura.cssClass : ''}`}>
+                                        <div className="w-full h-full rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#020105]">
+                                            <img src={cleanCosmeticUrl(player.avatarUrl) || `https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover z-0" onError={(e)=>e.target.src=`https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} />
                                         </div>
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <h4 className={`font-black text-base sm:text-lg truncate uppercase tracking-wider ${index < 3 ? 'text-white' : 'text-gray-300'}`}>{player.displayName || "Entidade Oculta"}</h4>
-                                        <p className="text-[10px] text-red-500 font-bold uppercase tracking-[0.2em] truncate mt-1">{getLevelTitle(player.level)}</p>
+                                        <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em] truncate mt-1">{getLevelTitle(player.level)}</p>
                                     </div>
                                     <div className="text-right flex-shrink-0 flex flex-col items-end">
-                                        <div className="text-[10px] font-black text-white bg-black/50 border border-white/10 px-4 py-1.5 uppercase tracking-widest">Nível {player.level}</div>
-                                        <div className="text-[10px] text-red-500 font-black mt-2 uppercase tracking-widest">{player.xp} XP</div>
+                                        <div className="text-[10px] rounded-xl font-black text-white bg-black/50 border border-white/10 px-4 py-1.5 uppercase tracking-widest">Nível {player.level}</div>
+                                        <div className="text-[10px] text-cyan-400 font-black mt-2 uppercase tracking-widest">{player.xp} XP</div>
                                     </div>
                                 </div>
                             ))}
