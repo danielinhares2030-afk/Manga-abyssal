@@ -85,7 +85,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             const missionPool = ['read', 'search_visual', 'enigma'];
             const chosenType = missionPool[Math.floor(Math.random() * missionPool.length)];
 
-            if (mangas.length > 0) {
+            if (mangas && mangas.length > 0) {
                 const randomManga = mangas[Math.floor(Math.random() * mangas.length)];
 
                 if (chosenType === 'search_visual' && randomManga.synopsis && randomManga.synopsis.length > 30) {
@@ -192,7 +192,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 </div>
             )}
 
-            {/* ABA CORRIGIDA AQUI: Flex-shrink-0 e whitespace-nowrap evitam cortes no mobile */}
             <div className="flex justify-start sm:justify-center gap-3 mb-12 overflow-x-auto no-scrollbar pb-4 relative z-20 w-full px-2 snap-x">
                 {['Missões', 'Forja', 'Loja', 'Ranking'].map((tab) => (
                     <button 
@@ -356,10 +355,11 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                       
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 max-w-7xl mx-auto">
-                        {/* FILTRO APLICADO PARA EXIBIR APENAS AS 3 CATEGORIAS PERMITIDAS */}
+                        
+                        {/* FILTRO APLICADO PARA EXIBIR APENAS AS 4 CATEGORIAS DA IA */}
                         {shopItems.filter(item => {
                             const cat = (item.categoria || item.type || '').toLowerCase();
-                            return ['avatar', 'nickname', 'capa_fundo'].includes(cat);
+                            return ['avatar', 'nickname', 'capa_fundo', 'moldura'].includes(cat);
                         }).map(item => {
                           const hasItem = userProfileData.inventory?.includes(item.id);
                           const isEquipped = userProfileData.equipped_items?.[item.categoria]?.id === item.id;
@@ -367,15 +367,44 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
 
                           return (
                             <div key={item.id} className={`bg-[#05030a] border rounded-[2rem] p-6 flex flex-col items-center text-center transition-all duration-500 group relative overflow-hidden ${isEquipped ? 'border-cyan-500 bg-cyan-950/20' : 'border-white/5 hover:border-cyan-500/40'}`}>
-                              <div className={`w-28 h-28 rounded-2xl mb-6 bg-[#020105] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${(!item.preview && ['moldura', 'efeito'].includes(cat)) ? item.cssClass : ''}`}>
-                                {(cat === 'capa_fundo' || cat === 'tema_perfil') ? (
-                                    cleanCosmeticUrl(item.preview) ? <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className="w-full h-full object-cover opacity-80" /> : <div className="w-full h-full bg-gray-900"></div>
-                                ) : null}
-                                {cat === 'avatar' && cleanCosmeticUrl(item.preview) && <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${item.cssClass}`} />}
-                                {(!['avatar', 'capa_fundo', 'nickname'].includes(cat)) && (
+                              
+                              {/* INJEÇÃO MÁGICA DA IA AQUI: Lê o CSS e as Animações geradas */}
+                              {(item.css || item.animacao || item.keyframes) && (
+                                 <style dangerouslySetInnerHTML={{__html: `
+                                    .${item.cssClass || 'custom-ia-class'} { ${item.css || ''} }
+                                    ${item.animacao || item.keyframes || ''}
+                                 `}} />
+                              )}
+
+                              {/* AQUI APLICAMOS A CLASSE GERADA PELA IA */}
+                              <div className={`w-28 h-28 rounded-2xl mb-6 bg-[#020105] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${cat === 'avatar' ? (item.cssClass || 'custom-ia-class') : ''}`}>
+                                
+                                {/* Renderização de Capa/Fundo */}
+                                {(cat === 'capa_fundo' || cat === 'tema_perfil') && cleanCosmeticUrl(item.preview) && (
+                                    <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover opacity-80 ${item.cssClass || 'custom-ia-class'}`} />
+                                )}
+
+                                {/* Renderização de Moldura */}
+                                {cat === 'moldura' && cleanCosmeticUrl(item.preview) && (
+                                    <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute inset-0 w-full h-full object-cover z-20 pointer-events-none ${item.cssClass || 'custom-ia-class'}`} style={{ mixBlendMode: 'screen' }} />
+                                )}
+
+                                {/* Renderização de Avatar */}
+                                {cat === 'avatar' && cleanCosmeticUrl(item.preview) && (
+                                    <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 relative z-10`} />
+                                )}
+
+                                {/* Renderização de Nickname animado */}
+                                {cat === 'nickname' && (
+                                    <div className={`font-black text-xl z-20 ${item.cssClass || 'custom-ia-class'}`}>NomeAqui</div>
+                                )}
+
+                                {/* Fallback se não tiver imagem e não for nickname */}
+                                {(!item.preview && !['nickname'].includes(cat)) && (
                                     <Sparkles className="w-8 h-8 text-gray-600 relative z-10"/>
                                 )}
                               </div>
+
                               <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-2 px-2 py-1 rounded bg-black/40 border border-white/5 relative z-10 ${getRarityColor(item.raridade)}`}>{item.categoria || item.type}</p>
                               <h4 className="text-white font-black mb-6 text-sm line-clamp-1 relative z-10">{item.nome || item.name}</h4>
                               
@@ -411,14 +440,33 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                         #{index + 1}
                                     </div>
                                     
-                                    <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center flex-shrink-0 group ${(!player.equipped_items?.moldura?.preview && player.equipped_items?.moldura) ? player.equipped_items.moldura.cssClass : ''}`}>
-                                        <div className="w-full h-full rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#020105]">
-                                            <img src={cleanCosmeticUrl(player.avatarUrl) || `https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover z-0" onError={(e)=>e.target.src=`https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} />
+                                    <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center flex-shrink-0 group`}>
+                                        
+                                        {/* INJEÇÃO DO CSS DA IA NO RANKING (Moldura e Avatar) */}
+                                        {player.equipped_items?.avatar?.css && (
+                                            <style dangerouslySetInnerHTML={{__html: `.${player.equipped_items.avatar.cssClass || 'custom-avatar'} { ${player.equipped_items.avatar.css} } \n ${player.equipped_items.avatar.animacao || player.equipped_items.avatar.keyframes || ''}`}} />
+                                        )}
+                                        {player.equipped_items?.moldura?.css && (
+                                            <style dangerouslySetInnerHTML={{__html: `.${player.equipped_items.moldura.cssClass || 'custom-moldura'} { ${player.equipped_items.moldura.css} } \n ${player.equipped_items.moldura.animacao || player.equipped_items.moldura.keyframes || ''}`}} />
+                                        )}
+
+                                        <div className={`w-full h-full rounded-full overflow-hidden border border-white/10 relative z-10 bg-[#020105] ${player.equipped_items?.avatar ? (player.equipped_items.avatar.cssClass || 'custom-avatar') : ''}`}>
+                                            <img src={cleanCosmeticUrl(player.avatarUrl) || `https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} className="w-full h-full object-cover z-0 relative" onError={(e)=>e.target.src=`https://placehold.co/100x100/020105/22d3ee?text=${player.displayName?.charAt(0) || 'U'}`} />
                                         </div>
+                                        
+                                        {player.equipped_items?.moldura?.preview && (
+                                            <img src={cleanCosmeticUrl(player.equipped_items.moldura.preview)} className={`absolute inset-[-10%] w-[120%] h-[120%] object-cover z-20 pointer-events-none mix-blend-screen max-w-none ${player.equipped_items.moldura.cssClass || 'custom-moldura'}`} />
+                                        )}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <h4 className={`font-black text-base sm:text-lg truncate uppercase tracking-wider ${index < 3 ? 'text-white' : 'text-gray-300'}`}>{player.displayName || "Entidade Oculta"}</h4>
+                                        {/* INJEÇÃO DO CSS DA IA NO RANKING (Nickname) */}
+                                        {player.equipped_items?.nickname?.css && (
+                                            <style dangerouslySetInnerHTML={{__html: `.${player.equipped_items.nickname.cssClass || 'custom-nick'} { ${player.equipped_items.nickname.css} } \n ${player.equipped_items.nickname.animacao || player.equipped_items.nickname.keyframes || ''}`}} />
+                                        )}
+                                        <h4 className={`font-black text-base sm:text-lg truncate uppercase tracking-wider ${index < 3 ? 'text-white' : 'text-gray-300'} ${player.equipped_items?.nickname ? (player.equipped_items.nickname.cssClass || 'custom-nick') : ''}`}>
+                                            {player.displayName || "Entidade Oculta"}
+                                        </h4>
                                         <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em] truncate mt-1">{getLevelTitle(player.level)}</p>
                                     </div>
                                     <div className="text-right flex-shrink-0 flex flex-col items-end">
