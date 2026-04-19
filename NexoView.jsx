@@ -356,10 +356,10 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                       
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 max-w-7xl mx-auto">
                         
-                        {/* FILTRO APLICADO PARA EXIBIR APENAS AS 4 CATEGORIAS DA IA */}
+                        {/* FILTRO CORRIGIDO PARA ACEITAR "capa" e "tema_perfil" ALÉM DA IA */}
                         {shopItems.filter(item => {
                             const cat = (item.categoria || item.type || '').toLowerCase();
-                            return ['avatar', 'nickname', 'capa_fundo', 'moldura'].includes(cat);
+                            return ['avatar', 'nickname', 'capa_fundo', 'capa', 'moldura', 'tema_perfil'].includes(cat);
                         }).map(item => {
                           const hasItem = userProfileData.inventory?.includes(item.id);
                           const isEquipped = userProfileData.equipped_items?.[item.categoria]?.id === item.id;
@@ -379,8 +379,8 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                               {/* AQUI APLICAMOS A CLASSE GERADA PELA IA */}
                               <div className={`w-28 h-28 rounded-2xl mb-6 bg-[#020105] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${cat === 'avatar' ? (item.cssClass || 'custom-ia-class') : ''}`}>
                                 
-                                {/* Renderização de Capa/Fundo */}
-                                {(cat === 'capa_fundo' || cat === 'tema_perfil') && cleanCosmeticUrl(item.preview) && (
+                                {/* Renderização de Capa/Fundo corrigida */}
+                                {(cat === 'capa_fundo' || cat === 'capa' || cat === 'tema_perfil') && cleanCosmeticUrl(item.preview) && (
                                     <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover opacity-80 ${item.cssClass || 'custom-ia-class'}`} />
                                 )}
 
