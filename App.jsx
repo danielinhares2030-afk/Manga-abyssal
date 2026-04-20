@@ -44,7 +44,8 @@ function MangaInfinityApp() {
   const [notifications, setNotifications] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false); 
 
-  useEffect(() => { const timer = setTimeout(() => setSplashTimerDone(true), 1500); return () => clearTimeout(timer); }, []);
+  // Mude este timer para 1200
+  useEffect(() => { const timer = setTimeout(() => setSplashTimerDone(true), 1200); return () => clearTimeout(timer); }, []);
 
   useEffect(() => {
     const handlePopState = (e) => {
