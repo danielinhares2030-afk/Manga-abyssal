@@ -49,34 +49,34 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
       
       {confirmAction && (
           <div className="fixed inset-0 z-[3000] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-              <div className="bg-[#0a0a0f] border border-white/10 p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+              <div className="bg-[#0a0a0f] border border-white/10 p-8 rounded-xl max-w-sm w-full text-center shadow-2xl">
                   <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2 tracking-wide">{confirmAction === 'history' ? 'Limpar Histórico?' : 'Reiniciar App?'}</h3>
                   <p className="text-xs text-gray-400 font-medium mb-8 px-2">{confirmAction === 'history' ? 'Esta ação não pode ser desfeita.' : 'A interface será recarregada.'}</p>
                   <div className="flex gap-3">
-                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-white/5 border border-white/10 text-gray-300 font-bold py-3.5 rounded-xl hover:bg-white/10 transition-colors text-xs">Cancelar</button>
-                      <button onClick={executeConfirmAction} className="flex-1 bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-3.5 rounded-xl transition-colors hover:bg-red-500 hover:text-white text-xs">Confirmar</button>
+                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-white/5 border border-white/10 text-gray-300 font-bold py-3.5 rounded-lg hover:bg-white/10 transition-colors text-xs">Cancelar</button>
+                      <button onClick={executeConfirmAction} className="flex-1 bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-3.5 rounded-lg transition-colors hover:bg-red-500 hover:text-white text-xs">Confirmar</button>
                   </div>
               </div>
           </div>
       )}
 
-      {/* Capa de Fundo Menor e Mais Suave */}
-      <div className="h-44 md:h-64 w-full bg-[#050508] relative group overflow-hidden">
-        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover opacity-60 ${eq.capa_fundo.cssClass || ''}`} /> ) : coverBase64 ? ( <img src={coverBase64} className="w-full h-full object-cover opacity-40" /> ) : ( <div className={`w-full h-full bg-gradient-to-br from-cyan-900/20 to-indigo-900/20 ${eq.capa_fundo?.cssClass || ''}`} /> )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020204] to-transparent" />
+      {/* CAPA: Altura levemente maior para destacar a arte */}
+      <div className="h-52 md:h-72 w-full bg-[#050508] relative group overflow-hidden">
+        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover opacity-80 ${eq.capa_fundo.cssClass || ''}`} /> ) : coverBase64 ? ( <img src={coverBase64} className="w-full h-full object-cover opacity-60" /> ) : ( <div className={`w-full h-full bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 ${eq.capa_fundo?.cssClass || ''}`} /> )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#020204] via-transparent to-transparent" />
         
         {isEditing && (
-            <button onClick={() => coverInputRef.current.click()} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white border border-white/10 px-6 py-3 rounded-xl flex items-center gap-2 text-xs font-bold z-10 hover:bg-white/20 transition-all shadow-lg">
+            <button onClick={() => coverInputRef.current.click()} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white border border-white/10 px-6 py-3 rounded-lg flex items-center gap-2 text-xs font-bold z-10 hover:bg-white/20 transition-all shadow-lg">
                 <Camera className="w-4 h-4" /> Alterar Fundo
             </button>
         )}
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
       </div>
 
-      {/* Margem ajustada e border-radius corrigido (rounded-2xl ao invés do exagerado) */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-16 md:-mt-20 z-10">
-        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/5 p-6 md:p-8 rounded-2xl shadow-xl">
+      {/* CARD PRINCIPAL: -mt reduzido para não cobrir a capa e arredondamento equilibrado (rounded-xl) */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-10 md:-mt-14 z-10">
+        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 bg-[#0a0a0f]/95 backdrop-blur-2xl border border-white/5 p-6 md:p-8 rounded-xl shadow-2xl">
           
           <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
             <div className={`w-full h-full rounded-full bg-[#0b0e14] flex items-center justify-center relative z-10 overflow-hidden shadow-lg ${!eq.moldura ? 'border-[3px] border-[#0a0a0f]' : ''}`}>
@@ -86,16 +86,16 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
             {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-30 ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
 
-            {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-0 right-0 bg-white text-black p-3 rounded-full z-50 border-4 border-[#0a0a0f] hover:bg-gray-200 transition-colors shadow-lg"><Camera className="w-4 h-4" /></button>}
+            {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-0 right-0 bg-white text-black p-2.5 rounded-full z-50 border-4 border-[#0a0a0f] hover:bg-gray-200 transition-colors shadow-lg"><Camera className="w-4 h-4" /></button>}
             <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
           </div>
 
           <div className="flex-1 text-center md:text-left mt-2 md:mt-0 w-full">
             <h1 className={`text-2xl md:text-4xl font-black tracking-tight drop-shadow-md ${eq.nickname ? eq.nickname.cssClass : 'text-white'}`}>{name || 'Usuário'}</h1>
-            <p className="text-gray-400 font-medium mb-1 text-xs mt-1">{user.email}</p>
-            {bio && !isEditing && <p className="text-gray-300 text-sm mb-3 font-medium mt-3 bg-white/5 inline-block px-4 py-2 rounded-xl border border-white/5">{bio}</p>}
+            <p className="text-gray-500 font-medium mb-1 text-xs mt-1">{user.email}</p>
+            {bio && !isEditing && <p className="text-gray-300 text-xs mb-3 font-medium mt-3 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/5">{bio}</p>}
             
-            <div className="w-full bg-black/30 p-5 rounded-2xl border border-white/5 mt-4 relative overflow-hidden shadow-inner">
+            <div className="w-full bg-black/40 p-5 rounded-xl border border-white/5 mt-4 relative overflow-hidden shadow-inner">
               <div className="flex justify-between items-end mb-3 relative z-10">
                 <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Nível Atual</span>
@@ -113,30 +113,30 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
 
           <div className="flex gap-3 w-full md:w-auto justify-center">
-            <button onClick={() => setIsEditing(!isEditing)} className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all flex-1 md:flex-none"><Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Editar'}</button>
-            <button onClick={onLogout} className="bg-red-500/10 text-red-400 p-3 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"><LogOut className="w-5 h-5" /></button>
+            <button onClick={() => setIsEditing(!isEditing)} className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all flex-1 md:flex-none"><Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Editar'}</button>
+            <button onClick={onLogout} className="bg-red-500/10 text-red-400 p-3 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-red-500/20"><LogOut className="w-5 h-5" /></button>
           </div>
         </div>
         
         {isEditing ? (
-          <form onSubmit={handleSave} className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-8 animate-in fade-in shadow-xl mb-8">
+          <form onSubmit={handleSave} className="bg-[#0a0a0f]/95 backdrop-blur-xl border border-white/5 rounded-xl p-8 animate-in fade-in shadow-xl mb-8">
             <div className="space-y-6">
               <div>
                  <label className="block text-xs font-bold text-gray-400 mb-2">Nome de Exibição</label>
-                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-4 text-white text-sm font-medium outline-none focus:border-cyan-500 transition-colors"/>
+                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-black/20 border border-white/5 rounded-lg px-4 py-4 text-white text-sm font-medium outline-none focus:border-cyan-500 transition-colors"/>
               </div>
               <div>
                  <label className="block text-xs font-bold text-gray-400 mb-2">Sua Biografia</label>
-                 <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-4 text-white text-sm font-medium resize-none outline-none focus:border-cyan-500 transition-colors"></textarea>
+                 <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-black/20 border border-white/5 rounded-lg px-4 py-4 text-white text-sm font-medium resize-none outline-none focus:border-cyan-500 transition-colors"></textarea>
               </div>
             </div>
-            <button type="submit" disabled={loading} className="mt-8 bg-white text-black text-xs font-black px-8 py-4 rounded-xl w-full flex justify-center hover:bg-gray-200 transition-all">{loading ? <Loader2 className="w-5 h-5 animate-spin"/> : 'Salvar Alterações'}</button>
+            <button type="submit" disabled={loading} className="mt-8 bg-white text-black text-xs font-black px-8 py-4 rounded-lg w-full flex justify-center hover:bg-gray-200 transition-all">{loading ? <Loader2 className="w-5 h-5 animate-spin"/> : 'Salvar Alterações'}</button>
           </form>
         ) : (
           <div>
             <div className="flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2 snap-x px-1">
               {['Estatisticas', 'Historico', 'Biblioteca', 'Configuracoes'].map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-5 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap text-[10px] sm:text-[11px] uppercase tracking-wider flex items-center gap-2 ${activeTab === tab ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-gray-400 border border-white/5 hover:text-white hover:bg-white/10'}`}>
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-5 py-2.5 rounded-lg font-bold transition-all whitespace-nowrap text-[10px] sm:text-[11px] uppercase tracking-wider flex items-center gap-2 ${activeTab === tab ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-gray-400 border border-white/5 hover:text-white hover:bg-white/10'}`}>
                   {tab === 'Estatisticas' && <Compass className="w-4 h-4"/>} {tab === 'Historico' && <History className="w-4 h-4"/>} {tab === 'Biblioteca' && <Library className="w-4 h-4"/>} {tab === 'Configuracoes' && <Smartphone className="w-4 h-4"/>}
                   {tab}
                 </button>
@@ -145,15 +145,15 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             
             {activeTab === "Estatisticas" && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/[0.02] backdrop-blur-lg border border-white/5 p-6 rounded-2xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : Object.keys(libraryData).length}</span><span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Salvos</span></div>
-                <div className="bg-cyan-900/10 backdrop-blur-lg border border-cyan-500/20 p-6 rounded-2xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-cyan-400 mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : historyData.length}</span><span className="text-[10px] text-cyan-500/60 uppercase font-bold tracking-widest">Lidos</span></div>
-                <div className="bg-indigo-900/10 backdrop-blur-lg border border-indigo-500/20 p-6 rounded-2xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-indigo-400 mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : obrasLidasIds.length}</span><span className="text-[10px] text-indigo-500/60 uppercase font-bold tracking-widest">Iniciadas</span></div>
-                <div className="bg-red-900/10 backdrop-blur-lg border border-red-500/20 p-6 rounded-2xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-red-400 mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : Object.values(libraryData).filter(s=>s==='Favoritos').length}</span><span className="text-[10px] text-red-500/60 uppercase font-bold tracking-widest">Favoritos</span></div>
+                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : Object.keys(libraryData).length}</span><span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Salvos</span></div>
+                <div className="bg-cyan-900/10 border border-cyan-500/20 p-6 rounded-xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-cyan-400 mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : historyData.length}</span><span className="text-[10px] text-cyan-500/60 uppercase font-bold tracking-widest">Lidos</span></div>
+                <div className="bg-indigo-900/10 border border-indigo-500/20 p-6 rounded-xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-indigo-400 mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : obrasLidasIds.length}</span><span className="text-[10px] text-indigo-500/60 uppercase font-bold tracking-widest">Iniciadas</span></div>
+                <div className="bg-red-900/10 border border-red-500/20 p-6 rounded-xl flex flex-col items-center justify-center shadow-lg"><span className="text-3xl font-black text-red-400 mb-1">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : Object.values(libraryData).filter(s=>s==='Favoritos').length}</span><span className="text-[10px] text-red-500/60 uppercase font-bold tracking-widest">Favoritos</span></div>
               </div>
             )}
 
             {activeTab === "Historico" && (
-                <div className="bg-white/[0.02] backdrop-blur-xl p-6 rounded-2xl border border-white/5 shadow-lg">
+                <div className="bg-[#0a0a0f]/80 backdrop-blur-xl p-6 rounded-xl border border-white/5 shadow-lg">
                     {historyData.length === 0 ? (
                         <div className="text-center py-12"><History className="w-10 h-10 mx-auto text-gray-600 mb-4"/><p className="text-gray-500 text-xs font-medium">Nenhum registro encontrado.</p></div>
                     ) : (
@@ -161,21 +161,21 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                           {historyData.slice(0, 15).map(hist => {
                               const mg = mangas.find(m => m.id === hist.mangaId);
                               return (
-                                  <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-black/20 border border-white/5 p-3 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group">
+                                  <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-black/30 border border-white/5 p-4 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group">
                                       <div className="w-12 h-16 rounded-lg overflow-hidden bg-black flex-shrink-0">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <BookOpen className="w-5 h-5 m-auto mt-5 text-gray-700"/>}</div>
                                       <div className="flex-1"><h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-cyan-400">{hist.mangaTitle}</h4><p className="text-gray-400 text-xs mt-1">Capítulo {hist.chapterNumber}</p></div>
                                       <p className="text-[10px] text-gray-600">{new Date(hist.timestamp).toLocaleDateString()}</p>
                                   </div>
                               )
                           })}
-                          <button onClick={() => setConfirmAction('history')} className="mt-6 w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs rounded-xl hover:bg-red-500 hover:text-white transition-all flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Limpar Histórico</button>
+                          <button onClick={() => setConfirmAction('history')} className="mt-6 w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs rounded-lg hover:bg-red-500 hover:text-white transition-all flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Limpar Histórico</button>
                        </div>
                     )}
                 </div>
             )}
 
             {activeTab === "Biblioteca" && (
-                <div className="bg-white/[0.02] backdrop-blur-xl p-6 rounded-2xl border border-white/5 shadow-lg">
+                <div className="bg-[#0a0a0f]/80 backdrop-blur-xl p-6 rounded-xl border border-white/5 shadow-lg">
                     {libraryMangas.length === 0 ? (
                         <div className="text-center py-12"><Library className="w-10 h-10 mx-auto text-gray-600 mb-4"/><p className="text-gray-500 text-xs font-medium">Seu acervo está vazio.</p></div>
                     ) : (
@@ -198,7 +198,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
             {activeTab === "Configuracoes" && (
                 <div className="space-y-4">
-                    <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-8 shadow-lg">
+                    <div className="bg-[#0a0a0f]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 md:p-8 shadow-lg">
                       <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-8 border-b border-white/5 pb-4"><LayoutTemplate className="w-5 h-5 text-cyan-400" /> Preferências</h3>
                       
                       <div className="flex items-center justify-between mb-8">
@@ -235,7 +235,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                       </div>
                     </div>
 
-                    <button onClick={() => setConfirmAction('cache')} className="flex items-center justify-between w-full bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-8 hover:bg-white/5 transition-colors shadow-lg group">
+                    <button onClick={() => setConfirmAction('cache')} className="flex items-center justify-between w-full bg-[#0a0a0f]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 md:p-8 hover:bg-white/5 transition-colors shadow-lg group">
                         <div className="text-left">
                             <p className="text-sm font-bold text-white flex items-center gap-2"><RefreshCw className="w-5 h-5 text-gray-400 group-hover:rotate-180 transition-transform duration-500" /> Limpar Cache Temporário</p>
                             <p className="text-xs text-gray-500 mt-2">Pode resolver problemas de lentidão.</p>
