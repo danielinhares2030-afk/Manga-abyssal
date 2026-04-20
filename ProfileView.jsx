@@ -6,7 +6,6 @@ import { auth, db } from './firebase';
 import { APP_ID } from './constants';
 import { compressImage, getLevelRequirement, getLevelTitle, cleanCosmeticUrl } from './helpers';
 
-// Componente HexStat Corrigido: flex-shrink-0, truncate, e tamanhos seguros
 const HexStat = ({ icon: Icon, value, label, color }) => (
   <div className="relative flex flex-col items-center justify-center w-24 h-24 flex-shrink-0 group">
     <svg viewBox="0 0 100 100" className={`absolute inset-0 w-full h-full opacity-10 group-hover:opacity-20 transition-opacity z-0 ${color}`}>
@@ -14,7 +13,6 @@ const HexStat = ({ icon: Icon, value, label, color }) => (
     </svg>
     <div className="relative z-10 flex flex-col items-center justify-center px-1 text-center w-full">
       <Icon className={`w-5 h-5 mb-1 ${color}`} />
-      {/* Truncate para garantir que números gigantes cortem com "..." se acontecer, mas já está corrigido abaixo com toFixed(0) */}
       <span className="text-base font-black text-white tracking-tighter truncate w-full px-2">{value}</span>
       <span className="text-[8px] text-gray-400 uppercase font-black tracking-widest mt-0.5 truncate w-full px-1">{label}</span>
     </div>
@@ -60,7 +58,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const activeAvatarSrc = (eq.avatar?.preview ? cleanCosmeticUrl(eq.avatar.preview) : null) || avatarBase64 || `https://placehold.co/150x150/0A0E17/22d3ee?text=U`;
 
   return (
-    {/* Fundo Principal rico, azulado profundo (Slate-950) */}
     <div className={`animate-in fade-in duration-500 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#0A0E17]`}>
       
       {confirmAction && (
@@ -152,19 +149,14 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </form>
         )}
 
-        {/* 3. ESTATÍSTICAS (Valores Corrigidos e Truncados) */}
+        {/* 3. ESTATÍSTICAS */}
         <div className="mb-10 bg-[#111827] border border-white/5 p-6 rounded-2xl relative overflow-hidden shadow-lg">
             <div className="absolute top-[-20%] left-[-10%] w-[150px] h-[150px] bg-cyan-600/10 rounded-full blur-[80px] pointer-events-none"></div>
             
-            {/* Adicionado flex-nowrap e justify-between seguro */}
             <div className="flex gap-2 overflow-x-auto flex-nowrap no-scrollbar pb-2 snap-x justify-start sm:justify-around items-center w-full">
                 <HexStat icon={Library} value={!dataLoaded ? '--' : Object.keys(libraryData).length} label="Favoritos" color="text-cyan-400" />
                 <HexStat icon={BookOpen} value={!dataLoaded ? '--' : historyData.length} label="Lidos" color="text-indigo-400" />
-                
-                {/* Aqui está o FIX do decimal infinito! toFixed(0) */}
                 <HexStat icon={Zap} value={`${progressPercent.toFixed(0)}%`} label="EXP LVL" color="text-amber-400" />
-                
-                {/* Aqui extraímos apenas a primeira palavra e truncamos para segurança */}
                 <HexStat icon={LayoutTemplate} value={getLevelTitle(level).split(' ')[0]} label="Patente" color="text-fuchsia-400" />
             </div>
             
@@ -175,7 +167,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
         {/* 4. ABAS */}
         <div className="mb-8 border-b border-white/5">
-          {/* Removido 'Biblioteca' das opções de Aba */}
           <div className="flex gap-6 overflow-x-auto no-scrollbar snap-x px-1">
             {['Estatísticas', 'Histórico', 'Configurações'].map((tab) => (
               <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-5 pb-3 font-black transition-all whitespace-nowrap text-[11px] sm:text-xs uppercase tracking-[0.2em] flex items-center gap-2 relative group
