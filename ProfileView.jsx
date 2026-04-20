@@ -61,10 +61,20 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
       )}
 
-      {/* CAPA: Altura levemente maior para destacar a arte */}
-      <div className="h-52 md:h-72 w-full bg-[#050508] relative group overflow-hidden">
-        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover opacity-80 ${eq.capa_fundo.cssClass || ''}`} /> ) : coverBase64 ? ( <img src={coverBase64} className="w-full h-full object-cover opacity-60" /> ) : ( <div className={`w-full h-full bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 ${eq.capa_fundo?.cssClass || ''}`} /> )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020204] via-transparent to-transparent" />
+      {/* ========================================================= */}
+      {/* CAPA (COVER): Altura fixa, cover e center                   */}
+      {/* ========================================================= */}
+      <div className="h-[200px] md:h-[250px] w-full bg-[#050508] relative group overflow-hidden">
+        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( 
+            <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover object-center opacity-90 ${eq.capa_fundo.cssClass || ''}`} /> 
+        ) : coverBase64 ? ( 
+            <img src={coverBase64} className="w-full h-full object-cover object-center opacity-80" /> 
+        ) : ( 
+            <div className={`w-full h-full bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 ${eq.capa_fundo?.cssClass || ''}`} /> 
+        )}
+        
+        {/* Gradiente leve apenas no rodapé da capa para misturar sutilmente com o fundo do site */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#020204] to-transparent" />
         
         {isEditing && (
             <button onClick={() => coverInputRef.current.click()} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white border border-white/10 px-6 py-3 rounded-lg flex items-center gap-2 text-xs font-bold z-10 hover:bg-white/20 transition-all shadow-lg">
@@ -74,10 +84,13 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
       </div>
 
-      {/* CARD PRINCIPAL: -mt reduzido para não cobrir a capa e arredondamento equilibrado (rounded-xl) */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-10 md:-mt-14 z-10">
-        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 bg-[#0a0a0f]/95 backdrop-blur-2xl border border-white/5 p-6 md:p-8 rounded-xl shadow-2xl">
+      {/* ========================================================= */}
+      {/* PROFILE CARD: -mt-80px, bg translúcido com glass effect     */}
+      {/* ========================================================= */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative -mt-[80px] z-10">
+        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 bg-gradient-to-b from-black/30 to-black/90 backdrop-blur-md border border-white/10 p-6 md:p-8 rounded-[20px] shadow-2xl">
           
+          {/* Avatar (Mantido flutuando no layout) */}
           <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
             <div className={`w-full h-full rounded-full bg-[#0b0e14] flex items-center justify-center relative z-10 overflow-hidden shadow-lg ${!eq.moldura ? 'border-[3px] border-[#0a0a0f]' : ''}`}>
                <img src={activeAvatarSrc} className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} alt="Avatar" />
@@ -87,13 +100,12 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-30 ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
 
             {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-0 right-0 bg-white text-black p-2.5 rounded-full z-50 border-4 border-[#0a0a0f] hover:bg-gray-200 transition-colors shadow-lg"><Camera className="w-4 h-4" /></button>}
-            <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
           </div>
 
           <div className="flex-1 text-center md:text-left mt-2 md:mt-0 w-full">
             <h1 className={`text-2xl md:text-4xl font-black tracking-tight drop-shadow-md ${eq.nickname ? eq.nickname.cssClass : 'text-white'}`}>{name || 'Usuário'}</h1>
-            <p className="text-gray-500 font-medium mb-1 text-xs mt-1">{user.email}</p>
-            {bio && !isEditing && <p className="text-gray-300 text-xs mb-3 font-medium mt-3 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/5">{bio}</p>}
+            <p className="text-gray-400 font-medium mb-1 text-xs mt-1 drop-shadow-sm">{user.email}</p>
+            {bio && !isEditing && <p className="text-gray-300 text-xs mb-3 font-medium mt-3 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/5 backdrop-blur-sm">{bio}</p>}
             
             <div className="w-full bg-black/40 p-5 rounded-xl border border-white/5 mt-4 relative overflow-hidden shadow-inner">
               <div className="flex justify-between items-end mb-3 relative z-10">
@@ -106,15 +118,15 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                     <span className="text-xs font-black text-white">{currentXp} <span className="text-gray-600">/ {xpNeeded}</span></span>
                 </div>
               </div>
-              <div className="relative w-full h-1.5 bg-white/5 rounded-full overflow-hidden relative z-10">
-                 <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }}></div>
+              <div className="relative w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative z-10">
+                 <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(34,211,238,0.5)]" style={{ width: `${progressPercent}%` }}></div>
               </div>
             </div>
           </div>
 
           <div className="flex gap-3 w-full md:w-auto justify-center">
-            <button onClick={() => setIsEditing(!isEditing)} className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all flex-1 md:flex-none"><Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Editar'}</button>
-            <button onClick={onLogout} className="bg-red-500/10 text-red-400 p-3 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-red-500/20"><LogOut className="w-5 h-5" /></button>
+            <button onClick={() => setIsEditing(!isEditing)} className="bg-white/10 border border-white/20 text-white px-6 py-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/20 transition-all flex-1 md:flex-none backdrop-blur-md"><Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Editar'}</button>
+            <button onClick={onLogout} className="bg-red-500/20 text-red-400 p-3 rounded-lg hover:bg-red-600 hover:text-white transition-all border border-red-500/30 backdrop-blur-md"><LogOut className="w-5 h-5" /></button>
           </div>
         </div>
         
