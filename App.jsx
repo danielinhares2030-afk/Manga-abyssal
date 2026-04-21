@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, Dices, Hexagon, Infinity as InfinityIcon, Home as HomeIcon, LayoutGrid, Library, UserCircle, User, X, Trophy, BookOpen, Eye } from 'lucide-react';
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-// Importações ajustadas (removido o 'where' que causava o bloqueio da loja)
-import { doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, query, getDocs, updateDoc, increment } from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, query, getDocs, updateDoc, increment, where } from "firebase/firestore";
 import { app, auth, db } from './firebase'; 
 import { APP_ID, FALLBACK_SHOP_ITEMS } from './constants';
 import { getThemeClasses, removeXpLogic, addXpLogic, timeAgo, cleanCosmeticUrl } from './helpers';
@@ -44,7 +43,6 @@ function MangaInfinityApp() {
   const [notifications, setNotifications] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false); 
 
-  // Mude este timer para 1200
   useEffect(() => { const timer = setTimeout(() => setSplashTimerDone(true), 1200); return () => clearTimeout(timer); }, []);
 
   useEffect(() => {
@@ -59,40 +57,24 @@ function MangaInfinityApp() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [mangas]);
 
-  // ALINHAMENTO 1: Lendo as obras diretamente da raiz (como o Admin salva)
   useEffect(() => {
     const fetchMangas = async () => {
       try {
-        const obrasRef = collection(db, "obras"); 
-        const snap = await getDocs(obrasRef); 
-        const list = [];
+        const obrasRef = collection(db, "obras"); const snap = await getDocs(obrasRef); const list = [];
         for (const docSnap of snap.docs) {
-          const data = docSnap.data(); 
-          const capSnap = await getDocs(collection(db, `obras/${docSnap.id}/capitulos`)); 
-          const chapters = [];
+          const data = docSnap.data(); const capSnap = await getDocs(collection(db, `obras/${docSnap.id}/capitulos`)); const chapters = [];
           capSnap.forEach(c => { const cData = c.data(); chapters.push({ id: c.id, ...cData, rawTime: cData.createdAt || cData.timestamp || Date.now() }); });
-          chapters.sort((a,b) => b.number - a.number); 
-          list.push({ id: docSnap.id, ...data, chapters });
+          chapters.sort((a,b) => b.number - a.number); list.push({ id: docSnap.id, ...data, chapters });
         }
-        list.sort((a, b) => b.createdAt - a.createdAt); 
-        setMangas(list);
+        list.sort((a, b) => b.createdAt - a.createdAt); setMangas(list);
       } catch (error) { console.error(error); } finally { setLoadingMangas(false); }
     };
     fetchMangas();
   }, []);
 
-  // ALINHAMENTO 2: Lendo a loja diretamente da raiz E SEM o filtro "ativo == true"
   useEffect(() => {
-    const q = query(collection(db, "loja_itens")); 
-    const unsub = onSnapshot(q, (snap) => { 
-        if (!snap.empty) { 
-            const items = []; 
-            snap.forEach(d => items.push({ id: d.id, ...d.data() })); 
-            setShopItems(items); 
-        } else { 
-            setShopItems(FALLBACK_SHOP_ITEMS); 
-        } 
-    });
+    const q = query(collection(db, "loja_itens"), where("ativo", "==", true));
+    const unsub = onSnapshot(q, (snap) => { if (!snap.empty) { const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() })); setShopItems(items); } else { setShopItems(FALLBACK_SHOP_ITEMS); } });
     return () => unsub();
   }, []);
 
@@ -234,7 +216,7 @@ function MangaInfinityApp() {
     const itemImg = eq.avatar.preview || eq.avatar.url || eq.avatar.img || eq.avatar.imagem || eq.avatar.image || eq.avatar.src || eq.avatar.foto || eq.avatar.link;
     return itemImg ? cleanCosmeticUrl(itemImg) : null;
   };
-  const activeAvatarSrc = getAvatarSrc() || cleanCosmeticUrl(userProfileData.avatarUrl) || user?.photoURL || `https://placehold.co/100x100/0f111a/3b82f6?text=U`;
+  const activeAvatarSrc = getAvatarSrc() || cleanCosmeticUrl(userProfileData.avatarUrl) || user?.photoURL || `https://placehold.co/100x100/0A0E17/22d3ee?text=U`;
 
   return (
     <div className={`min-h-screen font-sans selection:bg-cyan-500 selection:text-white flex flex-col transition-colors duration-300 ${getThemeClasses(userSettings.theme)}`}>
@@ -252,7 +234,7 @@ function MangaInfinityApp() {
       <GlobalToast toast={globalToast} />
 
       {currentView !== 'reader' && (
-        <nav className="sticky top-0 z-40 bg-[#030407]/80 backdrop-blur-xl border-b border-white/5 shadow-sm relative">
+        <nav className="sticky top-0 z-40 bg-[#0A0E17]/80 backdrop-blur-xl border-b border-white/5 shadow-sm relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
@@ -262,7 +244,7 @@ function MangaInfinityApp() {
               
               <div className="hidden md:block flex-1 max-w-lg mx-8 relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Search className="h-4 w-4 text-gray-400/60 group-focus-within:text-cyan-400 transition-colors" /></div>
-                <input type="text" value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} onKeyDown={handleSearchSubmit} className="w-full pl-10 pr-4 py-2 rounded-xl border border-white/10 bg-[#0d0d12]/50 text-gray-100 outline-none focus:border-cyan-500 transition-all text-sm" placeholder="Pesquisar a obra e teclar Enter..." />
+                <input type="text" value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} onKeyDown={handleSearchSubmit} className="w-full pl-10 pr-4 py-2 rounded-xl border border-white/10 bg-[#111827]/50 text-gray-100 outline-none focus:border-cyan-500 transition-all text-sm" placeholder="Pesquisar a obra e teclar Enter..." />
               </div>
 
               <div className="flex items-center gap-4 md:gap-6">
@@ -270,10 +252,10 @@ function MangaInfinityApp() {
                   <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 rounded-full text-gray-300/80 hover:text-cyan-400 transition-colors duration-300" title="Pesquisar">{showMobileSearch ? <X className="w-5 h-5"/> : <Search className="w-5 h-5" />}</button>
                   <button onClick={handleRandomManga} className="p-2 rounded-full text-gray-300/80 hover:text-cyan-400 transition-colors duration-300 group relative" title="Obra Aleatória"><Dices className="w-5 h-5 md:w-5 md:h-5 group-hover:text-cyan-400 transition-colors duration-300" /></button>
                   <div className="relative">
-                    <button onClick={() => {if(!user) return showToast("Faça login para ver mensagens", "info"); setShowNotifMenu(!showNotifMenu)}} className="relative rounded-full p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300"><Bell className="w-5 h-5 md:w-5 md:h-5"/>{unreadNotifCount > 0 && <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-cyan-500 animate-pulse border border-[#050508]"></span>}</button>
+                    <button onClick={() => {if(!user) return showToast("Faça login para ver mensagens", "info"); setShowNotifMenu(!showNotifMenu)}} className="relative rounded-full p-2 text-gray-300/80 hover:text-cyan-400 transition-colors duration-300"><Bell className="w-5 h-5 md:w-5 md:h-5"/>{unreadNotifCount > 0 && <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-cyan-500 animate-pulse border border-[#0A0E17]"></span>}</button>
                     {showNotifMenu && user && (
-                        <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 w-72 bg-[#0d0d12] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in slide-in-from-top-2">
-                            <div className="p-3 border-b border-white/10 bg-[#050508] flex items-center justify-between"><h3 className="font-black text-sm text-white flex items-center gap-2"><Bell className="w-4 h-4 text-cyan-400"/> Avisos e Comentários</h3>{unreadNotifCount > 0 && <span className="text-[10px] rounded-lg bg-cyan-500 text-black px-1.5 py-0.5 font-black">{unreadNotifCount}</span>}</div>
+                        <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 w-72 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in slide-in-from-top-2">
+                            <div className="p-3 border-b border-white/10 bg-[#0A0E17] flex items-center justify-between"><h3 className="font-black text-sm text-white flex items-center gap-2"><Bell className="w-4 h-4 text-cyan-400"/> Avisos e Comentários</h3>{unreadNotifCount > 0 && <span className="text-[10px] rounded-lg bg-cyan-500 text-black px-1.5 py-0.5 font-black">{unreadNotifCount}</span>}</div>
                             <div className="max-h-64 overflow-y-auto no-scrollbar">
                                 {notifications.length === 0 ? <p className="text-center text-xs text-gray-400/60 py-6">Nenhum aviso no momento.</p> : notifications.map(n => <div key={n.id} onClick={async () => { await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'notifications', n.id), {read: true}); if(n.mangaId) { const m = mangas.find(mg=>mg.id===n.mangaId); if(m) navigateTo('details', m); setShowNotifMenu(false); } }} className={`p-3 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${!n.read ? 'bg-cyan-900/10' : ''}`}><p className="text-xs text-gray-200 font-medium leading-relaxed">{n.text}</p><p className="text-[9px] text-cyan-500 mt-1.5 font-bold uppercase">{timeAgo(n.createdAt)}</p></div>)}
                             </div>
@@ -285,20 +267,23 @@ function MangaInfinityApp() {
                 <div className="hidden md:flex items-center gap-6 text-sm font-bold text-gray-300/80">
                   <button onClick={() => navigateTo('home')} className={`hover:text-cyan-400 transition-colors duration-300 ${currentView === 'home' ? 'text-cyan-400' : ''}`}>Início</button>
                   <button onClick={() => navigateTo('catalog')} className={`hover:text-cyan-400 transition-colors duration-300 ${currentView === 'catalog' ? 'text-cyan-400' : ''}`}>Catálogo</button>
-                  <button onClick={() => user ? navigateTo('nexo') : navigateTo('login')} className={`hover:text-fuchsia-400 transition-colors duration-300 flex items-center gap-1 ${currentView === 'nexo' ? 'text-fuchsia-400' : ''}`}><Hexagon className="w-4 h-4"/> Nexo</button>
+                  <button onClick={() => user ? navigateTo('nexo') : navigateTo('login')} className={`hover:text-cyan-400 transition-colors duration-300 flex items-center gap-1 ${currentView === 'nexo' ? 'text-cyan-400' : ''}`}><Hexagon className="w-4 h-4"/> Nexo</button>
                   <button onClick={() => user ? navigateTo('profile') : navigateTo('login')} className={`hover:text-cyan-400 transition-colors duration-300 flex items-center gap-1 ${currentView === 'profile' ? 'text-cyan-400' : ''}`}><UserCircle className="w-4 h-4"/> Perfil</button>
                 </div>
                 {user ? (
                   <div className="cursor-pointer flex items-center gap-3 group" onClick={() => navigateTo('profile')}>
                     <div className="hidden sm:flex flex-col text-right">
                       <span className="text-sm font-bold text-gray-200 group-hover:text-cyan-300 transition-colors duration-300">{user.displayName || "Leitor"}</span>
-                      <span className="text-[10px] text-fuchsia-400 font-bold uppercase tracking-widest">Nível {userProfileData.level || 1}</span>
+                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Nível {userProfileData.level || 1}</span>
                     </div>
                     
-                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
+                    {/* AVATAR COM MOLDURA NA NAVBAR */}
+                    <div className={`relative w-10 h-10 flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
                         <div className={`w-9 h-9 rounded-full overflow-hidden bg-[#161a25] flex items-center justify-center relative z-10 ${!eq.moldura ? 'border border-white/10 group-hover:border-cyan-400' : ''}`}>
-                            <img src={activeAvatarSrc} className={`w-full h-full object-cover transition-colors duration-300 ${eq.avatar?.cssClass || ''}`} alt="Avatar" onError={(e) => e.target.src = `https://placehold.co/100x100/0f111a/22d3ee?text=U`} />
+                            <img src={activeAvatarSrc} className={`w-full h-full object-cover transition-colors duration-300 ${eq.avatar?.cssClass || ''}`} alt="Avatar" onError={(e) => e.target.src = `https://placehold.co/100x100/0A0E17/22d3ee?text=U`} />
                         </div>
+                        {/* MOLDURA ADICIONADA AQUI (w-140% para abrigar a borda externa) */}
+                        {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} /> )}
                     </div>
                   </div>
                 ) : ( <button onClick={() => navigateTo('login')} className="bg-white text-black hover:bg-cyan-500 hover:text-white rounded-xl font-black px-4 py-1.5 transition-colors duration-300 text-sm">Entrar</button> )}
@@ -307,10 +292,10 @@ function MangaInfinityApp() {
           </div>
           
           {showMobileSearch && (
-            <div className="absolute top-full left-0 w-full bg-[#050508]/95 backdrop-blur-xl border-b border-white/10 p-3 shadow-xl md:hidden animate-in slide-in-from-top-2 z-50">
+            <div className="absolute top-full left-0 w-full bg-[#0A0E17]/95 backdrop-blur-xl border-b border-white/10 p-3 shadow-xl md:hidden animate-in slide-in-from-top-2 z-50">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300/80" />
-                <input type="text" value={globalSearch} onChange={e => setGlobalSearch(e.target.value)} onKeyDown={(e) => { handleSearchSubmit(e); if(e.key === 'Enter') setShowMobileSearch(false); }} className="w-full pl-9 pr-4 py-2 border border-white/10 rounded-xl bg-[#0d0d12] text-gray-100 outline-none focus:border-cyan-500 text-sm transition-colors duration-300" placeholder="Pesquisar a obra..." autoFocus />
+                <input type="text" value={globalSearch} onChange={e => setGlobalSearch(e.target.value)} onKeyDown={(e) => { handleSearchSubmit(e); if(e.key === 'Enter') setShowMobileSearch(false); }} className="w-full pl-9 pr-4 py-2 border border-white/10 rounded-xl bg-[#111827] text-gray-100 outline-none focus:border-cyan-500 text-sm transition-colors duration-300" placeholder="Pesquisar a obra..." autoFocus />
               </div>
             </div>
           )}
@@ -332,12 +317,12 @@ function MangaInfinityApp() {
       {currentView !== 'reader' && currentView !== 'login' && <Footer />}
 
       {currentView !== 'reader' && (
-        <div className="md:hidden fixed bottom-0 w-full bg-[#050508]/95 backdrop-blur-2xl border-t border-white/5 z-40 pb-safe">
+        <div className="md:hidden fixed bottom-0 w-full bg-[#0A0E17]/95 backdrop-blur-2xl border-t border-white/5 z-40 pb-safe">
           <div className="flex justify-around items-center h-[60px] px-2 relative">
             <button onClick={() => navigateTo('home')} className={`flex flex-col items-center gap-1 w-14 transition-colors duration-300 ${currentView === 'home' ? 'text-cyan-400' : 'text-gray-400/60 hover:text-cyan-300'}`}><HomeIcon className="w-5 h-5" /><span className="text-[9px] font-bold">Início</span></button>
             <button onClick={() => navigateTo('catalog')} className={`flex flex-col items-center gap-1 w-14 transition-colors duration-300 ${currentView === 'catalog' ? 'text-cyan-400' : 'text-gray-400/60 hover:text-cyan-300'}`}><LayoutGrid className="w-5 h-5" /><span className="text-[9px] font-bold">Catálogo</span></button>
             <div className="relative -top-5 flex justify-center w-16">
-                <button onClick={() => user ? navigateTo('nexo') : navigateTo('login')} className={`flex flex-col items-center justify-center w-14 h-14 rounded-full border-[3px] border-[#030407] transition-transform hover:scale-105 duration-300 ${currentView === 'nexo' ? 'bg-gradient-to-tr from-cyan-500 to-fuchsia-500 text-white' : 'bg-[#0d0d12] text-fuchsia-400'}`}>
+                <button onClick={() => user ? navigateTo('nexo') : navigateTo('login')} className={`flex flex-col items-center justify-center w-14 h-14 rounded-full border-[3px] border-[#0A0E17] transition-transform hover:scale-105 duration-300 ${currentView === 'nexo' ? 'bg-gradient-to-tr from-cyan-500 to-emerald-500 text-white' : 'bg-[#111827] text-emerald-400'}`}>
                     <Hexagon className="w-6 h-6 relative z-10" fill={currentView === 'nexo' ? "currentColor" : "none"}/><span className="text-[8px] font-black relative z-10 mt-0.5">NEXO</span>
                 </button>
             </div>
