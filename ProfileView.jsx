@@ -74,7 +74,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
       )}
 
-      <div className="w-full h-[180px] md:h-[220px] bg-[#0f172a] relative group overflow-hidden border-b border-white/5">
+      {/* 1. CAPA (COVER) */}
+      <div className="w-full h-[180px] md:h-[220px] bg-[#0f172a] relative overflow-hidden border-b border-white/5">
         {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( 
             <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover object-center opacity-90 ${eq.capa_fundo.cssClass || ''}`} /> 
         ) : coverBase64 ? ( 
@@ -92,19 +93,21 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
       </div>
 
+      {/* 2. CABEÇALHO DO PERFIL */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
         
         <div className="flex flex-col md:flex-row md:items-start gap-4 mb-6 relative">
-          <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center flex-shrink-0 -mt-14 md:-mt-16 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
+          {/* Avatar Base + Moldura Centralizada (Sem animações extras ou particulas) */}
+          <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center flex-shrink-0 -mt-14 md:-mt-16 ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
             
             <div className={`w-full h-full rounded-full bg-[#0A0E17] flex items-center justify-center relative z-10 overflow-hidden shadow-xl ${!eq.moldura ? 'border-[5px] border-[#0A0E17] shadow-[0_0_20px_rgba(34,211,238,0.2)]' : ''}`}>
                <img src={activeAvatarSrc} className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} alt="Avatar" />
             </div>
             
-            {/* CORREÇÃO DO ENCAIXE DA MOLDURA: Escala para 140% para abraçar o avatar por fora */}
-            {cleanCosmeticUrl(eq.particulas?.preview) && ( <img src={cleanCosmeticUrl(eq.particulas.preview)} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-0 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
-            {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
-            {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} /> )}
+            {/* Renderização da Moldura centralizada matematicamente pelas bordas */}
+            {cleanCosmeticUrl(eq.moldura?.preview) && ( 
+                <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[125%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} /> 
+            )}
 
             {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-1 right-1 bg-cyan-500 text-black p-2.5 rounded-full z-50 border-4 border-[#0A0E17] hover:bg-cyan-400 transition-colors shadow-lg"><Camera className="w-4 h-4" /></button>}
             <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
@@ -179,6 +182,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
         </div>
         
+        {/* ÁREA DE CONTEÚDO */}
         {activeTab === "Estatísticas" && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in">
             <div className="bg-[#111827] border border-white/5 p-6 rounded-2xl flex flex-col shadow-md">
