@@ -55,72 +55,67 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const lidosSet = new Set(historyData.map(h => h.mangaId)); const obrasLidasIds = Array.from(lidosSet); const libraryMangaIds = Object.keys(libraryData); const libraryMangas = mangas.filter(m => libraryMangaIds.includes(m.id));
   const eq = userProfileData.equipped_items || {};
 
-  const activeAvatarSrc = (eq.avatar?.preview ? cleanCosmeticUrl(eq.avatar.preview) : null) || avatarBase64 || `https://placehold.co/150x150/020408/22d3ee?text=U`;
+  const activeAvatarSrc = (eq.avatar?.preview ? cleanCosmeticUrl(eq.avatar.preview) : null) || avatarBase64 || `https://placehold.co/150x150/020308/22d3ee?text=U`;
 
   return (
-    <div className={`animate-in fade-in duration-500 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#020408] relative overflow-hidden`}>
+    <div className={`animate-in fade-in duration-500 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#020308] relative overflow-hidden`}>
       
-      {/* Background ambiente - Aura Global */}
       <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] bg-cyan-900/10 rounded-full blur-[150px] pointer-events-none"></div>
       <div className="absolute bottom-[20%] right-[-10%] w-[400px] h-[400px] bg-emerald-900/10 rounded-full blur-[120px] pointer-events-none"></div>
 
       {confirmAction && (
-          <div className="fixed inset-0 z-[3000] bg-[#020408]/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-              <div className="bg-[#0a0f16] border border-rose-500/20 p-8 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(244,63,94,0.1)]">
-                  <AlertTriangle className="w-16 h-16 text-rose-500 mx-auto mb-6 animate-pulse drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" />
-                  <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Quebra de Vínculo?</h3>
-                  <p className="text-sm text-gray-400 mb-8 font-medium">{confirmAction === 'history' ? 'Isso dissipará permanentemente suas memórias de leitura.' : 'A conexão será reiniciada para purgar os dados.'}</p>
+          <div className="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+              <div className="bg-[#0b0c14] border border-cyan-500/20 p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+                  <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Confirmar Ação?</h3>
+                  <p className="text-sm text-gray-400 mb-8 font-medium">{confirmAction === 'history' ? 'Isso apagará permanentemente seu histórico de leitura.' : 'O aplicativo será recarregado para limpar o cache.'}</p>
                   <div className="flex gap-4">
-                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-transparent border border-white/20 text-white font-black py-4 rounded-2xl hover:bg-white/5 transition-colors text-xs uppercase tracking-widest">Recuar</button>
-                      <button onClick={executeConfirmAction} className="flex-1 bg-rose-600/20 text-rose-500 border border-rose-500/40 font-black py-4 rounded-2xl transition-all hover:bg-rose-500 hover:text-white text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(244,63,94,0.2)]">Confirmar</button>
+                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-transparent border border-white/10 text-gray-300 font-black py-3 rounded-xl hover:bg-white/5 transition-colors text-xs uppercase tracking-widest">Recuar</button>
+                      <button onClick={executeConfirmAction} className="flex-1 bg-red-600/20 text-red-500 border border-red-500/40 font-black py-3 rounded-xl transition-colors hover:bg-red-500 hover:text-white text-xs uppercase tracking-widest">Confirmar</button>
                   </div>
               </div>
           </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 1. CAPA - MAIS ALTA, FUSÃO COM PRETO NEON                 */}
-      {/* ========================================================= */}
-      <div className="w-full h-[250px] md:h-[320px] relative group overflow-hidden">
+      <div className="w-full h-[250px] md:h-[320px] relative group overflow-hidden border-b border-white/5">
         {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( 
             <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover object-center opacity-70 mix-blend-screen ${eq.capa_fundo.cssClass || ''}`} /> 
         ) : coverBase64 ? ( 
             <img src={coverBase64} className="w-full h-full object-cover object-center opacity-50 mix-blend-screen" /> 
         ) : ( 
-            <div className={`w-full h-full bg-gradient-to-b from-cyan-900/40 to-[#020408] ${eq.capa_fundo?.cssClass || ''}`} /> 
+            <div className={`w-full h-full bg-gradient-to-b from-cyan-900/40 to-[#020308] ${eq.capa_fundo?.cssClass || ''}`} /> 
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#020408]/60 to-[#020408]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#020308]/60 to-[#020308]" />
         
         {isEditing && (
-            <button onClick={() => coverInputRef.current.click()} className="absolute top-6 right-6 bg-cyan-500/20 backdrop-blur-md text-cyan-400 border border-cyan-500/50 px-5 py-2.5 rounded-full flex items-center gap-2 text-xs font-bold z-10 hover:bg-cyan-500 hover:text-black transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+            <button onClick={() => coverInputRef.current.click()} className="absolute top-6 right-6 bg-cyan-500/20 backdrop-blur-md text-cyan-400 border border-cyan-500/50 px-5 py-2.5 rounded-full flex items-center gap-2 text-xs font-bold z-10 hover:bg-cyan-500 hover:text-black transition-all shadow-lg">
                 <Camera className="w-4 h-4" /> Alterar Paisagem
             </button>
         )}
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
       </div>
 
-      {/* ========================================================= */}
-      {/* 2. CÁPSULA CENTRAL DO PERFIL (Poder/Aura)                 */}
-      {/* ========================================================= */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 -mt-32">
         
         <div className="flex flex-col items-center text-center">
           
-          {/* Avatar com Anel de Poder */}
           <div className={`relative w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center mb-5 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
-            {/* O Anel Gradiente de Energia */}
             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500 via-teal-400 to-emerald-500 rounded-full blur-[8px] opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
             
             <div className={`w-full h-full rounded-full bg-[#020408] p-1.5 relative z-10 overflow-hidden ${!eq.moldura ? '' : ''}`}>
                <img src={activeAvatarSrc} className={`w-full h-full rounded-full object-cover border-2 border-[#020408] ${eq.avatar?.cssClass || ''}`} alt="Avatar" />
             </div>
             
-            {cleanCosmeticUrl(eq.particulas?.preview) && ( <img src={cleanCosmeticUrl(eq.particulas.preview)} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-0 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
-            {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
-            {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute inset-[-15%] m-auto w-[130%] h-[130%] object-contain z-30 ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
+            {/* CORREÇÃO DO ALINHAMENTO DAS IMAGENS COSMÉTICAS (Moldura, Partículas, Efeitos) */}
+            {cleanCosmeticUrl(eq.particulas?.preview) && ( <img src={cleanCosmeticUrl(eq.particulas.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[180%] max-w-none object-contain object-center z-0 pointer-events-none ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen' }} /> )}
+            
+            {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] max-w-none object-contain object-center z-20 pointer-events-none ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen' }} /> )}
+            
+            {/* A Moldura usa 118% (ligeiramente maior que 100%) para encaixar direto na borda sem criar vazios */}
+            {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[118%] h-[118%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} style={{ mixBlendMode: 'screen' }} /> )}
 
-            {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-1 right-1 bg-cyan-500 text-black p-3 rounded-full z-50 hover:bg-cyan-400 transition-colors shadow-[0_0_15px_rgba(34,211,238,0.5)]"><Camera className="w-4 h-4" /></button>}
+            {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-1 right-1 bg-cyan-500 text-black p-3 rounded-full z-50 hover:bg-cyan-400 transition-colors shadow-lg"><Camera className="w-4 h-4" /></button>}
             <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
           </div>
 
@@ -129,25 +124,25 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </h1>
           <p className="text-cyan-500/60 font-bold text-[11px] uppercase tracking-[0.3em] mt-2 mb-6 drop-shadow-sm">{user.email}</p>
           
-          <div className="flex items-center gap-3 bg-[#0a0f16]/80 backdrop-blur-md border border-cyan-500/20 px-5 py-2.5 rounded-2xl shadow-[0_5px_20px_rgba(0,0,0,0.5)]">
-              <Trophy className="w-4 h-4 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]" />
+          <div className="flex items-center gap-3 bg-[#0a0f16]/80 backdrop-blur-md border border-cyan-500/20 px-5 py-2.5 rounded-2xl shadow-lg">
+              <Trophy className="w-4 h-4 text-emerald-400 drop-shadow-sm" />
               <span className="text-xs font-black text-white uppercase tracking-widest">{level} <span className="text-cyan-500 mx-1">•</span> {getLevelTitle(level)}</span>
           </div>
 
           {bio && !isEditing && <p className="text-gray-400 text-sm mt-6 max-w-lg leading-relaxed font-medium bg-gradient-to-b from-transparent to-[#0a0f16]/30 p-4 rounded-2xl">{bio}</p>}
 
           <div className="flex gap-4 mt-8 w-full max-w-sm justify-center">
-            <button onClick={() => setIsEditing(!isEditing)} className="flex-1 bg-[#0a0f16] border border-cyan-500/30 text-cyan-400 px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all flex items-center justify-center gap-2">
+            <button onClick={() => setIsEditing(!isEditing)} className="flex-1 bg-[#0a0f16] border border-cyan-500/30 text-cyan-400 px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-black hover:shadow-lg transition-all flex items-center justify-center gap-2">
                 <Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar' : 'Modificar'}
             </button>
-            <button onClick={onLogout} className="bg-rose-500/10 text-rose-500 p-3.5 rounded-2xl hover:bg-rose-600 hover:text-white hover:shadow-[0_0_20px_rgba(225,29,72,0.4)] transition-all border border-rose-500/30">
+            <button onClick={onLogout} className="bg-rose-500/10 text-rose-500 p-3.5 rounded-2xl hover:bg-rose-600 hover:text-white hover:shadow-lg transition-all border border-rose-500/30">
                 <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {isEditing && (
-          <form onSubmit={handleSave} className="bg-[#0a0f16] border border-emerald-500/20 rounded-3xl p-8 mt-10 animate-in fade-in shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+          <form onSubmit={handleSave} className="bg-[#0a0f16] border border-emerald-500/20 rounded-3xl p-8 mt-10 animate-in fade-in shadow-2xl">
             <div className="space-y-6">
               <div>
                  <label className="block text-[10px] font-black text-emerald-500/80 mb-2 uppercase tracking-widest">Identidade Visual</label>
@@ -158,13 +153,10 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                  <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-[#020408] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm font-medium resize-none outline-none focus:border-emerald-500 transition-colors shadow-inner"></textarea>
               </div>
             </div>
-            <button type="submit" disabled={loading} className="mt-8 bg-gradient-to-r from-cyan-500 to-emerald-500 text-black text-xs font-black px-8 py-4 rounded-2xl w-full flex justify-center hover:scale-[1.02] transition-transform uppercase tracking-widest shadow-[0_0_20px_rgba(52,211,153,0.4)]">{loading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Sincronizar Dados'}</button>
+            <button type="submit" disabled={loading} className="mt-8 bg-gradient-to-r from-cyan-500 to-emerald-500 text-black text-xs font-black px-8 py-4 rounded-2xl w-full flex justify-center hover:scale-[1.02] transition-transform uppercase tracking-widest shadow-lg">{loading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Sincronizar Dados'}</button>
           </form>
         )}
 
-        {/* ========================================================= */}
-        {/* 3. MENU DE ABAS (Pill-shaped centralizado e flutuante)    */}
-        {/* ========================================================= */}
         <div className="mt-14 mb-8 flex justify-center">
           <div className="bg-[#0a0f16]/80 backdrop-blur-xl p-1.5 rounded-full border border-cyan-900/40 inline-flex overflow-x-auto no-scrollbar max-w-full">
             {['Estatísticas', 'Histórico', 'Configurações'].map((tab) => (
@@ -172,7 +164,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                 key={tab} 
                 onClick={() => setActiveTab(tab)} 
                 className={`px-6 py-3 rounded-full font-black whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest transition-all duration-300
-                ${activeTab === tab ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.1)]' : 'text-gray-500 hover:text-white'}`}
+                ${activeTab === tab ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 text-cyan-300 shadow-inner' : 'text-gray-500 hover:text-white'}`}
               >
                 {tab}
               </button>
@@ -180,9 +172,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
         </div>
         
-        {/* ========================================================= */}
-        {/* ÁREA DE CONTEÚDO                                          */}
-        {/* ========================================================= */}
         {activeTab === "Estatísticas" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
              
@@ -197,7 +186,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                         <span className="text-lg font-black text-white tracking-tighter">{currentXp} <span className="text-gray-600 text-sm">/ {xpNeeded}</span></span>
                     </div>
                 </div>
-                {/* Progress Bar Verde e Azul */}
                 <div className="w-full h-2 bg-[#020408] rounded-full overflow-hidden relative z-10 border border-white/5">
                      <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(52,211,153,0.8)]" style={{ width: `${progressPercent}%` }}></div>
                 </div>
@@ -213,7 +201,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         )}
 
         {activeTab === "Histórico" && (
-            <div className="bg-[#0a0f16] p-8 rounded-3xl border border-cyan-900/30 shadow-[0_10px_40px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-[#0a0f16] p-8 rounded-3xl border border-cyan-900/30 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {historyData.length === 0 ? (
                     <div className="text-center py-16"><History className="w-12 h-12 mx-auto text-cyan-900/50 mb-4"/><p className="text-gray-500 text-xs font-black uppercase tracking-widest">Nenhuma essência rastreada.</p></div>
                 ) : (
@@ -241,7 +229,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
         {activeTab === "Configurações" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-                <div className="bg-[#0a0f16] border border-emerald-900/30 rounded-3xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
+                <div className="bg-[#0a0f16] border border-emerald-900/30 rounded-3xl p-8 shadow-2xl">
                   <h3 className="text-sm font-black text-white mb-8 uppercase tracking-widest flex items-center gap-3 border-b border-white/5 pb-4"><Settings className="w-5 h-5 text-emerald-400"/> Sistema Base</h3>
                   
                   <div className="flex items-center justify-between mb-8">
