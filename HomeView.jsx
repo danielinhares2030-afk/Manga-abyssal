@@ -72,7 +72,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                                 <div className="flex-1 pb-4 md:pb-6 relative z-20">
                                     <div className="flex items-center gap-3 mb-4">
                                         <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-black px-3 py-1 rounded-md uppercase tracking-widest shadow-md">
-                                            Missão Rank S
+                                            Lançamento
                                         </span>
                                         <span className="flex items-center gap-1 text-amber-400 text-xs font-black bg-[#1a1f2e]/80 px-3 py-1 rounded-md border border-amber-500/20">
                                             <Star className="w-3 h-3 fill-amber-400"/> {manga.rating ? Number(manga.rating).toFixed(1) : "5.0"}
@@ -82,7 +82,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
                                     <p className="text-slate-300 text-sm md:text-base line-clamp-2 md:line-clamp-3 mb-8 max-w-2xl font-medium leading-relaxed drop-shadow-md">{manga.synopsis || "Você foi invocado! Descubra os segredos deste novo mundo, enfrente monstros e viva aventuras épicas nesta obra recomendada pela Guilda."}</p>
                                     
                                     <button onClick={() => onNavigate('details', manga)} className="bg-sky-500 text-white hover:bg-sky-400 border-b-4 border-sky-700 hover:border-sky-600 hover:-translate-y-1 font-black px-8 py-3.5 rounded-xl flex items-center gap-3 transition-all duration-200 text-xs uppercase tracking-widest active:translate-y-0 active:border-b-0 shadow-lg group/btn">
-                                        <Play className="w-5 h-5 fill-current" /> Começar Aventura
+                                        <Play className="w-5 h-5 fill-current" /> Ler agora
                                     </button>
                                 </div>
                             </div>
@@ -100,7 +100,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
             <div className="mt-8 md:mt-12 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-black text-white flex items-center gap-3 tracking-tight">
-                        <Flame className="w-6 h-6 text-orange-500" /> Aventureiros Recomendam
+                        <Flame className="w-6 h-6 text-orange-500" /> Populares
                     </h2>
                     <button onClick={() => onNavigate('popular')} className="text-[10px] md:text-xs font-black text-orange-400 hover:text-orange-300 uppercase tracking-widest flex items-center transition-colors bg-orange-500/10 px-4 py-2 rounded-lg border border-orange-500/20 hover:bg-orange-500/20">
                         Top Ranking <ChevronRight className="w-4 h-4 ml-1" />
@@ -128,7 +128,7 @@ export function HomeView({ mangas, onNavigate, dataSaver }) {
             <div className="mt-8 md:mt-12 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <h2 className="text-2xl font-black text-white flex items-center gap-3 tracking-tight">
-                        <Sparkles className="w-6 h-6 text-emerald-400" /> Novas Descobertas
+                        <Sparkles className="w-6 h-6 text-emerald-400" /> Lançamentos
                     </h2>
                     
                     <div className="w-full sm:w-auto overflow-x-auto no-scrollbar">
