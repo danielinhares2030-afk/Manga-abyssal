@@ -1,76 +1,78 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase'; 
-import { User, Key, ArrowRight, Sparkles } from 'lucide-react';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { app, auth } from './firebase'; 
 import { InfinityLogo } from './UIComponents';
+import { Mail, Lock, User, Sparkles, Wand2 } from 'lucide-react';
 
-export function LoginView({ onLoginSuccess, onGuestAccess }) {
-  const [isRegistering, setIsRegistering] = useState(false);
+export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
+  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); setLoading(true);
     try {
-      if (isRegistering) { await createUserWithEmailAndPassword(auth, email, password); } 
-      else { await signInWithEmailAndPassword(auth, email, password); }
+      if (isRegister) {
+        if (!name.trim()) throw new Error("A patente precisa de um nome.");
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        showToast("Nova aura detectada! Patente registrada.", "success");
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        showToast("Bem-vindo de volta, Entidade.", "success");
+      }
       onLoginSuccess();
-    } catch (err) { setError('Credenciais inválidas. Tente novamente.'); } 
-    finally { setLoading(false); }
+    } catch (error) { showToast(error.message, "error"); } finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E17] flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden">
-      <style>{`body { background-color: #0A0E17 !important; }`}</style>
+    <div className="min-h-screen bg-[#020408] font-sans flex flex-col items-center justify-center relative overflow-hidden px-4">
+      <style>{`body, html { background-color: #020408 !important; }`}</style>
       
-      {/* Auras de fundo azuis ricas */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-cyan-700/10 rounded-full blur-[150px] pointer-events-none animate-[pulse_10s_ease-in-out_infinite_alternate]"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-indigo-700/10 rounded-full blur-[150px] pointer-events-none animate-[pulse_12s_ease-in-out_infinite_alternate-reverse]"></div>
+      {/* AURAS DE FUNDO ROTATIVAS */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] bg-gradient-to-r from-cyan-600/10 to-emerald-600/10 blur-[150px] rounded-full animate-[spin_10s_linear_infinite]"></div>
 
-      {/* Animação acelerada (duration-300) */}
-      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-300 ease-out">
+      <div className="w-full max-w-sm relative z-10 animate-in fade-in zoom-in-95 duration-500">
         
-        <div className="mb-10 flex flex-col items-center text-center">
-          <InfinityLogo className="w-16 h-8 mb-6 text-white opacity-90" />
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-widest uppercase mb-2 flex items-center gap-2">
-             Manga <span className="text-cyan-400">Infinity</span>
-          </h1>
-          <p className="text-[10px] text-gray-400 font-bold tracking-[0.4em] uppercase flex items-center gap-2">
-             <Sparkles className="w-3 h-3 text-cyan-400/50" /> Portal de Acesso
-          </p>
+        <div className="flex flex-col items-center justify-center mb-10 text-center">
+            <InfinityLogo className="w-20 h-10 mb-6 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]"/>
+            <h1 className="text-3xl font-black text-white tracking-tighter uppercase">MANGA <span className="text-cyan-400">INFINITY</span></h1>
+            <p className="text-gray-500 text-xs mt-2 uppercase tracking-[0.3em] font-bold">Acesso à Patente</p>
         </div>
 
-        <div className="w-full bg-[#111827]/80 backdrop-blur-2xl border border-white/[0.05] p-8 md:p-10 rounded-[2rem] shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="relative group">
-              <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors duration-300" />
-              <input type="email" placeholder="Endereço de Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full bg-black/30 hover:bg-black/50 border border-white/5 rounded-2xl py-4 pl-14 pr-4 text-xs font-medium tracking-wide text-white outline-none focus:bg-black/50 focus:border-cyan-500/50 transition-all duration-300 placeholder:text-gray-600" />
-            </div>
+        {/* CARD DE LOGIN (Vidro Fosco Radical) */}
+        <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/5 p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
             
-            <div className="relative group">
-              <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors duration-300" />
-              <input type="password" placeholder="Senha de Segurança" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full bg-black/30 hover:bg-black/50 border border-white/5 rounded-2xl py-4 pl-14 pr-4 text-xs font-medium tracking-wide text-white outline-none focus:bg-black/50 focus:border-cyan-500/50 transition-all duration-300 placeholder:text-gray-600" />
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {isRegister && (
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"/>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome da Patente" className="w-full pl-11 pr-4 py-3.5 bg-black/40 border border-white/5 rounded-2xl text-white text-sm font-medium outline-none focus:border-cyan-500 transition-all focus:ring-1 focus:ring-cyan-500 shadow-inner" required />
+                </div>
+              )}
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"/>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Endereço de Energia" className="w-full pl-11 pr-4 py-3.5 bg-black/40 border border-white/5 rounded-2xl text-white text-sm font-medium outline-none focus:border-cyan-500 transition-all focus:ring-1 focus:ring-cyan-500 shadow-inner" required />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"/>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sincronização" className="w-full pl-11 pr-4 py-3.5 bg-black/40 border border-white/5 rounded-2xl text-white text-sm font-medium outline-none focus:border-cyan-500 transition-all focus:ring-1 focus:ring-cyan-500 shadow-inner" required />
+              </div>
+
+              <button type="submit" disabled={loading} className="w-full mt-8 bg-gradient-to-r from-cyan-500 to-emerald-500 text-black rounded-full font-black py-4 transition-all hover:scale-[1.02] uppercase tracking-widest text-xs flex justify-center items-center gap-2 shadow-[0_5px_20px_rgba(34,211,238,0.4)] disabled:opacity-60">
+                 {loading ? <div className="w-5 h-5 border-2 border-black/50 border-t-black rounded-full animate-spin"></div> : isRegister ? <><Wand2 className="w-4 h-4"/> Forjar Acesso</> : <><Sparkles className="w-4 h-4"/> Sincronizar</>}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-8 border-t border-white/5 flex flex-col items-center gap-5 text-center">
+                <button onClick={() => setIsRegister(!isRegister)} className="text-[10px] text-cyan-500 hover:text-white uppercase tracking-widest font-bold transition-colors">
+                    {isRegister ? "Já possui uma entidade? Sincronize." : "Nova aura detecada? Forje sua Patente."}
+                </button>
+                <button onClick={onGuestAccess} className="text-gray-500 hover:text-gray-300 text-[10px] uppercase font-bold tracking-[0.2em] transition-colors">Entrar como Eco (Visitante)</button>
             </div>
-
-            {error && <p className="text-red-400 text-[10px] text-center font-bold tracking-widest bg-red-500/10 py-3 rounded-xl border border-red-500/20 animate-in fade-in">{error}</p>}
-
-            <button type="submit" disabled={loading} className="w-full relative bg-cyan-500 hover:bg-cyan-400 text-black font-black text-[10px] uppercase tracking-[0.2em] py-4 rounded-2xl mt-4 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3 group/btn shadow-lg">
-              {loading ? 'Autenticando...' : (isRegistering ? 'Criar Identidade' : 'Iniciar Sessão')}
-              {!loading && <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />}
-            </button>
-          </form>
-
-          <div className="mt-8 flex flex-col items-center gap-5">
-            <button onClick={() => setIsRegistering(!isRegistering)} className="text-[10px] text-gray-400 font-medium tracking-wider hover:text-white transition-colors duration-300">
-              {isRegistering ? 'Já possui conta? Entrar' : 'Não possui conta? Cadastrar'}
-            </button>
-            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent my-2"></div>
-            <button onClick={onGuestAccess} className="text-[10px] text-cyan-500/80 font-bold uppercase tracking-widest hover:text-cyan-400 transition-colors duration-300">
-              Continuar como Visitante
-            </button>
-          </div>
         </div>
       </div>
     </div>
