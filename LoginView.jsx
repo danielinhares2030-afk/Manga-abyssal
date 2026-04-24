@@ -31,20 +31,18 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
     <div className="min-h-screen bg-[#030712] font-sans flex flex-col items-center justify-center relative overflow-hidden px-4">
       <style>{`body, html { background-color: #030712 !important; }`}</style>
       
-      {/* BACKGROUND CÓSMICO / ANIME FANTASY */}
       <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-blue-900/20 blur-[120px] rounded-full animate-[pulse_8s_ease-in-out_infinite_alternate]"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-indigo-900/20 blur-[100px] rounded-full animate-[pulse_10s_ease-in-out_infinite_alternate-reverse]"></div>
       
-      {/* Estrelas sutis ao fundo (Simulando a textura da sua referência) */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)]" style={{ backgroundSize: '30px 30px' }}></div>
 
       <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-700">
         
-        {/* LOGO E TÍTULO MÁGICO/CÓSMICO */}
         <div className="flex flex-col items-center justify-center mb-10 text-center">
             <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse"></div>
-                <InfinityLogo className="w-20 h-10 mb-4 drop-shadow-[0_0_15px_rgba(96,165,250,0.6)] relative z-10 text-blue-400"/>
+                <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full animate-pulse"></div>
+                {/* ÍCONE AUMENTADO E AJUSTADO NO LOGIN */}
+                <InfinityLogo className="w-32 h-32 md:w-36 md:h-36 mb-2 drop-shadow-[0_0_15px_rgba(96,165,250,0.6)] relative z-10"/>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-2">
                 MANGA <span className="text-transparent bg-clip-text bg-gradient-to-b from-blue-300 to-indigo-400">INFINITY</span>
@@ -54,9 +52,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
             </p>
         </div>
 
-        {/* CARD DE LOGIN (Elegante, bordas finas, tema galáxia) */}
         <div className="bg-[#0a0f1c]/80 backdrop-blur-2xl border border-blue-500/20 p-8 sm:p-10 rounded-[2rem] shadow-[0_0_50px_rgba(15,23,42,0.8)] relative overflow-hidden">
-            {/* Detalhe de borda superior brilhante */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
