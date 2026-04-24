@@ -34,8 +34,8 @@ export const SplashScreen = React.memo(() => {
 
   useEffect(() => {
     const t1 = setTimeout(() => setFade(true), 50); // Surge imediatamente
-    // TEMPO REDUZIDO DRASTICAMENTE: De 1500ms para 800ms
-    const t2 = setTimeout(() => setFadeOut(true), 800); 
+    // TEMPO REDUZIDO DRASTICAMENTE: De 1500ms para 1300ms
+    const t2 = setTimeout(() => setFadeOut(true), 1300); 
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
