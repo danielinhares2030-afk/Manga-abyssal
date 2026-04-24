@@ -43,7 +43,7 @@ function MangaInfinityApp() {
   const [notifications, setNotifications] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false); 
 
-  useEffect(() => { const timer = setTimeout(() => setSplashTimerDone(true), 1300); return () => clearTimeout(timer); }, []);
+  useEffect(() => { const timer = setTimeout(() => setSplashTimerDone(true), 1200); return () => clearTimeout(timer); }, []);
 
   useEffect(() => {
     const handlePopState = (e) => {
@@ -73,7 +73,6 @@ function MangaInfinityApp() {
   }, []);
 
   useEffect(() => {
-    // CORREÇÃO AQUI: Removido o where("ativo", "==", true) que estava escondendo seus itens
     const q = query(collection(db, "loja_itens"));
     const unsub = onSnapshot(q, (snap) => { 
         if (!snap.empty) { 
@@ -247,7 +246,8 @@ function MangaInfinityApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
-                <InfinityLogo className="w-12 h-6 group-hover:scale-105 transition-transform duration-300" />
+                {/* ÍCONE AUMENTADO NA NAVBAR (PROPORÇÃO QUADRADA w-14 h-14) */}
+                <InfinityLogo className="w-14 h-14 md:w-16 md:h-16 group-hover:scale-105 transition-transform duration-300" />
                 <span className="text-xl font-black text-white tracking-[0.2em] uppercase hidden sm:block">INFINITY</span>
               </div>
               
