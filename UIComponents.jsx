@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 
-// ÍCONE USANDO A IMAGEM FORNECIDA COM BRILHO ROXO/AZUL
+// ÍCONE MAIOR E COM ANIMAÇÃO DE FLUTUAÇÃO/BRILHO
 export const InfinityLogo = React.memo(({ className = "w-24 h-12" }) => {
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
+      {/* Injeção da animação personalizada para flutuar e brilhar */}
+      <style>{`
+        @keyframes floatMagico {
+          0%, 100% { 
+            transform: translateY(0px) scale(1); 
+            filter: drop-shadow(0 0 10px rgba(147,51,234,0.5)); /* Brilho Roxo */
+          }
+          50% { 
+            transform: translateY(-8px) scale(1.05); 
+            filter: drop-shadow(0 0 25px rgba(52,211,153,0.8)); /* Brilho Verde Forte */
+          }
+        }
+      `}</style>
       <img
         src="https://i.ibb.co/wZY7fwc6/file-00000000e3f8720e8d9b33e24649f78c.png"
         alt="Manga Infinity Logo"
-        className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] animate-[pulse_4s_ease-in-out_infinite]"
+        className="relative z-10 w-full h-full object-contain"
+        style={{ animation: 'floatMagico 3s ease-in-out infinite' }}
       />
     </div>
   );
@@ -19,13 +33,14 @@ export const SplashScreen = React.memo(() => {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setFade(true), 100); 
-    const t2 = setTimeout(() => setFadeOut(true), 1500); 
+    const t1 = setTimeout(() => setFade(true), 50); // Surge imediatamente
+    // TEMPO REDUZIDO DRASTICAMENTE: De 1500ms para 800ms
+    const t2 = setTimeout(() => setFadeOut(true), 800); 
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   return (
-    <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center font-sans transition-all duration-500 ease-in-out ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
+    <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center font-sans transition-all duration-300 ease-in-out ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
       <style>{`body, html { background-color: #050505 !important; margin: 0; padding: 0; }`}</style>
       
       {/* AURAS MÁGICAS (Azul, Roxo e Verde) */}
@@ -33,15 +48,17 @@ export const SplashScreen = React.memo(() => {
       <div className="absolute bottom-[20%] right-[10%] w-[50vw] h-[50vw] bg-purple-600/15 blur-[120px] rounded-full animate-[pulse_5s_ease-in-out_infinite_alternate-reverse]"></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-emerald-500/10 blur-[150px] rounded-full"></div>
 
-      <div className={`flex flex-col items-center justify-center relative z-10 transition-all duration-[1000ms] ease-out px-4 w-full text-center ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4'}`}>
-        <InfinityLogo className="w-32 h-32 md:w-40 md:h-40 mb-6" />
+      <div className={`flex flex-col items-center justify-center relative z-10 transition-all duration-[600ms] ease-out px-4 w-full text-center ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4'}`}>
+        
+        {/* TAMANHO DO LOGO AUMENTADO AQUI (w-40 h-40 ou md:w-48 md:h-48) */}
+        <InfinityLogo className="w-40 h-40 md:w-48 md:h-48 mb-6" />
         
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 tracking-[0.2em] uppercase drop-shadow-[0_0_15px_rgba(147,51,234,0.3)]">
           MANGA <span className="font-bold text-white">INFINITY</span>
         </h1>
         
         {/* Loading de "ignição" com Azul, Roxo e Verde */}
-        <div className="mt-12 flex items-center gap-3 opacity-80">
+        <div className="mt-10 flex items-center gap-3 opacity-80">
             <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
             <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
