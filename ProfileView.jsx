@@ -1,287 +1,222 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Compass, History, Library, Smartphone, Camera, Edit3, LogOut, Loader2, BookOpen, AlertTriangle, Trophy, Zap, Trash2, RefreshCw, LayoutTemplate, Settings } from 'lucide-react';
-import { updateProfile } from "firebase/auth";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
-import { auth, db } from './firebase';
-import { APP_ID } from './constants';
-import { compressImage, getLevelRequirement, getLevelTitle, cleanCosmeticUrl } from './helpers';
+import React, { useState, useMemo } from 'react';
+import { getAuth, updateProfile } from "firebase/auth";
+import { app, auth, db } from './firebase'; 
+import { Compass, Hexagon, Trophy, Users, BookOpen, Clock, PenTool, Image, Shield, AlertTriangle, Key, LogOut, ChevronRight, CheckCircle2, ChevronLeft, Dices, ChevronDown, ListFilter, SlidersHorizontal, SlidersHorizontal as SettingsIcon } from 'lucide-react';
+import { timeAgo, calculateLevel, cleanCosmeticUrl } from './helpers';
+import { ChapterTransitionOverlay, InfinityLogo } from './UIComponents';
+import { ChaptersList } from './ChapterComponents';
+
+// CARD MÁGICO / GLASSMORPHISM PARA PERFIL
+const CosmicCard = ({ children, className = "" }) => (
+  <div className={`bg-[#0a0f1c]/90 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl ${className}`}>
+     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent"></div>
+     <div className="relative z-10">{children}</div>
+  </div>
+);
+
+// PÍLULA DE ESTATÍSTICA (Nível/XP)
+const StatPill = ({ icon: Icon, value, label, gradientClass }) => (
+    <div className={`backdrop-blur-md p-4 rounded-3xl border border-white/5 flex items-center gap-4 ${gradientClass}`}>
+        <div className="bg-[#050505]/60 border border-white/10 rounded-2xl p-3 flexitems-center justify-center">
+            <Icon className="w-5 h-5 text-white/70" />
+        </div>
+        <div className="flex flex-col flex-1">
+            <span className="text-2xl font-black text-white leading-none tracking-tight">{value}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60 mt-1">{label}</span>
+        </div>
+    </div>
+);
 
 export function ProfileView({ user, userProfileData, historyData, libraryData, dataLoaded, userSettings, updateSettings, onLogout, onUpdateData, showToast, mangas, onNavigate }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("Resumo"); 
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-  const [avatarBase64, setAvatarBase64] = useState('');
-  const [coverBase64, setCoverBase64] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); 
+  const [activeTab, setActiveTab] = useState('Leituras Recentes');
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [newBio, setNewBio] = useState(userProfileData.bio || '');
 
-  useEffect(() => {
-    setName(user.displayName || ''); setBio(userProfileData.bio || ''); setAvatarBase64(userProfileData.avatarUrl || user.photoURL || ''); setCoverBase64(userProfileData.coverUrl || '');
-  }, [user, userProfileData]);
-  
-  const avatarInputRef = useRef(null); const coverInputRef = useRef(null);
+  const totalFavorites = useMemo(() => Object.values(libraryData).filter(status => status === 'Favoritos').length, [libraryData]);
+  const levelInfo = calculateLevel(userProfileData.xp || 0);
+  const xpNeededForNext = levelInfo.xpForNextLevel - levelInfo.xpInCurrentLevel;
+  const xpProgress = levelInfo.xpForNextLevel > 0 ? (levelInfo.xpInCurrentLevel / levelInfo.xpForNextLevel) * 100 : 100;
 
-  const handleImageUpload = async (e, type) => {
-    const file = e.target.files[0]; if (!file) return;
-    try { const compressedBase64 = await compressImage(file, type === 'cover' ? 400 : 150, 0.4); if (type === 'avatar') setAvatarBase64(compressedBase64); else setCoverBase64(compressedBase64); } catch (err) { showToast("Erro na imagem.", "error"); }
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault(); setLoading(true);
-    try { await updateProfile(auth.currentUser, { displayName: name }); const docData = { coverUrl: coverBase64, avatarUrl: avatarBase64, bio: bio }; await setDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), docData, { merge: true }); onUpdateData(docData); showToast('Essência sincronizada!', 'success'); setIsEditing(false); } catch (error) { showToast(`Erro ao salvar.`, 'error'); } finally { setLoading(false); }
-  };
-
-  const executeConfirmAction = async () => {
-      if (confirmAction === 'history') { try { historyData.forEach(async (h) => { await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', h.id)); }); showToast("Memórias dissipadas.", "success"); } catch(e) { showToast("Erro ao limpar.", "error"); } } 
-      else if (confirmAction === 'cache') { localStorage.clear(); sessionStorage.clear(); window.location.reload(true); }
-      setConfirmAction(null);
-  };
-
-  const level = userProfileData.level || 1; const currentXp = userProfileData.xp || 0; const xpNeeded = getLevelRequirement(level); const progressPercent = Math.min(100, Math.max(0, (currentXp / xpNeeded) * 100));
-  const lidosSet = new Set(historyData.map(h => h.mangaId)); const obrasLidasIds = Array.from(lidosSet); const libraryMangaIds = Object.keys(libraryData); const libraryMangas = mangas.filter(m => libraryMangaIds.includes(m.id));
   const eq = userProfileData.equipped_items || {};
+  const activeAvatarSrc = cleanCosmeticUrl(eq.avatar?.preview) || cleanCosmeticUrl(userProfileData.avatarUrl) || user?.photoURL || `https://placehold.co/100x100/0A0E17/22d3ee?text=U`;
 
-  const activeAvatarSrc = (eq.avatar?.preview ? cleanCosmeticUrl(eq.avatar.preview) : null) || avatarBase64 || `https://placehold.co/150x150/020408/22d3ee?text=U`;
+  const tabsOptions = ['Leituras Recentes', 'Favoritos no Nexo', 'Configurações Astral'];
+
+  // Lógica de Ganhos Visuais no Perfil
+  const equippedFrames = cleanCosmeticUrl(eq.moldura?.preview) ? ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] max-w-none object-contain object-center z-30 pointer-events-none" /> ) : null;
+  const equippedTitle = eq.titulo ? ( <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 px-3 py-1 bg-[#050505] border border-cyan-500/30 rounded-md shadow-md z-40"><span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.3em] whitespace-nowrap">{eq.titulo.name}</span></div> ) : null;
+  const profileThemeCss = shopItems => shopItems.map(item => `.${item.cssClass || 'none'} { ${item.css || ''} } ${item.animacao || ''}`).join('\n');
+
+  // Lógica de Missão Ativa no Perfil (Visual)
+  const activeMissionCard = userProfileData.activeMission ? (
+     <CosmicCard className='mb-6 border-amber-500/30'>
+        <div className="flex items-center justify-between mb-4">
+            <div className='flex items-center gap-3'>
+                <Hexagon className="w-6 h-6 text-amber-400" />
+                <h3 className="text-xl font-black text-white tracking-tighter uppercase">Missão Astral Ativa</h3>
+            </div>
+            <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30 shadow-md">Tempo Esgotando</span>
+        </div>
+        <p className="text-gray-300 text-sm leading-relaxed font-medium mb-3">{userProfileData.activeMission.title}</p>
+        <p className="text-gray-500 text-xs mb-3 font-medium line-clamp-1">Recompensas: +{userProfileData.activeMission.rewardXp} XP | +{userProfileData.activeMission.rewardCoins} M</p>
+        <button onClick={() => onNavigate('nexo')} className='w-full bg-[#050505] border border-amber-500/30 text-amber-400 font-black text-xs uppercase tracking-widest rounded-xl py-3.5 flex items-center justify-center gap-2 hover:bg-amber-500 hover:text-black transition-all'>Adentrar o Nexo <ChevronRight className='w-4 h-4'/></button>
+     </CosmicCard>
+  ) : null;
 
   return (
-    <div className="animate-in fade-in duration-500 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#020408] relative">
-      
-      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-cyan-900/20 via-[#020408]/60 to-[#020408] pointer-events-none z-0"></div>
+    <div className="pb-28 animate-in fade-in duration-500 bg-[#050505] min-h-screen relative font-sans text-white">
+      <style>{`body, html { background-color: #050505 !important; }`}</style>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/10 via-[#050505] to-[#050505] pointer-events-none z-0"></div>
 
-      {confirmAction && (
-          <div className="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
-              <div className="bg-[#0a0f16] border border-rose-500/20 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
-                  <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Confirmar Ação?</h3>
-                  <p className="text-sm text-gray-400 mb-8 font-medium">{confirmAction === 'history' ? 'Isso apagará permanentemente seu histórico de leitura.' : 'O aplicativo será recarregado para limpar o cache.'}</p>
-                  <div className="flex gap-4">
-                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-transparent border border-white/10 text-gray-300 font-bold py-3.5 rounded-xl hover:bg-white/5 transition-colors text-xs uppercase tracking-widest">Recuar</button>
-                      <button onClick={executeConfirmAction} className="flex-1 bg-rose-600/20 text-rose-500 border border-rose-500/40 font-bold py-3.5 rounded-xl transition-colors hover:bg-rose-500 hover:text-white text-xs uppercase tracking-widest">Confirmar</button>
-                  </div>
-              </div>
-          </div>
-      )}
-
-      <div className="w-full h-[180px] md:h-[240px] relative group overflow-hidden z-10">
-        {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( 
-            <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover object-center opacity-80 ${eq.capa_fundo.cssClass || ''}`} /> 
-        ) : coverBase64 ? ( 
-            <img src={coverBase64} className="w-full h-full object-cover object-center opacity-60" /> 
-        ) : ( 
-            <div className={`w-full h-full bg-gradient-to-br from-cyan-900/40 to-emerald-900/20 ${eq.capa_fundo?.cssClass || ''}`} /> 
-        )}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#020408] via-[#020408]/50 to-transparent" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8">
         
-        {isEditing && (
-            <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold z-10 hover:bg-cyan-500 hover:text-black transition-all border border-white/20 shadow-lg">
-                <Camera className="w-4 h-4" /> Alterar Capa
-            </button>
-        )}
-        <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-20 -mt-16 md:-mt-20">
-        
-        <div className="flex flex-col md:flex-row md:items-end gap-5 mb-8">
-          
-          <div className="relative w-28 h-28 md:w-36 md:h-36 flex-shrink-0 group">
-            <div className="w-full h-full bg-[#020408] rounded-full p-1.5 relative z-10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-               <img src={activeAvatarSrc} className={`w-full h-full rounded-full object-cover border border-white/10 ${eq.avatar?.cssClass || ''}`} alt="Avatar" />
-            </div>
+        {/* CABEÇALHO DO PERFIL MÍSTICO */}
+        <div className="mb-10 flex flex-col items-center justify-center text-center">
             
-            {cleanCosmeticUrl(eq.moldura?.preview) && ( 
-                <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} /> 
-            )}
-
-            {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-1 right-1 bg-cyan-500 text-black p-2.5 rounded-full z-50 border-4 border-[#020408] hover:bg-cyan-400 transition-colors shadow-lg"><Camera className="w-4 h-4" /></button>}
-            <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
-          </div>
-
-          <div className="flex-1 pb-1 text-left">
-            <div className="flex items-center gap-3 mb-1">
-                <h1 className={`text-2xl md:text-3xl font-black tracking-tight text-white drop-shadow-md ${eq.nickname ? eq.nickname.cssClass : ''}`}>
-                    {name || 'Usuário'}
-                </h1>
-                <span className="bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-black text-[10px] px-2.5 py-1 rounded-lg uppercase tracking-widest backdrop-blur-sm">
-                    Nível {level}
-                </span>
+            {/* AVATAR E CAPA */}
+            <div className={`relative w-full h-40 rounded-[3rem] bg-[#0a0f1c] border border-white/5 mb-[-70px] overflow-hidden z-0 shadow-xl ${eq.capa?.cssClass || ''}`}>
+                <img src={cleanCosmeticUrl(eq.capa?.preview) || cleanCosmeticUrl(userProfileData.coverUrl) || `https://placehold.co/1200x400/0A0F1C/0A0F1C`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                <div className='absolute inset-0 bg-gradient-to-t from-[#0a0f1c] to-transparent'></div>
             </div>
-            <p className="text-gray-400 font-medium text-xs mb-3">{user.email}</p>
-            
-            <div className="w-full mt-5">
-              <div className="flex justify-between items-end mb-2">
-                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1"><Trophy className="w-3 h-3"/> {getLevelTitle(level)}</span>
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{currentXp} <span className="text-gray-600">/ {xpNeeded} XP</span></span>
-              </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                   <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)] transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {bio && !isEditing && (
-            <div className="mb-8">
-                <p className="text-gray-300 text-sm font-medium bg-white/[0.02] p-4 rounded-2xl border border-white/5 leading-relaxed">{bio}</p>
-            </div>
-        )}
-
-        {isEditing && (
-          <form onSubmit={handleSave} className="bg-white/[0.02] border border-cyan-500/20 rounded-3xl p-6 md:p-8 mb-8 shadow-xl">
-            <div className="space-y-5">
-              <div>
-                 <label className="block text-[10px] font-black text-cyan-500 mb-2 uppercase tracking-widest">Nome de Exibição</label>
-                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-[#020408] border border-white/5 rounded-xl px-4 py-3.5 text-white text-sm font-medium outline-none focus:border-cyan-500 transition-colors"/>
-              </div>
-              <div>
-                 <label className="block text-[10px] font-black text-cyan-500 mb-2 uppercase tracking-widest">Biografia / Descrição</label>
-                 <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-[#020408] border border-white/5 rounded-xl px-4 py-3.5 text-white text-sm font-medium resize-none outline-none focus:border-cyan-500 transition-colors"></textarea>
-              </div>
-            </div>
-            <button type="submit" disabled={loading} className="mt-6 bg-cyan-500 text-black text-xs font-black px-8 py-3.5 rounded-xl w-full flex justify-center hover:bg-cyan-400 transition-all uppercase tracking-widest">{loading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Salvar Alterações'}</button>
-          </form>
-        )}
-
-        <div className="flex gap-3 mb-10 w-full">
-            <button onClick={() => setIsEditing(!isEditing)} className="flex-1 bg-white/5 border border-white/10 text-white px-6 py-3.5 rounded-2xl text-xs font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
-                <Edit3 className="w-4 h-4" /> {isEditing ? 'Cancelar Edição' : 'Editar Perfil'}
-            </button>
-            <button onClick={onLogout} className="bg-white/5 text-gray-400 p-3.5 rounded-2xl hover:bg-rose-500/20 hover:text-rose-400 hover:border-rose-500/30 transition-all border border-white/10 backdrop-blur-sm">
-                <LogOut className="w-5 h-5" />
-            </button>
-        </div>
-
-        <div className="mb-8 border-b border-white/5">
-          <div className="flex gap-6 overflow-x-auto no-scrollbar snap-x px-1">
-            {['Resumo', 'Histórico', 'Configurações'].map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-2 pb-3 font-bold transition-all whitespace-nowrap text-sm flex items-center gap-2 relative group ${activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                {tab}
-                {activeTab === tab && (
-                    <div className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-cyan-500 rounded-t-full shadow-[0_0_8px_rgba(34,211,238,0.8)]"></div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {activeTab === "Resumo" && (
-          <div className="animate-in fade-in duration-300">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="relative flex flex-col items-center">
+                <div className={`relative w-28 h-28 flex items-center justify-center flex-shrink-0 z-20`}>
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-[#161a25] flex items-center justify-center relative z-10 border-[3px] border-[#0A0E17]">
+                        <img src={activeAvatarSrc} className="w-full h-full object-cover" alt="Avatar" onError={(e) => e.target.src = `https://placehold.co/100x100/0A0E17/22d3ee?text=U`} />
+                    </div>
+                    {equippedFrames}
+                    {equippedTitle}
+                </div>
                 
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex flex-col justify-center shadow-lg hover:border-cyan-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Library className="w-4 h-4 text-cyan-400" />
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Obras Salvas</span>
-                    </div>
-                    <span className="text-3xl font-black text-white group-hover:text-cyan-400 transition-colors">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : Object.keys(libraryData).length}</span>
-                </div>
-
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex flex-col justify-center shadow-lg hover:border-emerald-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 mb-3">
-                        <BookOpen className="w-4 h-4 text-emerald-400" />
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Caps. Lidos</span>
-                    </div>
-                    <span className="text-3xl font-black text-white group-hover:text-emerald-400 transition-colors">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : historyData.length}</span>
-                </div>
-
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex flex-col justify-center shadow-lg hover:border-teal-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Compass className="w-4 h-4 text-teal-400" />
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Iniciadas</span>
-                    </div>
-                    <span className="text-3xl font-black text-white group-hover:text-teal-400 transition-colors">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : obrasLidasIds.length}</span>
-                </div>
-
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex flex-col justify-center shadow-lg hover:border-indigo-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 mb-3">
-                        <LayoutTemplate className="w-4 h-4 text-indigo-400" />
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Patente</span>
-                    </div>
-                    <span className="text-sm font-black text-white group-hover:text-indigo-400 transition-colors truncate">{getLevelTitle(level).split(' ')[0]}</span>
-                </div>
-
+                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase drop-shadow-[0_2px_10px_rgba(34,211,238,0.3)] mt-2">{user.displayName || "Explorador"}</h1>
+                <p className="text-cyan-300/60 text-[10px] font-black uppercase tracking-[0.4em] mt-2 flex items-center gap-2 drop-shadow-sm">ID: {user.uid.substring(0, 10)}... <Compass className="w-3.5 h-3.5" /></p>
             </div>
-          </div>
-        )}
+        </div>
 
-        {activeTab === "Histórico" && (
-            <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 shadow-lg animate-in fade-in duration-300">
-                {historyData.length === 0 ? (
-                    <div className="text-center py-12"><History className="w-10 h-10 mx-auto text-gray-600 mb-3"/><p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Nenhuma leitura recente.</p></div>
-                ) : (
-                   <div className="flex flex-col gap-3">
-                      {historyData.slice(0, 15).map(hist => {
-                          const mg = mangas.find(m => m.id === hist.mangaId);
-                          return (
-                              <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#020408] border border-white/5 p-3 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-cyan-500/30 transition-colors group">
-                                  <div className="w-12 h-16 rounded-xl overflow-hidden bg-[#0A0E17] flex-shrink-0">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <BookOpen className="w-5 h-5 m-auto mt-5 text-gray-700"/>}</div>
-                                  <div className="flex-1">
-                                      <h4 className="font-bold text-sm text-gray-200 line-clamp-1 group-hover:text-cyan-400 transition-colors">{hist.mangaTitle}</h4>
-                                      <p className="text-emerald-500 font-bold text-[10px] mt-1 uppercase tracking-wider">Capítulo {hist.chapterNumber}</p>
-                                  </div>
-                                  <div className="hidden sm:block text-right pr-2">
-                                     <p className="text-[10px] text-gray-600 font-bold">{new Date(hist.timestamp).toLocaleDateString()}</p>
-                                  </div>
-                              </div>
-                          )
-                      })}
-                      <button onClick={() => setConfirmAction('history')} className="mt-6 w-full py-4 bg-transparent border border-rose-500/20 text-rose-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-rose-500/10 transition-colors flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Purificar Histórico</button>
-                   </div>
-                )}
-            </div>
-        )}
-
-        {activeTab === "Configurações" && (
-            <div className="animate-in fade-in duration-300 space-y-4">
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8 shadow-lg">
-                  <h3 className="text-sm font-black text-white mb-6 uppercase tracking-widest flex items-center gap-3 border-b border-white/5 pb-4"><Settings className="w-5 h-5 text-cyan-400"/> Sistema</h3>
-                  
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <p className="text-sm font-bold text-gray-200">Modo de Leitura</p>
-                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Orientação visual.</p>
+        {/* ESTATÍSTICAS ALQUÍMICAS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <StatPill icon={Hexagon} value={`Nível ${levelInfo.currentLevel}`} label="Matriz Atual" gradientClass="from-emerald-950/80 to-emerald-950/20 shadow-[0_0_20px_rgba(16,185,129,0.15)] border-emerald-500/20" />
+            
+            <div className={`backdrop-blur-md p-4 rounded-3xl border border-white/5 flex items-center gap-4 from-cyan-950/80 to-cyan-950/20 shadow-[0_0_20px_rgba(34,211,238,0.15)] border-cyan-500/20`}>
+                <div className="flex-1">
+                    <div className="flex items-end justify-between mb-2">
+                        <span className="text-3xl font-black text-white leading-none tracking-tight">{Math.floor(levelInfo.xpInCurrentLevel / 1000)}k XP</span>
+                        <span className="text-[10px] font-black text-cyan-300/60 uppercase tracking-widest">{Math.floor(xpNeededForNext / 1000)}k p/ {levelInfo.currentLevel + 1}</span>
                     </div>
-                    <select value={userSettings?.readMode || 'Cascata'} onChange={(e) => { updateSettings({ readMode: e.target.value }); showToast("Matriz atualizada.", "success"); }} className="bg-[#020408] border border-white/10 text-cyan-400 text-xs font-bold rounded-xl px-4 py-3 outline-none focus:border-cyan-500 shadow-inner">
-                      <option value="Cascata">Cascata</option>
-                      <option value="Paginação">Páginas</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <p className="text-sm font-bold text-gray-200">Otimização de Fluxo</p>
-                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Economia de dados.</p>
+                    <div className="w-full h-1.5 bg-[#050505]/60 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                        <div className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-full" style={{ width: `${xpProgress}%` }}></div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={userSettings?.dataSaver || false} onChange={(e) => { updateSettings({ dataSaver: e.target.checked }); showToast("Fluxo atualizado.", "success"); }} />
-                      <div className="w-12 h-6 bg-[#020408] border border-white/10 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-gray-600 peer-checked:after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500 peer-checked:border-cyan-400"></div>
-                    </label>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-gray-200">Espectro de Cor</p>
-                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Aura da interface.</p>
-                    </div>
-                    <select value={userSettings?.theme || 'Escuro'} onChange={(e) => { updateSettings({ theme: e.target.value }); showToast("Espectro aplicado.", "success"); }} className="bg-[#020408] border border-white/10 text-cyan-400 text-xs font-bold rounded-xl px-4 py-3 outline-none focus:border-cyan-500 shadow-inner">
-                      <option value="Escuro">Escuro</option>
-                      <option value="Amoled">AMOLED</option>
-                    </select>
-                  </div>
                 </div>
+            </div>
 
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6">
-                    <button onClick={() => setConfirmAction('cache')} className="flex items-center justify-between w-full text-left group px-2">
-                        <div>
-                            <p className="text-sm font-bold text-gray-300 group-hover:text-cyan-400 transition-colors">Reiniciar Conexão (Limpar Cache)</p>
-                            <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Resolve falhas na matriz e lentidão.</p>
+            <StatPill icon={Dices} value={`${userProfileData.coins || 0} M`} label="Moedas Astrais" gradientClass="from-amber-950/60 to-amber-950/10 shadow-[0_0_20px_rgba(245,158,11,0.15)] border-amber-500/20" />
+            <StatPill icon={Hexagon} value={`${userProfileData.crystals || 0} C`} label="Cristais Nexo" gradientClass="from-indigo-950/60 to-indigo-950/10 shadow-[0_0_20px_rgba(129,140,248,0.15)] border-indigo-500/20" />
+        </div>
+
+        {activeMissionCard}
+
+        {/* SELETOR DE ABAS MÁGICO */}
+        <div className="flex flex-wrap items-center gap-3 bg-[#0a0f1c]/70 border border-white/5 p-2 rounded-full mb-10 shadow-lg backdrop-blur-xl">
+            {tabsOptions.map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab ? 'bg-cyan-500 text-black shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                    {tab}
+                </button>
+            ))}
+        </div>
+
+        {/* CONTEÚDO DAS ABAS COM VISUAL POLIDO */}
+        {activeTab === 'Leituras Recentes' && (
+            <CosmicCard>
+                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-5">
+                    <div className="bg-[#050505]/60 p-3.5 rounded-2xl border border-white/10"><Clock className="w-6 h-6 text-cyan-400" /></div>
+                    <div>
+                        <h2 className="text-2xl font-black text-white tracking-tighter uppercase drop-shadow-md">Últimos Registros</h2>
+                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-0.5">Atividades da sua jornada</p>
+                    </div>
+                </div>
+                {historyData.length === 0 ? <p className="text-center text-xs text-gray-400/60 py-6 uppercase tracking-widest font-black border border-white/5 border-dashed rounded-xl">O Vazio não registrou leituras.</p> : historyData.slice(0, 5).map(h => {
+                    const m = mangas.find(m => m.id === h.mangaId);
+                    if(!m) return null;
+                    return (
+                        <div key={h.id} className="flex items-center gap-4 bg-[#050505]/60 border border-white/5 rounded-2xl p-4 mb-3.5 hover:border-cyan-500/20 transition-colors">
+                            <img src={cleanCosmeticUrl(m.coverUrl)} className='w-12 h-18 rounded-lg object-cover' />
+                            <div className='flex flex-col flex-1 gap-1.5'>
+                                <h4 className='font-bold text-sm text-gray-100'>{m.title}</h4>
+                                <span className='text-[11px] font-bold text-cyan-400 bg-cyan-900/30 px-3 py-1 rounded-md border border-cyan-500/20'>Capítulo {h.chapterNumber}</span>
+                                <span className='text-[10px] text-gray-500 font-bold uppercase tracking-widest'>{timeAgo(h.timestamp)}</span>
+                            </div>
+                            <ChapterTransitionOverlay isVisible={false} chapterNumber={h.chapterNumber}/>
+                            <ChaptersList mangas={[m]} navigateTo={onNavigate}/>
+                            <LogOut onClick={() => onNavigate('details', m)} className='w-5 h-5 text-gray-600 hover:text-white'/>
                         </div>
-                        <RefreshCw className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 group-hover:rotate-180 transition-all duration-700" />
-                    </button>
-                </div>
-            </div>
+                    );
+                })}
+            </CosmicCard>
         )}
+
+        {activeTab === 'Favoritos no Nexo' && (
+            <CosmicCard>
+                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-5">
+                    <div className="bg-[#050505]/60 p-3.5 rounded-2xl border border-white/10"><Trophy className="w-6 h-6 text-cyan-400" /></div>
+                    <div>
+                        <h2 className="text-2xl font-black text-white tracking-tighter uppercase drop-shadow-md">Obras de Esplendor</h2>
+                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-0.5">Favoritos vinculados ao Nexo</p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {totalFavorites === 0 ? <div className="col-span-full py-16 text-center text-xs text-gray-400/60 uppercase tracking-widest font-black border border-white/5 border-dashed rounded-xl">O Nexo está aguardando seus favoritos.</div> : null}
+                    {Object.entries(libraryData).filter(([mId, status]) => status === 'Favoritos').map(([mId, status]) => {
+                        const m = mangas.find(mg => mg.id === parseInt(mId));
+                        if (!m) return null;
+                        return (
+                            <div key={m.id} onClick={() => onNavigate('details', m)} className="cursor-pointer group flex flex-col gap-2">
+                                <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-[#050505] border border-white/5 group-hover:border-cyan-500/50 shadow-md transition-all duration-300 group-hover:-translate-y-1`}>
+                                    <img src={cleanCosmeticUrl(m.coverUrl)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy" />
+                                </div>
+                                <h3 className="font-bold text-sm text-gray-200 line-clamp-2 leading-snug group-hover:text-cyan-400 transition-colors duration-200 px-1 mt-1">{m.title}</h3>
+                            </div>
+                        );
+                    })}
+                </div>
+            </CosmicCard>
+        )}
+
+        {activeTab === 'Configurações Astral' && (
+            <CosmicCard>
+                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-5">
+                    <div className="bg-[#050505]/60 p-3.5 rounded-2xl border border-white/10"><SettingsIcon className="w-6 h-6 text-cyan-400" /></div>
+                    <div>
+                        <h2 className="text-2xl font-black text-white tracking-tighter uppercase drop-shadow-md">Parâmetros da Jornada</h2>
+                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-0.5">Ajuste a sua conexão astral</p>
+                    </div>
+                </div>
+                {/* Lógica e visual de configurações mantidos e levemente polidos */}
+                <div className='bg-[#050505]/60 border border-white/5 rounded-2xl p-5 mb-5 flex items-center justify-between'>
+                    <div className='flex flex-col'>
+                        <span className='font-black text-sm text-white'>Modo de Leitura</span>
+                        <span className='text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1'>Como você consome as memórias</span>
+                    </div>
+                    <select value={userSettings.readMode} onChange={(e) => updateSettings({ readMode: e.target.value })} className="bg-[#0a0f1c] border border-white/10 text-white text-xs font-bold rounded-xl px-4 py-3 outline-none focus:border-cyan-500">
+                        {['Cascata', 'Página'].map(opt => <option key={opt}>{opt}</option>)}
+                    </select>
+                </div>
+                
+                <div className='bg-[#050505]/60 border border-white/5 rounded-2xl p-5 mb-10 flex items-center justify-between'>
+                    <div className='flex flex-col'>
+                        <span className='font-black text-sm text-white'>Tema da Matriz</span>
+                        <span className='text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1'>Aparência visual do sistema</span>
+                    </div>
+                    <select value={userSettings.theme} onChange={(e) => updateSettings({ theme: e.target.value })} className="bg-[#0a0f1c] border border-white/10 text-white text-xs font-bold rounded-xl px-4 py-3 outline-none focus:border-cyan-500">
+                        {['Escuro', 'Gelo'].map(opt => <option key={opt}>{opt}</option>)}
+                    </select>
+                </div>
+
+                <button onClick={onLogout} className="w-full mt-10 bg-[#050505] border border-white/10 text-rose-300 rounded-xl font-black py-4 transition-all hover:bg-rose-900/50 tracking-widest text-xs flex justify-center items-center gap-2">
+                    <LogOut className="w-4 h-4"/> Encerrar Conexão Astral
+                </button>
+            </CosmicCard>
+        )}
+
       </div>
     </div>
   );
