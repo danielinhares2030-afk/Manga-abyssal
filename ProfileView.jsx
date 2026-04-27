@@ -1,10 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { getAuth, updateProfile } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { app, auth, db } from './firebase'; 
-import { Compass, Hexagon, Trophy, Users, BookOpen, Clock, PenTool, Image, Shield, AlertTriangle, Key, LogOut, ChevronRight, CheckCircle2, ChevronLeft, Dices, ChevronDown, ListFilter, SlidersHorizontal, SlidersHorizontal as SettingsIcon } from 'lucide-react';
+import { Compass, Hexagon, Trophy, Clock, LogOut, ChevronRight, Dices, SlidersHorizontal as SettingsIcon } from 'lucide-react';
 import { timeAgo, calculateLevel, cleanCosmeticUrl } from './helpers';
-import { ChapterTransitionOverlay, InfinityLogo } from './UIComponents';
-import { ChaptersList } from './ChapterComponents';
 
 // CARD MÁGICO / GLASSMORPHISM PARA PERFIL
 const CosmicCard = ({ children, className = "" }) => (
@@ -29,8 +27,6 @@ const StatPill = ({ icon: Icon, value, label, gradientClass }) => (
 
 export function ProfileView({ user, userProfileData, historyData, libraryData, dataLoaded, userSettings, updateSettings, onLogout, onUpdateData, showToast, mangas, onNavigate }) {
   const [activeTab, setActiveTab] = useState('Leituras Recentes');
-  const [isEditingBio, setIsEditingBio] = useState(false);
-  const [newBio, setNewBio] = useState(userProfileData.bio || '');
 
   const totalFavorites = useMemo(() => Object.values(libraryData).filter(status => status === 'Favoritos').length, [libraryData]);
   const levelInfo = calculateLevel(userProfileData.xp || 0);
@@ -45,7 +41,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   // Lógica de Ganhos Visuais no Perfil
   const equippedFrames = cleanCosmeticUrl(eq.moldura?.preview) ? ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] max-w-none object-contain object-center z-30 pointer-events-none" /> ) : null;
   const equippedTitle = eq.titulo ? ( <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 px-3 py-1 bg-[#050505] border border-cyan-500/30 rounded-md shadow-md z-40"><span className="text-[10px] font-black uppercase text-cyan-300 tracking-[0.3em] whitespace-nowrap">{eq.titulo.name}</span></div> ) : null;
-  const profileThemeCss = shopItems => shopItems.map(item => `.${item.cssClass || 'none'} { ${item.css || ''} } ${item.animacao || ''}`).join('\n');
 
   // Lógica de Missão Ativa no Perfil (Visual)
   const activeMissionCard = userProfileData.activeMission ? (
@@ -138,16 +133,14 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                     const m = mangas.find(m => m.id === h.mangaId);
                     if(!m) return null;
                     return (
-                        <div key={h.id} className="flex items-center gap-4 bg-[#050505]/60 border border-white/5 rounded-2xl p-4 mb-3.5 hover:border-cyan-500/20 transition-colors">
-                            <img src={cleanCosmeticUrl(m.coverUrl)} className='w-12 h-18 rounded-lg object-cover' />
+                        <div key={h.id} onClick={() => onNavigate('details', m)} className="cursor-pointer flex items-center gap-4 bg-[#050505]/60 border border-white/5 rounded-2xl p-4 mb-3.5 hover:border-cyan-500/40 transition-colors group">
+                            <img src={cleanCosmeticUrl(m.coverUrl)} className='w-12 h-18 rounded-lg object-cover group-hover:scale-105 transition-transform' />
                             <div className='flex flex-col flex-1 gap-1.5'>
-                                <h4 className='font-bold text-sm text-gray-100'>{m.title}</h4>
-                                <span className='text-[11px] font-bold text-cyan-400 bg-cyan-900/30 px-3 py-1 rounded-md border border-cyan-500/20'>Capítulo {h.chapterNumber}</span>
+                                <h4 className='font-bold text-sm text-gray-100 group-hover:text-cyan-400 transition-colors'>{m.title}</h4>
+                                <span className='text-[11px] font-bold text-cyan-400 w-max bg-cyan-900/30 px-3 py-1 rounded-md border border-cyan-500/20'>Capítulo {h.chapterNumber}</span>
                                 <span className='text-[10px] text-gray-500 font-bold uppercase tracking-widest'>{timeAgo(h.timestamp)}</span>
                             </div>
-                            <ChapterTransitionOverlay isVisible={false} chapterNumber={h.chapterNumber}/>
-                            <ChaptersList mangas={[m]} navigateTo={onNavigate}/>
-                            <LogOut onClick={() => onNavigate('details', m)} className='w-5 h-5 text-gray-600 hover:text-white'/>
+                            <ChevronRight className='w-5 h-5 text-gray-600 group-hover:text-cyan-400 transition-colors'/>
                         </div>
                     );
                 })}
@@ -166,7 +159,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {totalFavorites === 0 ? <div className="col-span-full py-16 text-center text-xs text-gray-400/60 uppercase tracking-widest font-black border border-white/5 border-dashed rounded-xl">O Nexo está aguardando seus favoritos.</div> : null}
                     {Object.entries(libraryData).filter(([mId, status]) => status === 'Favoritos').map(([mId, status]) => {
-                        const m = mangas.find(mg => mg.id === parseInt(mId));
+                        const m = mangas.find(mg => mg.id === parseInt(mId) || mg.id === mId);
                         if (!m) return null;
                         return (
                             <div key={m.id} onClick={() => onNavigate('details', m)} className="cursor-pointer group flex flex-col gap-2">
@@ -190,7 +183,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-0.5">Ajuste a sua conexão astral</p>
                     </div>
                 </div>
-                {/* Lógica e visual de configurações mantidos e levemente polidos */}
                 <div className='bg-[#050505]/60 border border-white/5 rounded-2xl p-5 mb-5 flex items-center justify-between'>
                     <div className='flex flex-col'>
                         <span className='font-black text-sm text-white'>Modo de Leitura</span>
@@ -211,7 +203,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                     </select>
                 </div>
 
-                <button onClick={onLogout} className="w-full mt-10 bg-[#050505] border border-white/10 text-rose-300 rounded-xl font-black py-4 transition-all hover:bg-rose-900/50 tracking-widest text-xs flex justify-center items-center gap-2">
+                <button onClick={onLogout} className="w-full mt-10 bg-[#050505] border border-white/10 text-rose-300 rounded-xl font-black py-4 transition-all hover:bg-rose-900/50 hover:border-rose-500/50 tracking-widest text-xs flex justify-center items-center gap-2">
                     <LogOut className="w-4 h-4"/> Encerrar Conexão Astral
                 </button>
             </CosmicCard>
