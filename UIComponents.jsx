@@ -1,32 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { Shuriken, AlertTriangle } from 'lucide-react';
 
-// LOGO MANGAKAGE (Usando o seu mascote oficial com animação)
-export const KageLogo = React.memo(({ className = "w-48 h-48" }) => {
+// NOVO LOGO MANGAKAGE (Ninja Sentado no Nome)
+export const KageLogo = React.memo(({ className = "w-32 h-32" }) => {
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
-      <style>{`
-        @keyframes kageFloat {
-          0%, 100% { 
-            transform: translateY(0px) scale(1); 
-            filter: drop-shadow(0 0 15px rgba(220,38,38,0.3)); 
-          }
-          50% { 
-            transform: translateY(-12px) scale(1.03); 
-            filter: drop-shadow(0 0 35px rgba(220,38,38,0.7)); 
-          }
-        }
-      `}</style>
-      
-      {/* Aura Sombria Pulsante atrás do mascote */}
-      <div className="absolute inset-0 bg-red-600/15 blur-[40px] rounded-full animate-pulse"></div>
-      
-      {/* O Seu Mascote Oficial */}
+      {/* AURAS DAS SOMBRAS */}
+      <div className="absolute inset-0 bg-red-600/10 blur-[40px] rounded-full group-hover:animate-pulse"></div>
       <img 
-        src="https://i.ibb.co/KxmxhX7h/Generate-Ninja-mascote-pico-e-majestoso-sentado-em-posi-o-de-l-tus-rend-20260428-015254-0000-rem.png" 
-        alt="Mangakage Mascot" 
-        className="relative z-10 w-full h-full object-contain"
-        style={{ animation: 'kageFloat 4s ease-in-out infinite' }}
+        src="https://i.ibb.co/FkdtzwwR/Generate-cone-de-ninja-japon-s-radical-com-aura-de-energia-poderosa-tipo-20260428-131119-0000.png" 
+        alt="Kage Logo Master" 
+        className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+        loading="lazy"
       />
     </div>
   );
@@ -41,24 +26,19 @@ export const SplashScreen = React.memo(() => {
   }, []);
 
   return (
-    <div className={`fixed inset-0 z-[9999] bg-[#030305] flex flex-col items-center justify-center font-sans transition-all duration-500`}>
+    <div className={`fixed inset-0 z-[9999] bg-[#030305] flex flex-col items-center justify-center font-sans transition-all duration-500 ease-in-out opacity-100 scale-100`}>
       <style>{`body, html { background-color: #030305 !important; margin: 0; padding: 0; }`}</style>
       
-      {/* AURAS DAS SOMBRAS */}
+      {/* AURAS DAS SOMBRAS E SANGUE */}
       <div className="absolute top-[20%] left-[10%] w-[50vw] h-[50vw] bg-red-900/20 blur-[120px] rounded-full animate-[pulse_4s_ease-in-out_infinite_alternate]"></div>
       <div className="absolute bottom-[20%] right-[10%] w-[50vw] h-[50vw] bg-rose-900/15 blur-[120px] rounded-full animate-[pulse_5s_ease-in-out_infinite_alternate-reverse]"></div>
 
-      <div className={`flex flex-col items-center justify-center relative z-10 transition-all duration-[700ms] ease-out px-4 w-full text-center ${fade ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+      <div className={`flex flex-col items-center justify-center relative z-10 transition-all duration-[600ms] ease-out px-4 w-full text-center ${fade ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4'}`}>
         
-        {/* MASCOTE NA ENTRADA */}
-        <KageLogo className="w-64 h-64 md:w-80 md:h-80" />
+        {/* NOVO ÍCONE MANGAKAGE (O nome já está na imagem) */}
+        <KageLogo className="w-48 h-48 md:w-64 md:h-64 mb-10 drop-shadow-[0_0_30px_rgba(220,38,38,0.4)]" />
         
-        {/* NOME DO SITE ABAIXO DO MASCOTE */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.2em] uppercase drop-shadow-[0_0_20px_rgba(220,38,38,0.5)] -mt-4">
-          MANGA<span className="text-red-600">KAGE</span>
-        </h1>
-        
-        <div className="mt-12 flex items-center gap-3 opacity-60">
+        <div className="mt-12 flex items-center gap-3 opacity-80">
             <div className="w-2.5 h-2.5 bg-red-700 rounded-full animate-ping"></div>
             <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
             <div className="w-2.5 h-2.5 bg-rose-400 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
@@ -78,7 +58,7 @@ export class ErrorBoundary extends React.Component {
           <AlertTriangle className="w-16 h-16 mb-4 text-red-600 animate-pulse drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]"/>
           <h1 className="text-2xl font-black uppercase tracking-widest text-white text-center">Fenda nas Sombras (Erro)</h1>
           <p className="mt-2 text-gray-500 text-xs font-bold text-center max-w-lg">{this.state.error?.message}</p>
-          <button onClick={() => window.location.reload()} className="mt-8 bg-red-600/10 border-2 border-red-600 text-red-500 hover:bg-red-600 hover:text-white rounded-xl px-8 py-3 font-black text-[10px] uppercase tracking-widest transition-all shadow-lg">Restaurar Conexão</button>
+          <button onClick={() => window.location.reload()} className="mt-8 bg-red-600/10 border-2 border-red-600 text-red-500 hover:bg-red-600 hover:text-black rounded-xl px-8 py-3 font-black text-[10px] uppercase tracking-widest transition-all shadow-lg">Restaurar Conexão</button>
         </div>
       );
     }
@@ -109,18 +89,3 @@ export function Footer() {
         </footer>
     );
 }
-
-export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }) => {
-    if (!isVisible) return null;
-    return (
-        <div className="fixed inset-0 z-[99999] bg-[#030305] font-sans flex flex-col items-center justify-center animate-in fade-in duration-300">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-600/10 blur-[80px] rounded-full"></div>
-            <div className="text-red-500 font-black tracking-[0.5em] text-[10px] uppercase mb-2 animate-pulse relative z-10">
-                Adentrando as Sombras
-            </div>
-            <h2 className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-400 to-white tracking-tighter animate-in zoom-in-50 duration-300 relative z-10 drop-shadow-[0_0_30px_rgba(220,38,38,0.5)]">
-              {chapterNumber}
-            </h2>
-        </div>
-    );
-});
