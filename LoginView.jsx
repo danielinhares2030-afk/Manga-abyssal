@@ -39,16 +39,18 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
 
       <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-700">
         
-        <div className="flex flex-col items-center justify-center mb-10 text-center">
+        <div className="flex flex-col items-center justify-center mb-8 text-center">
             <div className="relative">
-                <div className="absolute inset-0 bg-red-600/20 blur-2xl rounded-full animate-pulse"></div>
-                {/* ÍCONE KAGE NO LOGIN */}
-                <KageLogo className="w-32 h-32 md:w-36 md:h-36 mb-2 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)] relative z-10"/>
+                {/* Aura ajustada para o novo tamanho do ícone */}
+                <div className="absolute inset-0 bg-red-600/20 blur-3xl rounded-full animate-pulse scale-125"></div>
+                
+                {/* ÍCONE KAGE NO LOGIN (Tamanho aumentado e sem texto duplicado embaixo) */}
+                <KageLogo className="w-56 h-56 md:w-64 md:h-64 mb-2 drop-shadow-[0_0_20px_rgba(220,38,38,0.5)] relative z-10"/>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-2">
-                MANGA<span className="text-red-600">KAGE</span>
-            </h1>
-            <p className="text-red-200/50 text-[10px] mt-3 uppercase tracking-[0.4em] font-bold flex items-center gap-2">
+            
+            {/* Tag h1 com o nome MANGAKAGE foi removida daqui */}
+
+            <p className="text-red-200/50 text-[10px] mt-2 uppercase tracking-[0.4em] font-bold flex items-center gap-2">
                 <Swords className="w-3 h-3 text-red-500/40" /> Oculto nas Sombras <Swords className="w-3 h-3 text-red-500/40" />
             </p>
         </div>
