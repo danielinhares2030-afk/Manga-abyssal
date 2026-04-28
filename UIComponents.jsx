@@ -1,26 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
-// NOVO LOGO MANGAKAGE (Shuriken de Sangue/Sombra)
+// NOVO LOGO MANGAKAGE (Ninja 2D: Fofinho, Ousado e Digno)
 export const KageLogo = React.memo(({ className = "w-32 h-32" }) => {
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
       <style>{`
-        @keyframes spinKage {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+        @keyframes floatNinja {
+          0%, 100% { transform: translateY(0px); filter: drop-shadow(0 0 10px rgba(220,38,38,0.4)); }
+          50% { transform: translateY(-6px); filter: drop-shadow(0 0 20px rgba(220,38,38,0.8)); }
         }
-        @keyframes pulseBlood {
-          0%, 100% { filter: drop-shadow(0 0 10px rgba(220,38,38,0.5)); }
-          50% { filter: drop-shadow(0 0 25px rgba(220,38,38,0.9)); }
+        @keyframes blinkNinja {
+          0%, 96%, 98%, 100% { transform: scaleY(1); }
+          97%, 99% { transform: scaleY(0.1); }
         }
       `}</style>
-      <svg viewBox="0 0 100 100" className="relative z-10 w-full h-full" style={{ animation: 'pulseBlood 3s ease-in-out infinite' }}>
-        {/* Shuriken Giratória */}
-        <path d="M50 5 L58 42 L95 50 L58 58 L50 95 L42 58 L5 50 L42 42 Z" fill="#dc2626" stroke="#991b1b" strokeWidth="1.5" style={{transformOrigin: '50px 50px', animation: 'spinKage 15s linear infinite'}}/>
-        {/* Centro Sombrio */}
-        <circle cx="50" cy="50" r="14" fill="#030305" stroke="#ef4444" strokeWidth="2.5" />
-        <circle cx="50" cy="50" r="5" fill="#ef4444" />
+      <svg viewBox="0 0 100 100" className="relative z-10 w-full h-full" style={{ animation: 'floatNinja 4s ease-in-out infinite' }}>
+        {/* Fundo/Contorno Sombrio */}
+        <circle cx="50" cy="50" r="45" fill="#030305" stroke="#dc2626" strokeWidth="2" opacity="0.8" />
+        
+        {/* Capuz do Ninja */}
+        <path d="M20 50 C20 15, 80 15, 80 50 C80 85, 50 95, 50 95 C50 95, 20 85, 20 50 Z" fill="#0a0a0c" stroke="#1f2937" strokeWidth="2"/>
+        
+        {/* Pele / Fenda dos Olhos */}
+        <path d="M22 45 Q50 58 78 45 L74 32 Q50 42 26 32 Z" fill="#fcd34d" />
+        
+        {/* Bandana Carmesim */}
+        <path d="M18 35 Q50 45 82 35 L78 22 Q50 30 22 22 Z" fill="#dc2626" stroke="#991b1b" strokeWidth="1" />
+        {/* Símbolo na Bandana */}
+        <circle cx="50" cy="28" r="5" fill="#030305" stroke="#fcd34d" strokeWidth="0.5" />
+        
+        {/* Animação dos Olhos (Piscar) */}
+        <g style={{ transformOrigin: '50px 45px', animation: 'blinkNinja 5s infinite' }}>
+            {/* Olho Esquerdo */}
+            <circle cx="38" cy="44" r="5" fill="#030305" />
+            <circle cx="40" cy="42" r="2" fill="#ffffff" />
+            
+            {/* Olho Direito */}
+            <circle cx="62" cy="44" r="5" fill="#030305" />
+            <circle cx="64" cy="42" r="2" fill="#ffffff" />
+            
+            {/* Sobrancelhas Franzidas (Ousadia) */}
+            <line x1="30" y1="39" x2="44" y2="42" stroke="#030305" strokeWidth="2.5" strokeLinecap="round" />
+            <line x1="70" y1="39" x2="56" y2="42" stroke="#030305" strokeWidth="2.5" strokeLinecap="round" />
+        </g>
+        
+        {/* Cicatriz de Batalha (Dignidade) */}
+        <path d="M60 34 L68 54 M62 49 L66 47" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" opacity="0.85" />
+        
+        {/* Máscara inferior / Cachecol */}
+        <path d="M22 50 Q50 75 78 50 L85 65 Q50 90 15 65 Z" fill="#dc2626" stroke="#991b1b" strokeWidth="1" />
+        <path d="M30 55 Q50 70 70 55" fill="none" stroke="#991b1b" strokeWidth="1.5" opacity="0.4" strokeLinecap="round" />
       </svg>
     </div>
   );
