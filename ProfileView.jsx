@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Compass, History, Library, Smartphone, Camera, Edit3, LogOut, Loader2, BookOpen, AlertTriangle, Trophy, Zap, Trash2, RefreshCw, LayoutTemplate, Settings, Crown, Flame, Scroll, Users, Shield } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Compass, History, Library, Smartphone, Camera, Edit3, LogOut, Loader2, BookOpen, AlertTriangle, Trophy, Zap, Trash2, RefreshCw, LayoutTemplate, Settings, Crown, Flame, Scroll, Users, Shield, Hexagon, ChevronRight } from 'lucide-react';
 import { updateProfile } from "firebase/auth";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { auth, db } from './firebase';
 import { APP_ID } from './constants';
-import { compressImage, getLevelRequirement, getLevelTitle, cleanCosmeticUrl } from './helpers';
+import { compressImage, getLevelRequirement, getLevelTitle, cleanCosmeticUrl, timeAgo } from './helpers';
+import { InfinityLogo } from './UIComponents';
 
 // CARTÃO ALQUÍMICO / MÁGICO PARA PERFIL
 const AlchemyCard = ({ children, className = "" }) => (
@@ -279,7 +280,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                               <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#050505] border border-white/5 p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:border-[#b59410]/50 transition-colors group shadow-sm">
                                   <div className="w-12 h-16 rounded-lg overflow-hidden bg-black flex-shrink-0 border border-[#b59410]/30">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <BookOpen className="w-5 h-5 m-auto mt-5 text-[#b59410]/50"/>}</div>
                                   <div className="flex-1"><h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-[#b59410] transition-colors">{hist.mangaTitle}</h4><p className="text-[#b59410] font-black text-[10px] uppercase tracking-widest mt-1.5">Capítulo {hist.chapterNumber}</p></div>
-                                  <p className="text-[9px] text-gray-500 font-bold uppercase">{new Date(hist.timestamp).toLocaleDateString()}</p>
+                                  <p className="text-[9px] text-gray-500 font-bold uppercase">{timeAgo(hist.timestamp)}</p>
+                                  <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-[#b59410]" />
                               </div>
                           )
                       })}
