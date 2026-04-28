@@ -113,7 +113,7 @@ export function CatalogView({ mangas, onNavigate, dataSaver, catalogState, setCa
                         <KageLogo className="w-6 h-6" />
                     </div>
                     <h1 className="text-3xl font-black text-white tracking-tighter uppercase flex items-center drop-shadow-md">
-                        Acervo Kage
+                        catalogo Kage
                     </h1>
                     {/* Contador de Obras (Estilo Lâmina/Sombra) */}
                     <div className="ml-auto flex items-center gap-1.5 bg-[#0a0a0c] border-l-2 border-r-2 border-red-600 px-3 py-1.5 shadow-[0_0_10px_rgba(220,38,38,0.2)] relative overflow-hidden flex-shrink-0">
