@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { getAuth, updateProfile } from "firebase/auth";
 import { app, auth, db } from './firebase'; 
-import { Compass, Hexagon, Trophy, Clock, LogOut, ChevronRight, Dices, SlidersHorizontal as SettingsIcon, PenTool, Share2, MapPin, Calendar, Crown, BookOpen, Bookmark, Flame, Scrolls, BookUser, ShieldCheck } from 'lucide-react';
+import { Compass, Hexagon, Trophy, Clock, LogOut, ChevronRight, Dices, SlidersHorizontal as SettingsIcon, PenTool, Share2, MapPin, Calendar, Crown, BookOpen, Bookmark, Flame, Scroll, Users, Shield } from 'lucide-react';
 import { timeAgo, cleanCosmeticUrl } from './helpers';
 import { InfinityLogo } from './UIComponents';
 
@@ -154,7 +154,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         {/* BOTÕES DE AÇÃO RÁPIDA */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
             <button className="bg-transparent border border-amber-500/50 text-amber-400 hover:bg-amber-500/10 px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-                <ShieldCheck className="w-4 h-4" /> Grimório do Nexo
+                <Shield className="w-4 h-4" /> Grimório do Nexo
             </button>
             <button className="bg-transparent border border-white/10 text-gray-300 hover:bg-white/5 px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
                 <Share2 className="w-4 h-4" /> Convocar Aliado
@@ -169,18 +169,19 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             <MagicStatPill icon={Flame} value={userProfileData.coins || 0} label="Moedas Astrais" colorClass="text-rose-400" />
         </div>
 
-        {/* SEÇÃO DE CONQUISTAS (NOVO) */}
+        {/* SEÇÃO DE CONQUISTAS */}
         <AlchemyCard className="mb-10">
           <div className="flex items-center gap-3 mb-6 border-b border-[#b59410]/30 pb-5">
             <Trophy className="w-6 h-6 text-[#b59410]" />
             <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Livro das Conquistas</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            <AchievementBadge icon={Scrolls} title="Iniciado das Letras" description="Lê teus primeiros 10 tomos." colorClass="text-green-400" />
-            <AchievementBadge icon={BookUser} title="Guardião de Favoritos" description="Venera 5 obras em teus favoritos." colorClass="text-yellow-400" />
+            {/* Ícones trocados para os nomes padrões do lucide-react */}
+            <AchievementBadge icon={Scroll} title="Iniciado das Letras" description="Lê teus primeiros 10 tomos." colorClass="text-green-400" />
+            <AchievementBadge icon={Users} title="Guardião de Favoritos" description="Venera 5 obras em teus favoritos." colorClass="text-yellow-400" />
             <AchievementBadge icon={Hexagon} title="Coletor Nexo I" description="Acumula 50 cristais do Nexo." colorClass="text-blue-400" />
             <AchievementBadge icon={Flame} title="Ouro Astral" description="Coleta 1000 moedas astrais." colorClass="text-red-400" />
-            <AchievementBadge icon={ShieldCheck} title="Mestre Elite" description="Alcança a Arcânia nível 10." colorClass="text-purple-400" />
+            <AchievementBadge icon={Shield} title="Mestre Elite" description="Alcança a Arcânia nível 10." colorClass="text-purple-400" />
           </div>
         </AlchemyCard>
 
