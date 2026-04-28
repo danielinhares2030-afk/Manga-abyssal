@@ -14,21 +14,48 @@ const ShadowCard = ({ children, className = "" }) => (
   </div>
 );
 
-// NOVO COMPONENTE DE EMBLEMA EQUIPÁVEL
+// NOVO COMPONENTE DE EMBLEMA EQUIPÁVEL (Visual Surreal, Premium e Rápido)
 const AchievementBadge = ({ badge, isEquipped, onEquip }) => (
-  <div className={`flex flex-col items-center p-5 border rounded-2xl transition-all duration-500 relative overflow-hidden group ${badge.condition ? `bg-[#050505]/80 border-red-600/40 hover:border-red-500 shadow-lg hover:shadow-[0_0_20px_rgba(220,38,38,0.2)]` : 'bg-black/60 border-white/5 opacity-60 grayscale'}`}>
-    {isEquipped && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-700 via-red-500 to-rose-500 shadow-[0_0_15px_rgba(220,38,38,1)]"></div>}
+  <div className={`flex flex-col items-center p-6 border transition-all duration-300 relative group rounded-2xl ${
+    badge.condition 
+      ? isEquipped
+        ? 'bg-gradient-to-b from-red-950/40 to-[#050505] border-red-500 shadow-[0_0_30px_rgba(220,38,38,0.25)]'
+        : 'bg-[#0a0a0c] border-white/10 hover:border-red-600/50 hover:bg-[#0f0f13] shadow-lg hover:-translate-y-1'
+      : 'bg-[#030305] border-white/5 opacity-60 grayscale'
+  }`}>
+    {/* Glow de fundo intenso se equipado */}
+    {isEquipped && <div className="absolute inset-0 bg-red-600/10 blur-[30px] rounded-full pointer-events-none"></div>}
     
-    <badge.icon className={`w-10 h-10 mb-3 ${badge.condition ? badge.colorClass : 'text-gray-500'} drop-shadow-md transition-transform group-hover:scale-110`} />
-    <span className={`font-black text-[11px] uppercase tracking-widest text-center line-clamp-1 mb-1 ${badge.condition ? 'text-white' : 'text-gray-500'}`}>{badge.title}</span>
-    <span className="text-[9px] text-gray-400 font-bold text-center line-clamp-2 mb-5 px-1 leading-relaxed">{badge.description}</span>
+    {/* Linha Neon Superior se equipado */}
+    {isEquipped && <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_15px_rgba(220,38,38,1)]"></div>}
+    
+    {/* Container do Ícone com Aura */}
+    <div className={`w-16 h-16 mb-4 rounded-xl flex items-center justify-center relative transition-transform duration-300 group-hover:scale-110 ${
+        badge.condition ? (isEquipped ? 'bg-red-900/30 border border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.4)]' : 'bg-white/5 border border-white/10') : 'bg-transparent'
+    }`}>
+        <badge.icon className={`w-8 h-8 ${badge.condition ? badge.colorClass : 'text-gray-600'} drop-shadow-lg z-10`} />
+    </div>
+
+    <span className={`font-black text-[11px] uppercase tracking-widest text-center line-clamp-1 mb-2 z-10 ${
+        badge.condition ? (isEquipped ? 'text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.8)]' : 'text-white') : 'text-gray-500'
+    }`}>
+        {badge.title}
+    </span>
+    
+    <span className="text-[10px] text-gray-400 font-bold text-center line-clamp-2 mb-6 px-1 leading-relaxed z-10 h-8">
+        {badge.description}
+    </span>
     
     {badge.condition ? (
-        <button onClick={() => onEquip(badge)} className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isEquipped ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'bg-transparent border border-red-600/50 text-red-500 hover:bg-red-900/30'}`}>
-            {isEquipped ? 'Desequipar' : 'Equipar'}
+        <button onClick={() => onEquip(badge)} className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 z-10 ${
+            isEquipped 
+            ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:bg-red-500 hover:scale-[1.02]' 
+            : 'bg-transparent border border-red-600/30 text-red-500 hover:bg-red-900/40 hover:border-red-500 hover:scale-[1.02]'
+        }`}>
+            {isEquipped ? 'Equipado' : 'Equipar'}
         </button>
     ) : (
-        <div className="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-transparent border border-white/10 text-gray-600 flex justify-center items-center gap-1.5">
+        <div className="w-full py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-black/40 border border-white/5 text-gray-600 flex justify-center items-center gap-2 z-10">
             <Lock className="w-3 h-3" /> Oculto
         </div>
     )}
@@ -37,7 +64,7 @@ const AchievementBadge = ({ badge, isEquipped, onEquip }) => (
 
 const KageStat = ({ icon: Icon, value, label, color }) => (
   <div className="relative flex flex-col items-center justify-center w-24 h-24 flex-shrink-0 group bg-black/40 rounded-2xl border border-white/5 hover:border-red-600/30 transition-colors">
-    <Icon className={`w-5 h-5 mb-2 ${color} drop-shadow-md group-hover:scale-110 transition-transform`} />
+    <Icon className={`w-5 h-5 mb-2 ${color} drop-shadow-md group-hover:scale-110 transition-transform duration-300`} />
     <span className="text-lg font-black text-white tracking-tighter truncate w-full px-2">{value}</span>
     <span className="text-[8px] text-gray-400 uppercase font-black tracking-widest mt-0.5 truncate w-full px-1">{label}</span>
   </div>
@@ -87,9 +114,9 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const crystalsCount = userProfileData.crystals || 0;
   const coinsCount = userProfileData.coins || 0;
 
-  // Lista Mestra de Emblemas
+  // Lista Mestra de Emblemas (Sem a palavra tomo)
   const badgesList = [
-    { id: 'iniciado', icon: Scroll, title: "Iniciado Sangrento", description: "Lê 10 tomos no sistema.", condition: readCount >= 10, colorClass: "text-red-500" },
+    { id: 'iniciado', icon: Scroll, title: "Iniciado Sangrento", description: "Lê 10 capítulos no sistema.", condition: readCount >= 10, colorClass: "text-red-500" },
     { id: 'guardiao', icon: Users, title: "Guardião das Sombras", description: "Venera 5 obras favoritas.", condition: favCount >= 5, colorClass: "text-amber-500" },
     { id: 'coletor', icon: Moon, title: "Lâmina do Nexo", description: "Acumula 50 cristais nexo.", condition: crystalsCount >= 50, colorClass: "text-purple-500" },
     { id: 'ouro', icon: Flame, title: "Ouro Carmesim", description: "Coleta 1000 moedas astrais.", condition: coinsCount >= 1000, colorClass: "text-rose-500" },
@@ -124,18 +151,19 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const equippedBadgeData = badgesList.find(b => b.id === equippedBadgeId);
 
   return (
-    <div className={`animate-in fade-in duration-500 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#030305] overflow-x-hidden`}>
+    <div className={`animate-in fade-in duration-300 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#030305] overflow-x-hidden`}>
       
       {/* Fundo Mágico / Cósmico Kage */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/15 via-[#030305] to-[#000000] pointer-events-none z-0"></div>
 
       {/* Modal de Confirmação */}
       {confirmAction && (
-          <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
               <div className="bg-[#0a0a0c] border border-red-600/50 p-8 rounded-2xl max-w-sm w-full text-center shadow-[0_0_40px_rgba(220,38,38,0.2)]">
                   <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
                   <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Confirmar Ação?</h3>
-                  <p className="text-sm text-gray-400 mb-8 font-medium">{confirmAction === 'history' ? 'O tomo do tempo será apagado permanentemente.' : 'A matriz será recarregada para limpar o fluxo.'}</p>
+                  {/* Palavra Tomo removida aqui também */}
+                  <p className="text-sm text-gray-400 mb-8 font-medium">{confirmAction === 'history' ? 'O registro do tempo será apagado permanentemente.' : 'A matriz será recarregada para limpar o fluxo.'}</p>
                   <div className="flex gap-4">
                       <button onClick={() => setConfirmAction(null)} className="flex-1 bg-[#050505] border border-white/10 text-gray-300 font-black py-3 rounded-xl hover:bg-white/5 transition-colors text-xs uppercase tracking-widest">Recuar</button>
                       <button onClick={executeConfirmAction} className="flex-1 bg-red-600/20 text-red-500 border border-red-500/40 font-black py-3 rounded-xl transition-colors hover:bg-red-500 hover:text-white text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.3)]">Confirmar</button>
@@ -169,7 +197,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
         
-        {/* BLOCO SUPERIOR: AVATAR + INFO (Design "Digno") */}
+        {/* BLOCO SUPERIOR: AVATAR + INFO */}
         <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10 mb-10 relative -mt-24 md:-mt-28">
           
           <div className={`relative w-40 h-40 md:w-48 md:h-48 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
@@ -234,7 +262,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
         {/* MODO DE EDIÇÃO */}
         {isEditing && (
-          <ShadowCard className="mb-10">
+          <ShadowCard className="mb-10 animate-in fade-in duration-300">
             <div className="space-y-6">
               <div>
                  <label className="block text-[10px] font-black text-red-500 mb-2 uppercase tracking-widest">Nome nas Sombras</label>
@@ -251,7 +279,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </ShadowCard>
         )}
 
-        {/* LÂMINA DE XP (Estatísticas Globais Movidas para o Header) */}
+        {/* LÂMINA DE XP */}
         <div className="mb-12 bg-[#0a0a0c]/80 border border-white/5 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-xl">
             <div className="flex items-center justify-between mb-3">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progresso Sombrio: {currentXp} XP</span>
@@ -268,7 +296,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         <div className="mb-8 border-b border-red-900/30">
           <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar snap-x px-2">
             {['Estatísticas', 'Emblemas', 'Histórico', 'Configurações'].map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-4 pb-5 font-black transition-all whitespace-nowrap text-[11px] sm:text-xs uppercase tracking-widest md:tracking-[0.2em] relative group
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-4 pb-5 font-black transition-all duration-300 whitespace-nowrap text-[11px] sm:text-xs uppercase tracking-widest md:tracking-[0.2em] relative group
               ${activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>
                 {tab}
                 {activeTab === tab && (
@@ -281,25 +309,25 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         
         {/* CONTEÚDO DAS ABAS */}
         {activeTab === "Estatísticas" && (
-          <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+          <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-3xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <Library className="w-8 h-8 text-amber-500/50 mb-3 group-hover:scale-110 transition-transform group-hover:text-amber-500"/>
+                    <Library className="w-8 h-8 text-amber-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-amber-500"/>
                     <span className="text-4xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-6 h-6 animate-spin"/> : Object.keys(libraryData).length}</span>
                     <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Obras Salvas</span>
                 </div>
                 <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-3xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <BookOpen className="w-8 h-8 text-red-500/50 mb-3 group-hover:scale-110 transition-transform group-hover:text-red-500"/>
+                    <BookOpen className="w-8 h-8 text-red-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-red-500"/>
                     <span className="text-4xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-6 h-6 animate-spin"/> : historyData.length}</span>
                     <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Caps Lidos</span>
                 </div>
                 <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-3xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <Compass className="w-8 h-8 text-blue-500/50 mb-3 group-hover:scale-110 transition-transform group-hover:text-blue-500"/>
+                    <Compass className="w-8 h-8 text-blue-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-blue-500"/>
                     <span className="text-4xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-6 h-6 animate-spin"/> : obrasLidasIds.length}</span>
                     <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Iniciadas</span>
                 </div>
                 <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-3xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <Zap className="w-8 h-8 text-rose-500/50 mb-3 group-hover:scale-110 transition-transform group-hover:text-rose-500"/>
+                    <Zap className="w-8 h-8 text-rose-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-rose-500"/>
                     <span className="text-4xl font-black text-white mb-1">{currentXp}</span>
                     <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Poder Vital</span>
                 </div>
@@ -309,7 +337,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
         {/* NOVA ABA: EMBLEMAS (Marcas de Sangue) */}
         {activeTab === "Emblemas" && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                 <ShadowCard>
                   <div className="flex items-center gap-3 mb-8 border-b border-red-900/30 pb-5">
                     <Flame className="w-6 h-6 text-red-600 animate-pulse" />
@@ -333,7 +361,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         )}
 
         {activeTab === "Histórico" && (
-            <ShadowCard className="animate-in fade-in slide-in-from-left-4 duration-500">
+            <ShadowCard className="animate-in fade-in slide-in-from-left-4 duration-300">
                 {historyData.length === 0 ? (
                     <div className="text-center py-16"><History className="w-12 h-12 mx-auto text-red-900/30 mb-4"/><p className="text-gray-500 text-xs font-black uppercase tracking-widest">As sombras não possuem registros.</p></div>
                 ) : (
@@ -342,21 +370,21 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                           const mg = mangas.find(m => m.id === hist.mangaId);
                           return (
                               <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#050505] border border-white/5 p-4 rounded-2xl flex items-center gap-5 cursor-pointer hover:border-red-600/50 transition-all duration-300 group shadow-sm">
-                                  <div className="w-14 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-red-900/30 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.3)]">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <BookOpen className="w-5 h-5 m-auto mt-7 text-red-900/50"/>}</div>
-                                  <div className="flex-1"><h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-red-500 transition-colors">{hist.mangaTitle}</h4><p className="text-red-600 font-black text-[10px] uppercase tracking-widest mt-1.5 bg-red-950/30 inline-block px-2 py-1 rounded-md border border-red-900/50">Capítulo {hist.chapterNumber}</p></div>
+                                  <div className="w-14 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-red-900/30 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.3)]">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" /> : <BookOpen className="w-5 h-5 m-auto mt-7 text-red-900/50"/>}</div>
+                                  <div className="flex-1"><h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-red-500 transition-colors duration-300">{hist.mangaTitle}</h4><p className="text-red-600 font-black text-[10px] uppercase tracking-widest mt-1.5 bg-red-950/30 inline-block px-2 py-1 rounded-md border border-red-900/50">Capítulo {hist.chapterNumber}</p></div>
                                   <p className="text-[9px] text-gray-500 font-bold uppercase hidden sm:block">{timeAgo(hist.timestamp)}</p>
-                                  <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-red-500 transition-colors" />
+                                  <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-red-500 transition-colors duration-300" />
                               </div>
                           )
                       })}
-                      <button onClick={() => setConfirmAction('history')} className="mt-8 w-full py-4 bg-[#050505] border border-red-900/50 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-red-950/40 hover:border-red-500 transition-colors flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Limpar Registros Sombrios</button>
+                      <button onClick={() => setConfirmAction('history')} className="mt-8 w-full py-4 bg-[#050505] border border-red-900/50 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-red-950/40 hover:border-red-500 transition-colors duration-300 flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Limpar Registros Sombrios</button>
                    </div>
                 )}
             </ShadowCard>
         )}
 
         {activeTab === "Configurações" && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-500 space-y-6">
+            <div className="animate-in fade-in slide-in-from-left-4 duration-300 space-y-6">
                 <ShadowCard>
                   <h3 className="text-xl font-black text-white mb-8 uppercase tracking-tight flex items-center gap-3"><Settings className="w-5 h-5 text-red-500"/> Preferências Kage</h3>
                   
@@ -365,7 +393,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                       <p className="text-sm font-black text-white uppercase tracking-widest">Modo de Leitura</p>
                       <p className="text-xs text-gray-500 mt-1 font-bold">Como você consome as memórias.</p>
                     </div>
-                    <select value={userSettings?.readMode || 'Cascata'} onChange={(e) => { updateSettings({ readMode: e.target.value }); showToast("Preferência atualizada.", "success"); }} className="bg-[#050505] border border-red-600/30 text-white text-xs font-bold rounded-xl px-5 py-3.5 outline-none focus:border-red-600 shadow-sm cursor-pointer">
+                    <select value={userSettings?.readMode || 'Cascata'} onChange={(e) => { updateSettings({ readMode: e.target.value }); showToast("Preferência atualizada.", "success"); }} className="bg-[#050505] border border-red-600/30 text-white text-xs font-bold rounded-xl px-5 py-3.5 outline-none focus:border-red-600 shadow-sm cursor-pointer transition-colors duration-300">
                       <option value="Cascata">Cascata</option>
                       <option value="Paginação">Páginas</option>
                     </select>
@@ -378,7 +406,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" className="sr-only peer" checked={userSettings?.dataSaver || false} onChange={(e) => { updateSettings({ dataSaver: e.target.checked }); showToast("Preferência atualizada.", "success"); }} />
-                      <div className="w-14 h-7 bg-[#050505] border border-white/20 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[4px] after:bg-gray-400 peer-checked:after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-red-700 peer-checked:to-red-500 shadow-inner"></div>
+                      <div className="w-14 h-7 bg-[#050505] border border-white/20 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[4px] after:bg-gray-400 peer-checked:after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all duration-300 peer-checked:bg-gradient-to-r peer-checked:from-red-700 peer-checked:to-red-500 shadow-inner"></div>
                     </label>
                   </div>
 
@@ -387,7 +415,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                       <p className="text-sm font-black text-white uppercase tracking-widest">Aura do Sistema (Tema)</p>
                       <p className="text-xs text-gray-500 mt-1 font-bold">Padrão de cores da interface.</p>
                     </div>
-                    <select value={userSettings?.theme || 'Escuro'} onChange={(e) => { updateSettings({ theme: e.target.value }); showToast("Aura aplicada.", "success"); }} className="bg-[#050505] border border-red-600/30 text-white text-xs font-bold rounded-xl px-5 py-3.5 outline-none focus:border-red-600 shadow-sm cursor-pointer">
+                    <select value={userSettings?.theme || 'Escuro'} onChange={(e) => { updateSettings({ theme: e.target.value }); showToast("Aura aplicada.", "success"); }} className="bg-[#050505] border border-red-600/30 text-white text-xs font-bold rounded-xl px-5 py-3.5 outline-none focus:border-red-600 shadow-sm cursor-pointer transition-colors duration-300">
                       <option value="Escuro">Escuro</option>
                       <option value="Amoled">Vazio Absoluto</option>
                     </select>
@@ -397,11 +425,11 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                 <ShadowCard>
                     <button onClick={() => setConfirmAction('cache')} className="flex items-center justify-between w-full text-left group">
                         <div>
-                            <p className="text-sm font-black text-white uppercase tracking-widest group-hover:text-red-500 transition-colors">Limpar Fluxo (Cache)</p>
+                            <p className="text-sm font-black text-white uppercase tracking-widest group-hover:text-red-500 transition-colors duration-300">Limpar Fluxo (Cache)</p>
                             <p className="text-xs text-gray-500 mt-1 font-bold">Resolve distorções na interface.</p>
                         </div>
-                        <div className="bg-white/5 p-3 rounded-xl border border-white/10 group-hover:border-red-500/50 group-hover:bg-red-950/20 transition-all">
-                            <RefreshCw className="w-5 h-5 text-gray-400 group-hover:text-red-500 group-hover:rotate-180 transition-all duration-700" />
+                        <div className="bg-white/5 p-3 rounded-xl border border-white/10 group-hover:border-red-500/50 group-hover:bg-red-950/20 transition-all duration-300">
+                            <RefreshCw className="w-5 h-5 text-gray-400 group-hover:text-red-500 group-hover:rotate-180 transition-all duration-300" />
                         </div>
                     </button>
                 </ShadowCard>
