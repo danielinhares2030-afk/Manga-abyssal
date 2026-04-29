@@ -133,33 +133,37 @@ function MangakageApp() {
   const showToast = (text, type = 'info') => { setGlobalToast({ text, type }); setTimeout(() => setGlobalToast(null), 4000); };
   const handleLevelUpAnim = (lvl) => { setLevelUpAlert(lvl); setTimeout(() => setLevelUpAlert(null), 5000); }
 
-  const navigateTo = async (view, manga = null, chapter = null) => {
+  const navigateTo = (view, manga = null, chapter = null) => {
     if (currentView === 'catalog') { setCatalogState(prev => ({ ...prev, scrollPos: window.scrollY })); }
     if (manga) setSelectedManga(manga); if (chapter) setSelectedChapter(chapter);
 
-    // LÓGICA DA MISSÃO: Resolve no momento do clique, sem repetições
-    if (view === 'details' && manga && userProfileData?.activeMission?.type === 'search_local' && user) {
-        const m = userProfileData.activeMission;
-        const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-        
-        if (m.targetManga === manga.id) {
-            let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
-            let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
-            let currentCompleted = userProfileData.completedMissions || [];
-            if (!currentCompleted.includes("search_local_" + m.targetManga)) currentCompleted = [...currentCompleted, "search_local_" + m.targetManga];
-            await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
-            showToast(`Alvo Encontrado! Missão Concluída: +${m.rewardXp} XP | +${m.rewardCoins} M`, "success");
-            if(didLevelUp) handleLevelUpAnim(newLvl);
-        } else {
-            showToast(`Alvo Incorreto! A Missão Falhou. Penalidade: -${m.penaltyXp}XP`, "error");
-            let newCoins = Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins);
-            let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
-            await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
-        }
-    }
-
-    window.history.pushState({ view, mangaId: manga?.id, chapterId: chapter?.id }, '', ''); setCurrentView(view);
+    // Muda de tela instantaneamente para não travar a interface
+    window.history.pushState({ view, mangaId: manga?.id, chapterId: chapter?.id }, '', ''); 
+    setCurrentView(view);
     if (view !== 'catalog') { window.scrollTo(0, 0); }
+
+    // Roda a verificação de missão em segundo plano
+    if (view === 'details' && manga && userProfileData?.activeMission?.type === 'search_local' && user) {
+        setTimeout(async () => {
+            const m = userProfileData.activeMission;
+            const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+            
+            if (m.targetManga === manga.id) {
+                let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp); 
+                let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
+                let currentCompleted = userProfileData.completedMissions || []; 
+                if (!currentCompleted.includes("search_local_" + m.targetManga)) currentCompleted = [...currentCompleted, "search_local_" + m.targetManga];
+                await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
+                showToast(`Alvo Encontrado! Missão Concluída: +${m.rewardXp} XP | +${m.rewardCoins} M`, "success"); 
+                if(didLevelUp) handleLevelUpAnim(newLvl);
+            } else {
+                let newCoins = Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins); 
+                let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
+                await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
+                showToast(`Alvo Incorreto! A Missão Falhou. Penalidade: -${m.penaltyXp}XP`, "error");
+            }
+        }, 0);
+    }
   };
 
   const handleBack = () => { if (window.history.state !== null) { window.history.back(); } else { navigateTo('home'); } };
