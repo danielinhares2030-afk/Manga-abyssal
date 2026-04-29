@@ -28,11 +28,11 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] font-sans flex flex-col items-center justify-center relative px-4 overflow-hidden">
-      <style>{`body, html { background-color: #050505 !important; }`}</style>
+    <div className="min-h-screen bg-[#030305] font-sans flex flex-col items-center justify-center relative px-4 overflow-hidden">
+      <style>{`body, html { background-color: #030305 !important; }`}</style>
       
-      {/* Grid sutil no fundo, sem animações pesadas ou neon */}
-      <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:60px_60px]"></div>
+      {/* Fundo novo limpo e sutil. Apenas um degradê radial escuro. */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/10 via-[#030305] to-[#010101] pointer-events-none z-0"></div>
 
       <div className="w-full max-w-[380px] relative z-10 animate-in slide-in-from-bottom-4 fade-in duration-700">
         
