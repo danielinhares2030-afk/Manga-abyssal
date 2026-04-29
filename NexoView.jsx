@@ -6,7 +6,6 @@ import { addXpLogic, removeXpLogic, getLevelTitle, getRarityColor, cleanCosmetic
 import { APP_ID } from './constants';
 
 export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems, buyItem }) {
-    // ABA RENOMEADA PARA "Pactos" PARA NÃO VAZAR NA TELA
     const [activeTab, setActiveTab] = useState("Pactos");
     const [enigmaAnswer, setEnigmaAnswer] = useState("");
     const [timeLeft, setTimeLeft] = useState("");
@@ -84,16 +83,30 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             const chosenType = missionPool[Math.floor(Math.random() * missionPool.length)];
 
             if (mangas && mangas.length > 0) {
-                const randomManga = mangas[Math.floor(Math.random() * mangas.length)];
+                // Filtra para NUNCA repetir missões concluídas
+                const availableMangas = mangas.filter(m => {
+                    const c = userProfileData.completedMissions || [];
+                    return !c.includes("search_local_" + m.id) && !c.includes("enigma_" + m.id) && !c.includes(m.id);
+                });
+                
+                const randomManga = availableMangas.length > 0 ? availableMangas[Math.floor(Math.random() * availableMangas.length)] : mangas[Math.floor(Math.random() * mangas.length)];
                 let newMission = null;
 
                 if (chosenType === 'search_visual' && randomManga.synopsis) {
                     let cleanDesc = randomManga.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(randomManga.title, 'gi'), '█████');
-                    let q = `[ TRANSCRIÇÃO ALQUÍMICA ]\n\nFragmento Instável:\n"${cleanDesc.substring(0, conf.charLimit)}..."\n\nLocalize a obra original e neutralize a anomalia.`;
-                    newMission = { id: Date.now().toString(), type: 'search_local', difficulty, title: "Anomalia Abissal", question: q, targetManga: randomManga.id, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000) };
+                    let q = `[ ALVO MARCADO ]\n\nFragmento:\n"${cleanDesc.substring(0, conf.charLimit)}..."\n\nATENÇÃO: Você só tem UMA chance. Se clicar na obra errada no catálogo, a missão falha instantaneamente.`;
+                    newMission = { id: Date.now().toString(), type: 'search_local', difficulty, title: "Caçada Implacável", question: q, targetManga: randomManga.id, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000) };
                 } else if (chosenType === 'enigma') {
-                    let q = `[ ENIGMA DO VAZIO ]\nAutoria Gravada: ${randomManga.author || 'Desconhecida'} \nDetermine a nomenclatura exata.`;
-                    newMission = { id: Date.now().toString(), type: 'enigma', difficulty, title: "Decodificação Kage", question: q, answer: [randomManga.title.toLowerCase().trim()], attemptsLeft: conf.enigmaTries, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000) };
+                    let q = "";
+                    if (randomManga.author && randomManga.author.trim() !== "" && randomManga.author.toLowerCase() !== "desconhecido") {
+                        q = `[ ENIGMA DO VAZIO ]\n\nA mente por trás desta criação é: ${randomManga.author}.\nQual é a obra?`;
+                    } else if (randomManga.genres && randomManga.genres.length > 0 && randomManga.synopsis) {
+                        let cleanDesc = randomManga.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(randomManga.title, 'gi'), '█████');
+                        q = `[ ENIGMA DO VAZIO ]\n\nGêneros: ${randomManga.genres.join(', ')}\nRelato: "${cleanDesc.substring(0, conf.charLimit)}..."\nQual é a obra?`;
+                    } else {
+                        q = `[ ENIGMA DO VAZIO ]\n\nDecifre o selo oculto pelas sombras.`;
+                    }
+                    newMission = { id: Date.now().toString(), type: 'enigma', difficulty, title: "Decodificação Kage", question: q, answer: [randomManga.title.toLowerCase().trim()], attemptsLeft: conf.enigmaTries, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000), targetManga: randomManga.id };
                 } else {
                     let readTarget = difficulty === 'Rank E' ? 1 : 3;
                     newMission = { id: Date.now().toString(), type: 'read', difficulty, title: `Extração de Essência`, desc: `Transmute a energia de ${readTarget} capítulo(s) da obra "${randomManga.title}".`, targetManga: randomManga.id, targetCount: readTarget, currentCount: 0, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (readTarget * 45 * 60 * 1000) };
@@ -111,7 +124,9 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         e.preventDefault(); const m = userProfileData.activeMission;
         if (enigmaAnswer.toLowerCase().trim() === m.answer[0]) {
            let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
-           await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: (userProfileData.coins || 0) + m.rewardCoins, xp: newXp, level: newLvl, activeMission: null });
+           let currentCompleted = userProfileData.completedMissions || []; 
+           if (m.targetManga) currentCompleted.push("enigma_" + m.targetManga);
+           await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: (userProfileData.coins || 0) + m.rewardCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
            showToast("Código quebrado. Recompensa extraída!", "success"); if(didLevelUp) onLevelUp(newLvl); 
         } else { showToast("Análise incorreta. Cuidado.", "error"); }
     };
@@ -164,7 +179,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
                 
                 <div className="flex md:justify-center gap-4 mb-12 overflow-x-auto no-scrollbar snap-x w-full px-2">
-                    {/* TROCADO DE "MISSÕES" PARA "PACTOS" */}
                     {['Pactos', 'Forja', 'Loja', 'Ranking'].map((tab) => (
                         <button key={tab} onClick={() => setActiveTab(tab)} className={`relative px-8 py-3 font-black text-[10px] uppercase tracking-[0.3em] transition-all transform skew-x-[-15deg] group border-b-2
                             ${activeTab === tab ? 'bg-red-600/10 border-red-600 text-white' : 'bg-transparent border-transparent text-gray-500 hover:text-red-400'}`}>
@@ -200,7 +214,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                 </div>
 
                                 <div className="bg-[#0a0a0c] border border-white/5 p-6 md:p-8 mb-8 relative z-10 shadow-inner">
-                                    <p className="text-gray-300 text-xs md:text-sm font-bold leading-relaxed uppercase tracking-widest border-l-2 border-red-600 pl-4">
+                                    <p className={`text-xs md:text-sm font-bold leading-relaxed uppercase tracking-widest border-l-2 border-red-600 pl-4 ${userProfileData.activeMission.type === 'search_local' ? 'text-red-400' : 'text-gray-300'}`}>
                                         {userProfileData.activeMission.desc || userProfileData.activeMission.question}
                                     </p>
                                     
