@@ -25,7 +25,8 @@ export const SplashScreen = React.memo(() => {
       <style>{`body, html { background-color: #030305 !important; margin: 0; padding: 0; }`}</style>
       
       {/* Mesmo fundo do Login aplicado aqui */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/10 via-[#030305] to-[#010101] pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1a0505] via-[#0d0202] to-[#120505] pointer-events-none z-0"></div>
+      <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] pointer-events-none mix-blend-overlay"></div>
 
       <div className={`transition-all duration-1000 ease-out z-10 ${fade ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
         <KageLogo className="w-64 h-64 md:w-80 md:h-80 opacity-90" showContour={false} />
