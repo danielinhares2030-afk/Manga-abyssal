@@ -127,27 +127,37 @@ function MangakageApp() {
     return () => clearInterval(interval);
   }, [user, userProfileData.activeMission]);
 
-  useEffect(() => {
-      const completeSearchLocalMission = async () => {
-          if (!user || !userProfileData?.activeMission) return;
-          const m = userProfileData.activeMission; const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-          let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp); let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
-          let currentCompleted = userProfileData.completedMissions || []; if (!currentCompleted.includes("enigma_local_" + m.targetManga)) currentCompleted = [...currentCompleted, "enigma_local_" + m.targetManga];
-          await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
-          showToast(`Alvo Encontrado! Missão Concluída: +${m.rewardXp} XP | +${m.rewardCoins} M`, "success"); if(didLevelUp) handleLevelUpAnim(newLvl);
-      };
-      if (currentView === 'details' && selectedManga && userProfileData?.activeMission?.type === 'search_local') { if (userProfileData.activeMission.targetManga === selectedManga.id) { completeSearchLocalMission(); } }
-  }, [currentView, selectedManga, userProfileData?.activeMission, user]);
-
   const showSplash = !splashTimerDone || !authReady || loadingMangas;
   useEffect(() => { if (!showSplash && !user && !isGuest && currentView !== 'login') { setCurrentView('login'); } }, [showSplash, user, isGuest, currentView]);
 
   const showToast = (text, type = 'info') => { setGlobalToast({ text, type }); setTimeout(() => setGlobalToast(null), 4000); };
   const handleLevelUpAnim = (lvl) => { setLevelUpAlert(lvl); setTimeout(() => setLevelUpAlert(null), 5000); }
 
-  const navigateTo = (view, manga = null, chapter = null) => {
+  const navigateTo = async (view, manga = null, chapter = null) => {
     if (currentView === 'catalog') { setCatalogState(prev => ({ ...prev, scrollPos: window.scrollY })); }
     if (manga) setSelectedManga(manga); if (chapter) setSelectedChapter(chapter);
+
+    // LÓGICA DA MISSÃO: Resolve no momento do clique, sem repetições
+    if (view === 'details' && manga && userProfileData?.activeMission?.type === 'search_local' && user) {
+        const m = userProfileData.activeMission;
+        const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
+        
+        if (m.targetManga === manga.id) {
+            let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
+            let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
+            let currentCompleted = userProfileData.completedMissions || [];
+            if (!currentCompleted.includes("search_local_" + m.targetManga)) currentCompleted = [...currentCompleted, "search_local_" + m.targetManga];
+            await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
+            showToast(`Alvo Encontrado! Missão Concluída: +${m.rewardXp} XP | +${m.rewardCoins} M`, "success");
+            if(didLevelUp) handleLevelUpAnim(newLvl);
+        } else {
+            showToast(`Alvo Incorreto! A Missão Falhou. Penalidade: -${m.penaltyXp}XP`, "error");
+            let newCoins = Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins);
+            let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
+            await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
+        }
+    }
+
     window.history.pushState({ view, mangaId: manga?.id, chapterId: chapter?.id }, '', ''); setCurrentView(view);
     if (view !== 'catalog') { window.scrollTo(0, 0); }
   };
@@ -214,7 +224,7 @@ function MangakageApp() {
   };
 
   if (showSplash) return <SplashScreen />;
-  if (currentView === 'login' || (!user && !isGuest)) { return <LoginView onLoginSuccess={() => { window.history.pushState({ view: 'home' }, '', ''); setCurrentView('home'); setIsGuest(false); }} onGuestAccess={() => { window.history.pushState({ view: 'home' }, '', ''); setIsGuest(true); setCurrentView('home'); }} />; }
+  if (currentView === 'login' || (!user && !isGuest)) { return <LoginView onLoginSuccess={() => { window.history.pushState({ view: 'home' }, '', ''); setCurrentView('home'); setIsGuest(false); }} onGuestAccess={() => { window.history.pushState({ view: 'home' }, '', ''); setIsGuest(true); setCurrentView('home'); }} showToast={showToast} />; }
 
   const unreadNotifCount = notifications.filter(n => !n.read).length;
   const eq = userProfileData.equipped_items || {};
@@ -246,7 +256,7 @@ function MangakageApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
-                <KageLogo className="w-10 h-10 md:w-12 md:h-12 group-hover:scale-110 transition-transform duration-300" />
+                <KageLogo className="w-10 h-10 md:w-12 md:h-12 group-hover:scale-110 transition-transform duration-300" showContour={false} />
                 <span className="text-xl font-black text-white tracking-[0.2em] uppercase hidden sm:block">MANGA<span className="text-red-600">KAGE</span></span>
               </div>
               
