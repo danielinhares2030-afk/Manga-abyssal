@@ -17,7 +17,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     const [loadingRank, setLoadingRank] = useState(false);
     const [shopCategory, setShopCategory] = useState('avatar');
     
-    // NOVO ESTADO: Controla a animação de morte permanente
+    // ESTADO: Controla a animação de morte permanente
     const [isErased, setIsErased] = useState(false);
 
     const rankConfigs = {
@@ -82,20 +82,26 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         try {
             const now = Date.now();
             
+            // LÓGICA DO PACTO ABSOLUTO: 5 PERGUNTAS, GÊNERO + SINOPSE OBRIGATÓRIOS E DIFÍCEIS
             if (difficulty === 'ABSOLUTO') {
-                if (!mangas || mangas.length < 3) return showToast("Falta conhecimento para o julgamento.", "error");
+                if (!mangas || mangas.length < 5) return showToast("Falta conhecimento para o julgamento.", "error");
                 
                 let shuffled = [...mangas].sort(() => 0.5 - Math.random());
-                let m1 = shuffled[0], m2 = shuffled[1], m3 = shuffled[2];
+                let targets = shuffled.slice(0, 5);
                 
-                let q1 = m1.author && !m1.author.toLowerCase().includes("desconhecid") ? `Autor: ${m1.author}` : `Gêneros: ${m1.genres?.join(', ')}`;
-                let q2 = m2.synopsis ? `"${m2.synopsis.substring(0, 60)}..."` : `Gêneros: ${m2.genres?.join(', ')}`;
-                let q3 = m3.synopsis ? `"${m3.synopsis.substring(0, 60)}..."` : `Gêneros: ${m3.genres?.join(', ')}`;
+                let finalQuestion = `[ JULGAMENTO KAGE ]\n\nDesvende as 5 Obras Exatas na Ordem (separadas por vírgula):\n\n`;
+                let answers = [];
+                
+                targets.forEach((m, index) => {
+                    let cleanDesc = m.synopsis ? m.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(m.title, 'gi'), '█████').substring(0, 120) : "Sem registros astrais desta obra.";
+                    finalQuestion += `${index + 1}. Gêneros: ${m.genres?.join(', ') || 'Nenhum'}\nFragmento Obscuro: "${cleanDesc}..."\n\n`;
+                    answers.push(m.title.toLowerCase().trim());
+                });
 
-                let finalQuestion = `[ JULGAMENTO KAGE ]\n\nDesvende as 3 Obras Exatas na Ordem (separadas por vírgula):\n\n1. ${q1}\n\n2. ${q2}\n\n3. ${q3}\n\nAVISO: Falhar resultará na desintegração total da sua conta e progresso.`;
-                let finalAnswer = `${m1.title.toLowerCase().trim()}, ${m2.title.toLowerCase().trim()}, ${m3.title.toLowerCase().trim()}`;
+                finalQuestion += `AVISO CRÍTICO: Falhar resultará na desintegração irreversível da sua conta.`;
+                let finalAnswer = answers.join(', ');
 
-                let newMission = { id: Date.now().toString(), type: 'permadeath', difficulty: 'ABSOLUTO', title: "Julgamento Kage", question: finalQuestion, answer: [finalAnswer], rewardXp: 5000, rewardCoins: 3000, deadline: now + (10 * 60 * 1000) };
+                let newMission = { id: Date.now().toString(), type: 'permadeath', difficulty: 'ABSOLUTO', title: "Julgamento Kage", question: finalQuestion, answer: [finalAnswer], rewardXp: 5000, rewardCoins: 3000, deadline: now + (15 * 60 * 1000) };
                 await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: newMission });
                 showToast(`Pacto Absoluto Forjado. Sua vida está em jogo.`, "error");
                 return;
@@ -157,15 +163,14 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: (userProfileData.coins || 0) + m.rewardCoins, xp: newXp, level: newLvl, activeMission: null });
                showToast("Julgamento Superado. Você transcendeu.", "success"); if(didLevelUp) onLevelUp(newLvl);
             } else {
-               // DISPARA ANIMAÇÃO DE MORTE PERMANENTE E EXCLUI
                setIsErased(true);
                setTimeout(async () => {
                    try {
                        await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'));
                        await deleteUser(auth.currentUser);
-                       window.location.reload(); // Força o refresh para voltar ao login limpo
-                   } catch(err) { console.error(err); }
-               }, 4500); // 4.5s de animação
+                       window.location.reload();
+                   } catch(err) { console.error(err); window.location.reload(); }
+               }, 4500); 
             }
             return;
         }
@@ -199,7 +204,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }, 1500);
     };
 
-    // NOVA FUNÇÃO: Renderiza o texto da missão organizando em blocos
     const renderMissionText = (text) => {
         if (!text) return null;
         return text.split('\n\n').map((block, i) => (
@@ -214,18 +218,25 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
-            {/* TELA DE MORTE PERMANENTE (GLITCH) */}
+            {/* TELA DE MORTE PERMANENTE COM ANIMAÇÃO REFINADA */}
             {isErased && (
                 <div className="fixed inset-0 z-[99999] bg-[#000000] flex flex-col items-center justify-center overflow-hidden">
                     <style>{`
-                        @keyframes glitch { 0% { transform: translate(0) } 20% { transform: translate(-5px, 5px) } 40% { transform: translate(-5px, -5px) } 60% { transform: translate(5px, 5px) } 80% { transform: translate(5px, -5px) } 100% { transform: translate(0) } }
-                        .animate-glitch { animation: glitch 0.2s linear infinite; }
+                        @keyframes glitch-severe { 0% { transform: translate(0); filter: hue-rotate(0deg); } 20% { transform: translate(-10px, 5px); filter: hue-rotate(90deg); } 40% { transform: translate(-10px, -10px); filter: hue-rotate(-90deg); } 60% { transform: translate(10px, 10px); filter: hue-rotate(180deg); } 80% { transform: translate(10px, -10px); filter: hue-rotate(45deg); } 100% { transform: translate(0); filter: hue-rotate(0deg); } }
+                        .animate-glitch { animation: glitch-severe 0.15s linear infinite; }
                     `}</style>
-                    <div className="absolute inset-0 bg-red-900/20 animate-pulse"></div>
-                    <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-                    <Skull className="w-32 h-32 md:w-48 md:h-48 text-red-600 mb-8 animate-glitch relative z-20" />
-                    <h1 className="text-4xl md:text-6xl font-black text-red-600 uppercase tracking-[0.3em] animate-glitch relative z-20 text-center px-4">Conta Desintegrada</h1>
-                    <p className="text-white tracking-[0.5em] mt-6 uppercase font-bold text-xs md:text-sm relative z-20">Você falhou no Julgamento Kage</p>
+                    <div className="absolute inset-0 bg-red-900/30 animate-pulse mix-blend-overlay"></div>
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-50 mix-blend-screen animate-pulse"></div>
+                    <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
+                    
+                    <Skull className="w-32 h-32 md:w-48 md:h-48 text-red-600 mb-8 animate-glitch relative z-20 drop-shadow-[0_0_50px_rgba(220,38,38,1)]" />
+                    
+                    {/* Texto adaptável para não vazar */}
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-red-600 uppercase tracking-widest animate-glitch relative z-20 text-center px-4 leading-tight w-full drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">
+                        Conta Desintegrada
+                    </h1>
+                    
+                    <p className="text-white tracking-[0.5em] mt-6 uppercase font-bold text-[10px] md:text-xs relative z-20 bg-black/50 px-4 py-2 border border-red-900/50">Você falhou no Julgamento Kage</p>
                 </div>
             )}
 
@@ -300,7 +311,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     </div>
                                 </div>
 
-                                {/* RENDERIZAÇÃO NOVA DO TEXTO DA MISSÃO EM BLOCOS */}
                                 <div className="bg-[#0a0a0c] border border-white/5 p-6 md:p-8 mb-8 relative z-10 shadow-inner">
                                     <div className="mt-2">
                                         {renderMissionText(userProfileData.activeMission.desc || userProfileData.activeMission.question)}
@@ -374,18 +384,17 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     </div>
                                 ))}
                                 
-                                {/* NOVA MISSÃO PERMADEATH (JULGAMENTO KAGE) */}
                                 <div className={`col-span-full sm:col-span-2 lg:col-span-3 bg-gradient-to-br from-[#1a0505] to-[#0a0202] border-t border-b border-l-[4px] border-r border-t-red-900/30 border-b-red-900/30 border-r-red-900/30 border-l-red-600 p-6 flex flex-col sm:flex-row items-center justify-between hover:shadow-[0_0_30px_rgba(220,38,38,0.2)] transition-all duration-300 group relative overflow-hidden mt-4`}>
                                     <Skull className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 text-red-600 opacity-[0.03] group-hover:opacity-10 transition-opacity`} />
                                     
                                     <div className="relative z-10 mb-6 sm:mb-0 text-center sm:text-left">
                                         <h3 className={`text-3xl font-black uppercase tracking-tighter text-red-600`}>Julgamento Absoluto</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 max-w-sm">Decifre 3 enigmas perfeitamente. Erre, e sua conta será desintegrada do sistema.</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 max-w-sm">Decifre 5 enigmas perfeitamente. Erre, e sua conta será desintegrada do sistema.</p>
                                     </div>
 
                                     <div className="flex flex-col items-center sm:items-end gap-4 relative z-10 w-full sm:w-auto">
                                         <div className="bg-black/60 p-3 border border-red-900/30 flex gap-6 text-[9px] font-black uppercase tracking-[0.2em] w-full sm:w-auto justify-center">
-                                            <span className="text-white">XP Máximo</span>
+                                            <span className="text-white">5000 XP</span>
                                             <span className="text-red-500">Morte Permanente</span>
                                         </div>
                                         <button onClick={() => setConfirmModal('ABSOLUTO')} className="w-full sm:w-auto px-8 py-3 bg-red-600 border border-transparent text-white font-black text-[9px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.3)]">
