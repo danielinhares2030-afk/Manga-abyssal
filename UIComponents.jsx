@@ -64,7 +64,6 @@ export function GlobalToast({ toast }) {
   );
 }
 
-// FOOTER SEM A PALAVRA ACERVO
 export function Footer() {
     return (
         <footer className="w-full bg-[#030305] border-t border-red-900/20 py-12 mt-auto pb-24 md:pb-12 flex flex-col items-center justify-center relative overflow-hidden">
@@ -77,23 +76,19 @@ export function Footer() {
     );
 }
 
-// NOVA ANIMAÇÃO DE TRANSIÇÃO (Corte diagonal radical)
 export const ChapterTransitionOverlay = React.memo(({ isVisible, chapterNumber }) => {
     if (!isVisible) return null;
     return (
         <div className="fixed inset-0 z-[99999] bg-[#030305] font-sans flex flex-col items-center justify-center overflow-hidden animate-in fade-in duration-300">
-            {/* Animação de Corte/Slash */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-1 bg-red-600 shadow-[0_0_30px_rgba(220,38,38,1)] rotate-[-15deg] animate-in slide-in-from-right-[100%] duration-300"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-1 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] rotate-[-15deg] animate-in slide-in-from-left-[100%] duration-300 delay-100 mix-blend-overlay"></div>
-
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/20 blur-[100px] rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-900/20 via-[#030305] to-[#030305]"></div>
             
-            <div className="relative z-10 flex flex-col items-center animate-in zoom-in-75 fade-in duration-500">
-                <div className="text-red-500 font-black tracking-[0.8em] text-[10px] uppercase mb-2">
-                    Avanço de Domínio
+            <div className="relative z-10 flex flex-col items-center animate-in zoom-in-95 duration-500">
+                <div className="w-12 h-12 border-4 border-red-600/30 border-t-red-600 rounded-full animate-spin mb-6 shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+                <div className="text-red-500 font-black tracking-[0.5em] text-[10px] uppercase mb-3 animate-pulse">
+                    Carregando
                 </div>
-                <h2 className="text-7xl sm:text-9xl font-black text-white tracking-tighter drop-shadow-[0_0_40px_rgba(220,38,38,0.8)]">
-                  {chapterNumber}
+                <h2 className="text-4xl sm:text-6xl font-black text-white tracking-tighter drop-shadow-lg">
+                  CAPÍTULO {chapterNumber}
                 </h2>
             </div>
         </div>
