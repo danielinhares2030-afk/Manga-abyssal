@@ -16,16 +16,18 @@ export const KageLogo = React.memo(({ className = "w-64 h-64", showContour = fal
   );
 });
 
-// Abertura mais fluída e muito mais limpa sem o neon pulsante
 export const SplashScreen = React.memo(() => {
   const [fade, setFade] = useState(false);
   useEffect(() => { const t1 = setTimeout(() => setFade(true), 50); return () => clearTimeout(t1); }, []);
   
   return (
-    <div className={`fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center font-sans transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-      <style>{`body, html { background-color: #050505 !important; margin: 0; padding: 0; }`}</style>
+    <div className={`fixed inset-0 z-[9999] bg-[#030305] flex items-center justify-center font-sans transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
+      <style>{`body, html { background-color: #030305 !important; margin: 0; padding: 0; }`}</style>
       
-      <div className={`transition-all duration-1000 ease-out ${fade ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
+      {/* Mesmo fundo do Login aplicado aqui */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/10 via-[#030305] to-[#010101] pointer-events-none z-0"></div>
+
+      <div className={`transition-all duration-1000 ease-out z-10 ${fade ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
         <KageLogo className="w-64 h-64 md:w-80 md:h-80 opacity-90" showContour={false} />
         
         <div className="w-48 h-1 bg-white/5 mx-auto mt-8 rounded-full overflow-hidden">
