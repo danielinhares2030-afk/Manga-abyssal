@@ -43,39 +43,36 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
   };
 
   return (
-    <div className="min-h-screen font-sans flex flex-col items-center justify-start pt-12 pb-10 relative px-6 overflow-y-auto">
+    <div className="min-h-screen font-sans flex flex-col items-center justify-start pt-6 pb-10 relative px-6 overflow-y-auto">
       <style>{`
         body, html { background-color: #050505 !important; }
-        .bg-kage-epic {
-            background-image: url('https://images.alphacoders.com/134/1341053.png');
+        .bg-kage-custom {
+            background-image: url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png');
             background-size: cover;
             background-position: center;
         }
       `}</style>
       
-      {/* FUNDO IDÊNTICO À IMAGEM */}
-      <div className="fixed inset-0 z-0 bg-kage-epic">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-[#050505]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.1)_0%,transparent_70%)]"></div>
+      {/* FUNDO OFICIAL ENVIADO */}
+      <div className="fixed inset-0 z-0 bg-kage-custom">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#050505]"></div>
+          <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
-      <div className="w-full max-w-[420px] relative z-10 animate-in fade-in duration-1000">
+      <div className="w-full max-w-[440px] relative z-10 animate-in fade-in duration-1000">
         
-        {/* LOGO E TÍTULO ESTILIZADO */}
-        <div className="flex flex-col items-center justify-center mb-10 text-center">
-            <div className="w-40 h-40 mb-2 drop-shadow-[0_0_25px_rgba(220,38,38,0.4)]">
+        {/* LOGO AUMENTADO (Sem título em texto) */}
+        <div className="flex flex-col items-center justify-center mb-6 text-center">
+            <div className="w-64 h-64 md:w-80 md:h-80 drop-shadow-[0_0_35px_rgba(220,38,38,0.3)] transform hover:scale-105 transition-transform duration-700">
                 <KageLogo className="w-full h-full" showContour={false} />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-[0.15em] italic drop-shadow-lg">
-                MANGA<span className="text-red-600">KAGE</span>
-            </h1>
-            <p className="text-gray-400 text-[10px] uppercase tracking-[0.4em] font-black flex items-center gap-3 mt-3">
+            <p className="text-amber-500/80 text-[10px] uppercase tracking-[0.6em] font-black flex items-center gap-3 mt-[-20px] drop-shadow-md">
                 <span className="text-red-600">⚔</span> Domínio das Sombras <span className="text-red-600">⚔</span>
             </p>
         </div>
 
-        {/* CARD DO LOGIN IGUAL À IMAGEM */}
-        <div className="bg-[#0f0f0f]/90 backdrop-blur-xl border border-red-900/30 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+        {/* CARD DO LOGIN */}
+        <div className="bg-[#0f0f0f]/90 backdrop-blur-2xl border border-red-900/30 p-8 sm:p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(0,0,0,1)] mt-2">
             
             {localError && (
                 <div className="mb-6 bg-red-950/40 border border-red-500/30 text-red-200 text-[10px] font-black p-3 rounded-xl text-center flex items-center justify-center gap-2">
@@ -83,7 +80,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {isRegister && (
                 <div className="relative group bg-black/40 border border-white/5 rounded-2xl p-4 flex items-center gap-4 focus-within:border-red-600/50 transition-all">
                   <User className="w-5 h-5 text-gray-600" />
@@ -113,13 +110,13 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
 
               <button type="submit" disabled={loading} className="w-full mt-4 bg-gradient-to-b from-red-600 to-red-800 text-white rounded-full font-black py-4 transition-all hover:scale-[1.02] tracking-[0.2em] text-[11px] uppercase flex justify-center items-center gap-3 shadow-[0_10px_20px_rgba(220,38,38,0.3)] border-t border-red-400/20 relative overflow-hidden group">
                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                 {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <><Moon className="w-4 h-4 fill-current"/> Adentrar as Sombras</>}
+                 {loading ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin"></div> : <><Moon className="w-4 h-4 fill-current"/> Adentrar as Sombras</>}
               </button>
             </form>
 
             <div className="mt-8 flex flex-col items-center gap-6 text-center">
                 <button onClick={() => { setIsRegister(!isRegister); setLocalError(null); }} className="text-[10px] text-gray-400 tracking-widest font-black uppercase transition-colors">
-                    {isRegister ? "Já tem um selo? " : "Ainda não é um ninja? "}
+                    {isRegister ? "Já tem um selo? " : "Ainda não é um ninja? " }
                     <span className="text-red-500 hover:text-red-400 underline underline-offset-4">{isRegister ? "FAZER LOGIN" : "ALISTAR-SE"}</span>
                 </button>
                 
