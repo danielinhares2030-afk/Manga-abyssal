@@ -31,31 +31,35 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
     <div className="min-h-screen bg-[#030305] font-sans flex flex-col items-center justify-center relative overflow-hidden px-4">
       <style>{`body, html { background-color: #030305 !important; }`}</style>
       
-      {/* Fundo Cósmico Sombrio Kage */}
+      {/* Fundo Cósmico Geral */}
       <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-red-900/20 blur-[120px] rounded-full animate-[pulse_8s_ease-in-out_infinite_alternate]"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-rose-900/15 blur-[100px] rounded-full animate-[pulse_10s_ease-in-out_infinite_alternate-reverse]"></div>
-      
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)]" style={{ backgroundSize: '30px 30px' }}></div>
 
-      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-700">
+      {/* Conteúdo Principal (Descido com mt-12) */}
+      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-700 mt-12">
         
         <div className="flex flex-col items-center justify-center mb-8 text-center">
-            <div className="relative">
-                {/* Aura ajustada para o novo tamanho do ícone */}
-                <div className="absolute inset-0 bg-red-600/20 blur-3xl rounded-full animate-pulse scale-125"></div>
+            <div className="relative w-full flex justify-center items-center">
                 
-                {/* ÍCONE KAGE NO LOGIN (Tamanho aumentado e sem texto duplicado embaixo) */}
-                <KageLogo className="w-56 h-56 md:w-64 md:h-64 mb-2 drop-shadow-[0_0_20px_rgba(220,38,38,0.5)] relative z-10"/>
+                {/* NOVA AURA: Vórtice Sombrio Giratório */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none scale-[1.2]">
+                    <div className="absolute w-[280px] h-[280px] md:w-[350px] md:h-[350px] border-2 border-red-600/10 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                    <div className="absolute w-[260px] h-[260px] md:w-[330px] md:h-[330px] border border-red-500/20 rounded-full animate-[spin_7s_linear_infinite_reverse] border-dashed"></div>
+                    <div className="absolute w-[240px] h-[240px] md:w-[300px] md:h-[300px] bg-gradient-to-tr from-red-900/30 via-transparent to-red-600/10 rounded-full animate-[spin_5s_linear_infinite] blur-xl"></div>
+                    <div className="absolute w-[180px] h-[180px] md:w-[220px] md:h-[220px] bg-red-600/40 blur-[50px] rounded-full animate-pulse"></div>
+                </div>
+                
+                {/* ÍCONE KAGE (Aumentado) */}
+                <KageLogo className="w-72 h-72 md:w-80 md:h-80 mb-2 drop-shadow-[0_0_25px_rgba(220,38,38,0.6)] relative z-10"/>
             </div>
-            
-            {/* Tag h1 com o nome MANGAKAGE foi removida daqui */}
 
-            <p className="text-red-200/50 text-[10px] mt-2 uppercase tracking-[0.4em] font-bold flex items-center gap-2">
+            <p className="text-red-200/50 text-[10px] mt-4 uppercase tracking-[0.4em] font-bold flex items-center gap-2 relative z-10">
                 <Swords className="w-3 h-3 text-red-500/40" /> Oculto nas Sombras <Swords className="w-3 h-3 text-red-500/40" />
             </p>
         </div>
 
-        {/* CARD PRINCIPAL */}
+        {/* CARD PRINCIPAL DE LOGIN */}
         <div className="bg-[#0a0a0c]/80 backdrop-blur-2xl border border-red-600/20 p-8 sm:p-10 rounded-[2rem] shadow-[0_0_50px_rgba(220,38,38,0.15)] relative overflow-hidden">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
             
