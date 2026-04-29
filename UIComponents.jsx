@@ -21,21 +21,25 @@ export const SplashScreen = React.memo(() => {
   useEffect(() => { const t1 = setTimeout(() => setFade(true), 50); return () => clearTimeout(t1); }, []);
   
   return (
-    <div className={`fixed inset-0 z-[9999] bg-[#020202] flex items-center justify-center font-sans transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-      <style>{`body, html { background-color: #020202 !important; margin: 0; padding: 0; }`}</style>
+    <div className={`fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center font-sans transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
+      <style>{`body, html { background-color: #050505 !important; margin: 0; padding: 0; }`}</style>
       
-      {/* Mesmo fundo Preto/Dourado/Ondas do Login */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-[30%] -left-[20%] w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,rgba(234,179,8,0.08)_0%,transparent_70%)] rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-[30%] -right-[20%] w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,rgba(234,179,8,0.05)_0%,transparent_70%)] rounded-full blur-3xl"></div>
-          <div className="absolute inset-0 opacity-[0.15] mix-blend-screen" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='120' height='20' viewBox='0 0 120 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,10 Q30,20 60,10 T120,10' fill='none' stroke='%23ca8a04' stroke-width='1.5'/%3E%3C/svg%3E")`, backgroundSize: '120px 20px' }}></div>
+      {/* Mesmo fundo do Login aplicado aqui */}
+      <div className="absolute inset-0 z-0 flex flex-col md:flex-row pointer-events-none">
+          <div className="w-full md:w-1/2 h-1/2 md:h-full bg-white flex items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.05)_0%,transparent_100%)]"></div>
+          </div>
+          <div className="w-full md:w-1/2 h-1/2 md:h-full bg-[#050505] relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/40 to-[#050505]"></div>
       </div>
 
       <div className={`transition-all duration-1000 ease-out z-10 ${fade ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
-        <KageLogo className="w-64 h-64 md:w-80 md:h-80 opacity-95 drop-shadow-[0_0_30px_rgba(234,179,8,0.15)]" showContour={false} />
+        <KageLogo className="w-64 h-64 md:w-80 md:h-80 opacity-90 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]" showContour={false} />
         
-        <div className="w-56 h-1 bg-white/5 mx-auto mt-10 rounded-full overflow-hidden border border-white/5">
-           <div className="h-full bg-gradient-to-r from-red-800 to-red-500 animate-[loading_1.5s_ease-in-out_infinite] rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]"></div>
+        <div className="w-48 h-1 bg-white/10 mx-auto mt-8 rounded-full overflow-hidden">
+           <div className="h-full bg-white animate-[loading_1.5s_ease-in-out_infinite] rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
         </div>
         <style>{`@keyframes loading { 0% { width: 0%; transform: translateX(-100%); } 100% { width: 100%; transform: translateX(100%); } }`}</style>
       </div>
