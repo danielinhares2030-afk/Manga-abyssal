@@ -40,7 +40,7 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
         try {
             const ref = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'library', manga.id.toString());
             if (status === 'Remover') {
-                await deleteDoc(ref); showToast("Removido do Acervo.", "info");
+                await deleteDoc(ref); showToast("Removido.", "info");
             } else {
                 await setDoc(ref, { mangaId: manga.id, status: status, updatedAt: Date.now() }); showToast(`Selado como: ${status}`, "success");
             }
