@@ -476,3 +476,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         </div>
     );
 }
+
+
+Pronto — deixei o arquivo com a interface nova, mais compacta e responsiva, sem mexer na lógica. Está no canvas para você copiar e colar direto.
