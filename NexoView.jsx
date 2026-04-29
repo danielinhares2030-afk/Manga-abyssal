@@ -393,64 +393,107 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                 if (shopCategory === 'capa_fundo') return cat === 'capa_fundo' || cat === 'capa';
                                 return cat === shopCategory;
                             }).map(item => {
-                              const hasItem = userProfileData.inventory?.includes(item.id);
-                              
-                              // Verifica se tá equipado baseado na categoria do item
-                              const itemCat = item.categoria || item.type || '';
-                              const isEquipped = userProfileData.equipped_items?.[itemCat]?.id === item.id || userProfileData.equipped_items?.['capa_fundo']?.id === item.id;
-                              const cat = itemCat.toLowerCase();
+                           const hasItem = userProfileData.inventory?.includes(item.id);
 
-                              return (
-                                <div key={item.id} className={`bg-[#0a0a0c] border rounded-[2rem] p-6 flex flex-col items-center text-center transition-all duration-500 group relative overflow-hidden shadow-lg ${isEquipped ? 'border-red-600 bg-red-950/20' : 'border-white/5 hover:border-red-500/40'}`}>
-                                  
-                                  {(item.css || item.animacao || item.keyframes) && (
-                                     <style dangerouslySetInnerHTML={{__html: `
-                                        .${item.cssClass || 'custom-ia-class'} { ${item.css || ''} }
-                                        ${item.animacao || item.keyframes || ''}
-                                     `}} />
-                                  )}
+                  {/* CONTEÚDO: LOJA (Apenas para comprar) */}
+{activeTab === "Loja" && (
+    <div className="animate-in fade-in duration-500 relative z-10 max-w-6xl mx-auto">
+        
+        {/* Header da Loja */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 bg-[#0a0a0c]/80 rounded-2xl p-6 md:p-8 border border-white/5 backdrop-blur-md shadow-lg">
+            <div className="text-center sm:text-left">
+                <h3 className="text-2xl md:text-3xl font-black text-white mb-2 uppercase tracking-tight">Mercado <span className="text-red-600">Negro</span></h3>
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Adquira cosméticos. (Equipe no seu Perfil)</p>
+            </div>
+            <div className="bg-[#030305] border rounded-xl border-amber-500/30 text-amber-500 font-black px-6 py-3 flex items-center gap-3 text-base shadow-inner">
+                <div className="w-3.5 h-3.5 rounded-full bg-amber-500"></div>
+                {userProfileData.coins || 0}
+            </div>
+        </div>
 
-                                  <div className={`w-28 h-28 rounded-2xl mb-6 bg-[#030305] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${cat === 'avatar' ? (item.cssClass || 'custom-ia-class') : ''}`}>
-                                    
-                                    {(cat === 'capa_fundo' || cat === 'capa' || cat === 'tema_perfil') && cleanCosmeticUrl(item.preview) && (
-                                        <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover opacity-80 ${item.cssClass || 'custom-ia-class'}`} />
-                                    )}
+        {/* Abas de Categorias da Loja */}
+        <div className="flex gap-3 overflow-x-auto no-scrollbar mb-8 pb-2 snap-x">
+            {[
+                { id: 'avatar', label: 'Avatar' },
+                { id: 'capa_fundo', label: 'Capa' },
+                { id: 'moldura', label: 'Moldura' },
+                { id: 'nickname', label: 'Nick' }
+            ].map(cat => (
+                <button
+                    key={cat.id}
+                    onClick={() => setShopCategory(cat.id)}
+                    className={`snap-start flex-shrink-0 px-5 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all border ${
+                        shopCategory === cat.id
+                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                        : 'bg-[#050505] text-gray-500 border-white/5 hover:text-white hover:border-white/20'
+                    }`}
+                >
+                    {cat.label}
+                </button>
+            ))}
+        </div>
+          
+        {/* Grid dos Itens (Novo Design Limpo) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {shopItems.filter(item => {
+                const cat = (item.categoria || item.type || '').toLowerCase();
+                if (shopCategory === 'capa_fundo') return cat === 'capa_fundo' || cat === 'capa';
+                return cat === shopCategory;
+            }).map(item => {
+              const hasItem = userProfileData.inventory?.includes(item.id);
+              const cat = (item.categoria || item.type || '').toLowerCase();
 
-                                    {cat === 'moldura' && cleanCosmeticUrl(item.preview) && (
-                                        <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute inset-0 w-full h-full object-cover z-20 pointer-events-none rounded-full scale-[1.15] ${item.cssClass || 'custom-ia-class'}`} style={{ mixBlendMode: 'screen' }} />
-                                    )}
+              return (
+                <div key={item.id} className="bg-[#050505] border border-white/5 rounded-2xl p-4 flex flex-col items-center text-center transition-all duration-300 hover:border-red-500/40 hover:-translate-y-1 shadow-lg relative">
+                  
+                  {(item.css || item.animacao || item.keyframes) && (
+                     <style dangerouslySetInnerHTML={{__html: `
+                        .${item.cssClass || 'custom-ia-class'} { ${item.css || ''} }
+                        ${item.animacao || item.keyframes || ''}
+                     `}} />
+                  )}
 
-                                    {cat === 'avatar' && cleanCosmeticUrl(item.preview) && (
-                                        <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 relative z-10`} />
-                                    )}
+                  {/* Rarity Tag Flutuante */}
+                  <div className={`absolute top-2 right-2 text-[7px] uppercase tracking-[0.2em] font-black px-1.5 py-0.5 rounded border z-30 bg-black/80 border-white/10 ${getRarityColor(item.raridade)}`}>
+                      {item.raridade || 'Comum'}
+                  </div>
 
-                                    {cat === 'nickname' && (
-                                        <div className={`font-black text-xl z-20 ${item.cssClass || 'custom-ia-class'}`}>Kage</div>
-                                    )}
+                  <div className={`w-24 h-24 rounded-xl mt-3 mb-4 bg-black flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${cat === 'avatar' ? (item.cssClass || 'custom-ia-class') : ''}`}>
+                    
+                    {(cat === 'capa_fundo' || cat === 'capa' || cat === 'tema_perfil') && cleanCosmeticUrl(item.preview) && (
+                        <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover opacity-80 ${item.cssClass || 'custom-ia-class'}`} />
+                    )}
 
-                                    {(!item.preview && !['nickname'].includes(cat)) && (
-                                        <Sparkles className="w-8 h-8 text-gray-700 relative z-10"/>
-                                    )}
-                                  </div>
+                    {cat === 'moldura' && cleanCosmeticUrl(item.preview) && (
+                        <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`absolute inset-0 w-full h-full object-cover z-20 pointer-events-none rounded-full scale-[1.15] ${item.cssClass || 'custom-ia-class'}`} style={{ mixBlendMode: 'screen' }} />
+                    )}
 
-                                  <p className={`text-[8px] uppercase tracking-[0.2em] font-black mb-3 px-3 py-1.5 rounded-lg bg-[#030305] border border-white/5 relative z-10 ${getRarityColor(item.raridade)}`}>
-                                      {item.raridade || 'Comum'}
-                                  </p>
-                                  
-                                  <h4 className="text-white font-black mb-6 text-sm line-clamp-1 relative z-10">{item.nome || item.name}</h4>
-                                  
-                                  {hasItem ? (
-                                    <button onClick={() => equipItem(item)} className={`w-full rounded-xl font-black py-3 transition-all text-[10px] uppercase tracking-widest relative z-10 ${isEquipped ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-transparent text-gray-400 hover:text-white hover:border-white/50 border border-white/10'}`}>{isEquipped ? 'Desequipar' : 'Equipar'}</button>
-                                  ) : (
-                                    <button onClick={() => buyItem(item)} className="w-full rounded-xl bg-amber-600 text-black hover:bg-amber-500 font-black py-3 transition-colors text-[10px] uppercase tracking-widest relative z-10">Comprar • {item.preco || item.price}</button>
-                                  )}
-                                </div>
-                              )
-                            })}
-                        </div>
-                    </div>
-                )}
+                    {cat === 'avatar' && cleanCosmeticUrl(item.preview) && (
+                        <img src={cleanCosmeticUrl(item.preview)} onError={(e)=>e.target.style.display='none'} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 relative z-10`} />
+                    )}
 
+                    {cat === 'nickname' && (
+                        <div className={`font-black text-lg z-20 ${item.cssClass || 'custom-ia-class'}`}>Kage</div>
+                    )}
+
+                    {(!item.preview && !['nickname'].includes(cat)) && (
+                        <Sparkles className="w-6 h-6 text-gray-700 relative z-10"/>
+                    )}
+                  </div>
+                  
+                  <h4 className="text-gray-300 font-black mb-4 text-xs line-clamp-1 w-full px-1">{item.nome || item.name}</h4>
+                  
+                  {hasItem ? (
+                    <button disabled className="w-full rounded-lg bg-black border border-white/5 text-gray-600 font-black py-2.5 text-[9px] uppercase tracking-widest cursor-not-allowed">Já Possui</button>
+                  ) : (
+                    <button onClick={() => buyItem(item)} className="w-full rounded-lg bg-amber-600 text-black hover:bg-amber-500 font-black py-2.5 transition-colors text-[9px] uppercase tracking-widest relative z-10 flex items-center justify-center gap-1.5"><div className="w-2 h-2 rounded-full bg-black/50"></div> {item.preco || item.price}</button>
+                  )}
+                </div>
+              )
+            })}
+        </div>
+    </div>
+)}      
                 {/* CONTEÚDO: RANKING */}
                 {activeTab === "Ranking" && (
                     <div className="animate-in fade-in duration-500 max-w-5xl mx-auto relative z-10">
