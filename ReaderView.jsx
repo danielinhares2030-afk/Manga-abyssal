@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star, ZoomIn, ZoomOut } from 'lucide-react';
-// Importamos a nova animação de transição que está no UIComponents
 import { ChapterTransitionOverlay } from './UIComponents';
 
 export default function ReaderView({ manga, chapter, user, userProfileData, onBack, onChapterClick, triggerRandomDrop, onMarkAsRead, readMode, onRequireLogin, showToast, libraryData, onToggleLibrary }) {
@@ -111,7 +110,7 @@ export default function ReaderView({ manga, chapter, user, userProfileData, onBa
             ) : (
                <div className="flex flex-col items-center pt-16 pb-20 transition-all duration-300 mx-auto" style={{ width: `${zoom * 100}%` }}>
                   {pages.map((p, i) => (
-                     <img key={i} src={p} className="w-full object-contain mb-1 shadow-md border-b border-amber-900/5" loading="lazy" />
+                     <img key={i} src={p} className="w-full object-contain block" loading="lazy" />
                   ))}
                </div>
             )}
