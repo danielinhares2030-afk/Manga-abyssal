@@ -6,7 +6,6 @@ import { auth, db } from './firebase';
 import { APP_ID } from './constants';
 import { compressImage, getLevelRequirement, getLevelTitle, cleanCosmeticUrl, timeAgo, getRarityColor } from './helpers';
 
-// CARTÃO SOMBRIO KAGE
 const ShadowCard = ({ children, className = "" }) => (
   <div className={`bg-[#0a0a0c]/90 border border-red-600/30 rounded-xl p-5 md:p-7 shadow-[0_0_40px_rgba(220,38,38,0.1)] relative overflow-hidden backdrop-blur-xl ${className}`}>
      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-red-600/60 to-transparent"></div>
@@ -100,7 +99,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const executeConfirmAction = async () => {
       if (confirmAction === 'history') { 
           try { 
-              // Agora apenas marca o registro como 'cleared: true' em vez de deletar
               historyData.forEach(async (h) => { 
                   await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', h.id), { cleared: true }); 
               }); 
@@ -117,7 +115,7 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
   const lidosSet = new Set(historyData.map(h => h.mangaId)); const obrasLidasIds = Array.from(lidosSet); const libraryMangaIds = Object.keys(libraryData);
   const eq = userProfileData.equipped_items || {};
 
-  const activeAvatarSrc = (eq.avatar?.preview ? cleanCosmeticUrl(eq.avatar.preview) : null) || avatarBase64 || `https://placehold.co/150x150/0A0E17/22d3ee?text=K`;
+  const activeAvatarSrc = (eq.avatar?.preview ? cleanCosmeticUrl(eq.avatar.preview) : null) || avatarBase64 || `https://placehold.co/150x150/0A0E17/22d3ee?text=${name?.[0] || 'K'}`;
 
   const readCount = historyData.length;
   const favCount = Object.keys(libraryData).length;
@@ -157,13 +155,10 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
       return cat === inventoryCategory;
   });
 
-  // Filtra apenas o histórico que NÃO foi limpo visualmente
   const visibleHistory = historyData.filter(h => !h.cleared);
 
   return (
-    <div className={`animate-in fade-in duration-300 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#030305] overflow-x-hidden`}>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/15 via-[#030305] to-[#000000] pointer-events-none z-0"></div>
-
+    <div className={`animate-in fade-in duration-300 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#050505] overflow-x-hidden`}>
       {confirmAction && (
           <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
               <div className="bg-[#0a0a0c] border border-red-600/50 p-8 rounded-xl max-w-sm w-full text-center shadow-[0_0_40px_rgba(220,38,38,0.2)]">
@@ -178,170 +173,191 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
       )}
 
-      {/* HEADER CAPA */}
-      <div className="w-full h-[240px] md:h-[320px] bg-[#050505] relative group overflow-hidden border-b border-red-900/40 z-0">
+      {/* HEADER CAPA (Idêntico a imagem) */}
+      <div className="w-full h-[250px] relative group overflow-hidden bg-black z-0">
         {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( 
             <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover object-center opacity-70 mix-blend-screen ${eq.capa_fundo.cssClass || ''}`} /> 
         ) : coverBase64 ? ( 
-            <img src={coverBase64} className="w-full h-full object-cover object-center opacity-60 mix-blend-screen" /> 
+            <img src={coverBase64} className="w-full h-full object-cover object-center opacity-80" /> 
         ) : ( 
             <div className={`w-full h-full bg-gradient-to-br from-red-950 to-black ${eq.capa_fundo?.cssClass || ''}`} /> 
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-[#030305] via-[#030305]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-red-900/10 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
         
-        {isEditing && (
-            <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-red-500 border border-red-600/50 px-5 py-2.5 rounded-full flex items-center gap-2 text-xs font-black uppercase tracking-widest z-10 hover:bg-red-600 hover:text-white transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)]">
-                <Camera className="w-4 h-4" /> Alterar Capa
-            </button>
-        )}
+        <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/50 border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] text-white font-bold uppercase tracking-widest hover:bg-white/10 transition-colors z-10">
+            <Camera className="w-4 h-4" /> Alterar capa
+        </button>
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-6xl mx-auto">
         
-        {/* AVATAR INFO */}
-        <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10 mb-10 relative -mt-24 md:-mt-28">
-          <div className={`relative w-40 h-40 md:w-48 md:h-48 rounded-full flex items-center justify-center flex-shrink-0 group ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
-            <div className="absolute -inset-4 rounded-full border border-red-600/20 border-dashed animate-[spin_20s_linear_infinite]"></div>
-            <div className="absolute -inset-1 rounded-full border-[3px] border-red-600/60 shadow-[0_0_30px_rgba(220,38,38,0.5)]"></div>
-
-            <div className={`w-full h-full rounded-full bg-[#050505] flex items-center justify-center relative z-10 overflow-hidden shadow-2xl ${!eq.moldura ? 'border-[4px] border-[#030305]' : ''}`}>
-               {(eq.avatar?.css) && ( <style dangerouslySetInnerHTML={{__html: `.${eq.avatar.cssClass} { ${eq.avatar.css} } ${eq.avatar.animacao || ''}`}} /> )}
-               <img src={activeAvatarSrc} className={`w-full h-full object-cover ${eq.avatar?.cssClass || ''}`} alt="Avatar" onError={(e) => e.target.src = `https://placehold.co/150x150/0A0E17/dc2626?text=K`} />
+        {/* AVATAR E INFO (Idêntico a imagem) */}
+        <div className="px-6 relative z-10 -mt-20 flex gap-5">
+            <div className="relative flex-shrink-0">
+                <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-red-600 bg-black p-1 shadow-[0_0_20px_rgba(220,38,38,0.5)] flex items-center justify-center overflow-hidden relative ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
+                    {(eq.avatar?.css) && ( <style dangerouslySetInnerHTML={{__html: `.${eq.avatar.cssClass} { ${eq.avatar.css} } ${eq.avatar.animacao || ''}`}} /> )}
+                    <img src={activeAvatarSrc} className={`w-full h-full object-cover rounded-full ${eq.avatar?.cssClass || ''}`} alt="Avatar" onError={(e) => e.target.src = `https://placehold.co/150x150/050505/22d3ee?text=${name?.[0] || 'K'}`} />
+                    
+                    {cleanCosmeticUrl(eq.particulas?.preview) && ( <img src={cleanCosmeticUrl(eq.particulas.preview)} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-0 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
+                    {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
+                    {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} /> )}
+                </div>
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black border border-red-600 text-red-500 text-[9px] font-black px-3 py-0.5 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)] whitespace-nowrap z-40">
+                    NÍVEL {level}
+                </div>
+                {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-2 right-2 bg-red-600 text-white p-2 rounded-full z-50 border-2 border-black hover:bg-red-500"><Camera className="w-3 h-3" /></button>}
+                <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
             </div>
             
-            {cleanCosmeticUrl(eq.particulas?.preview) && ( <img src={cleanCosmeticUrl(eq.particulas.preview)} className={`absolute inset-[-50%] m-auto w-[200%] h-[200%] object-contain z-0 ${eq.particulas.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
-            {cleanCosmeticUrl(eq.efeito?.preview) && ( <img src={cleanCosmeticUrl(eq.efeito.preview)} className={`absolute inset-0 m-auto w-full h-full object-contain z-20 ${eq.efeito.cssClass || ''}`} style={{ mixBlendMode: 'screen', pointerEvents: 'none' }} /> )}
-            {cleanCosmeticUrl(eq.moldura?.preview) && ( <img src={cleanCosmeticUrl(eq.moldura.preview)} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain object-center z-30 pointer-events-none ${eq.moldura.cssClass || ''}`} /> )}
-
-            {isEditing && <button onClick={() => avatarInputRef.current.click()} className="absolute bottom-2 right-2 bg-red-600 text-white p-3.5 rounded-full z-50 border-4 border-[#030305] hover:bg-red-500 transition-colors shadow-[0_0_20px_rgba(220,38,38,0.8)]"><Camera className="w-5 h-5" /></button>}
-            <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'avatar')} />
-          </div>
-
-          <div className="flex-1 bg-[#0a0a0c]/60 backdrop-blur-md border border-white/5 p-6 rounded-xl shadow-xl flex flex-col md:flex-row items-center md:items-end justify-between gap-6 relative z-20 mb-2 md:mb-0 text-center md:text-left">
-              <div>
-                  <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                      <Swords className="w-4 h-4 text-red-500" />
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Ninja Supremo</span>
-                  </div>
-                  
-                  <h1 className={`text-4xl md:text-5xl font-black tracking-tighter drop-shadow-xl flex flex-col md:flex-row items-center gap-2 mb-1 ${eq.nickname ? eq.nickname.cssClass : 'text-white'}`}>
-                      {eq.nickname?.css && ( <style dangerouslySetInnerHTML={{__html: `.${eq.nickname.cssClass} { ${eq.nickname.css} } ${eq.nickname.animacao || ''}`}} /> )}
-                      {name || 'Oculto'}
-                  </h1>
-                  <p className="text-gray-500 font-bold text-xs mt-1 drop-shadow-sm">{user.email}</p>
-                  
-                  <div className="mt-4 flex flex-wrap items-center justify-center md:justify-start gap-3">
-                      <div className="bg-[#030305] border border-red-600/40 inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(220,38,38,0.2)]">
-                          <Trophy className="w-4 h-4 text-amber-500" />
-                          <span className="text-xs font-black text-amber-500 uppercase tracking-widest">Nível {level} • {getLevelTitle(level)}</span>
-                      </div>
-                      
-                      {equippedBadgeData && (
-                          <div className={`bg-gradient-to-r from-black to-[#0a0a0c] border border-white/10 inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg ${equippedBadgeData.colorClass}`}>
-                              {equippedBadgeData.image ? (
-                                  <img src={equippedBadgeData.image} className="w-6 h-6 object-contain drop-shadow-md" alt="Emblema" />
-                              ) : (
-                                  <equippedBadgeData.icon className="w-4 h-4 drop-shadow-md" />
-                              )}
-                              <span className="text-[10px] font-black uppercase tracking-[0.2em]">{equippedBadgeData.title}</span>
-                          </div>
-                      )}
-                  </div>
-              </div>
-
-              <div className="flex gap-3 w-full md:w-auto">
-                  <button onClick={() => setIsEditing(!isEditing)} className="flex-1 md:flex-none bg-[#050505] border border-red-600/50 text-red-500 px-6 py-3.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.1)]">
-                      <Edit3 className="w-4 h-4" /> {isEditing ? 'Selar' : 'Forjar Perfil'}
-                  </button>
-                  <button onClick={onLogout} className="bg-red-500/10 text-red-400 p-3.5 rounded-lg hover:bg-red-600 hover:text-white transition-all border border-red-500/20 shadow-md">
-                      <LogOut className="w-4 h-4" />
-                  </button>
-              </div>
-          </div>
+            <div className="flex-1 pt-2 flex flex-col justify-center">
+                <div className="flex items-center gap-1.5 text-gray-400 text-[9px] font-black uppercase tracking-widest mb-1">
+                    <Swords className="w-3 h-3 text-red-500" /> NINJA SUPREMO
+                </div>
+                <h1 className={`text-2xl sm:text-3xl font-black text-white ${eq.nickname ? eq.nickname.cssClass : ''}`}>
+                    {eq.nickname?.css && ( <style dangerouslySetInnerHTML={{__html: `.${eq.nickname.cssClass} { ${eq.nickname.css} } ${eq.nickname.animacao || ''}`}} /> )}
+                    {name || 'Kage'}
+                </h1>
+                <p className="text-gray-500 text-xs font-medium mt-0.5">{user.email}</p>
+            </div>
         </div>
-        
-        {bio && !isEditing && <p className="text-gray-400 text-sm mb-10 font-bold bg-gradient-to-r from-[#0a0a0c] to-transparent p-6 rounded-xl border-l-4 border-red-600 whitespace-pre-wrap italic shadow-lg text-center md:text-left max-w-4xl mx-auto md:mx-0">"{bio}"</p>}
+
+        {/* TROFÉUS E BOTÕES (Idêntico a imagem) */}
+        <div className="px-6 mt-4 relative z-10">
+            <div className="inline-flex items-center gap-2 border border-amber-600/50 bg-amber-950/20 px-3 py-1.5 rounded-lg mb-4">
+                <Trophy className="w-3 h-3 text-amber-500" />
+                <span className="text-amber-500 text-[9px] font-black uppercase tracking-widest">NÍVEL {level} • {getLevelTitle(level)}</span>
+            </div>
+            
+            <div className="flex gap-3">
+                <button onClick={() => setIsEditing(!isEditing)} className="flex-1 bg-transparent border border-red-600/50 text-red-500 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-red-950/30 transition-colors">
+                    <Edit3 className="w-4 h-4" /> {isEditing ? 'Selar Perfil' : 'Editar perfil'}
+                </button>
+                <button onClick={onLogout} className="bg-transparent border border-white/10 text-gray-400 p-2.5 rounded-xl hover:bg-white/5 transition-colors">
+                    {/* Usando LogOut já que é mais viável no perfil, imitando a curvinha */}
+                    <LogOut className="w-5 h-5 rotate-180" />
+                </button>
+            </div>
+        </div>
 
         {isEditing && (
-          <ShadowCard className="mb-10 animate-in fade-in duration-300">
-            <div className="space-y-6">
-              <div>
-                 <label className="block text-[10px] font-black text-red-500 mb-2 uppercase tracking-widest">Nome nas Sombras</label>
-                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-[#050505] border border-white/10 rounded-lg px-5 py-4 text-white text-sm font-medium outline-none focus:border-red-600 transition-colors shadow-inner"/>
-              </div>
-              <div>
-                 <label className="block text-[10px] font-black text-red-500 mb-2 uppercase tracking-widest">Aura Pessoal (Bio)</label>
-                 <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-[#050505] border border-white/10 rounded-lg px-5 py-4 text-white text-sm font-medium resize-none outline-none focus:border-red-600 transition-colors shadow-inner"></textarea>
-              </div>
+            <div className="px-6 mt-6 animate-in fade-in duration-300">
+                <div className="bg-[#0a0a0c] border border-red-600/30 rounded-xl p-5 shadow-lg">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-[10px] font-black text-red-500 mb-2 uppercase tracking-widest">Nome nas Sombras</label>
+                            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-red-600 transition-colors" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-red-500 mb-2 uppercase tracking-widest">Aura Pessoal (Bio)</label>
+                            <textarea value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-3 text-white text-sm resize-none outline-none focus:border-red-600 transition-colors"></textarea>
+                        </div>
+                    </div>
+                    <button onClick={handleSave} disabled={loading} className="mt-6 bg-red-600 text-white text-xs font-black px-8 py-3 rounded-lg w-full flex justify-center hover:bg-red-500 transition-all uppercase tracking-widest">
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Salvar Alterações'}
+                    </button>
+                </div>
             </div>
-            <button onClick={handleSave} disabled={loading} className="mt-8 bg-gradient-to-r from-red-700 to-red-500 text-white text-xs font-black px-8 py-4.5 rounded-lg w-full flex justify-center hover:opacity-90 transition-all uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)]">
-                {loading ? <Loader2 className="w-5 h-5 animate-spin"/> : 'Selar Identidade'}
-            </button>
-          </ShadowCard>
         )}
 
-        <div className="mb-12 bg-[#0a0a0c]/80 border border-white/5 rounded-xl p-6 md:p-8 backdrop-blur-md shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progresso Sombrio: {currentXp} XP</span>
-                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{xpNeeded} XP para Nível {level + 1}</span>
-            </div>
-            <div className="w-full h-2 bg-[#030305] rounded-full overflow-visible border border-white/10 relative">
-                 <div className="absolute top-1/2 -translate-y-1/2 left-0 h-[3px] bg-gradient-to-r from-red-900 via-red-500 to-rose-400 shadow-[0_0_20px_rgba(220,38,38,0.8)] transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }}>
-                     <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)]"></div>
-                 </div>
+        {/* PROGRESSO SOMBRIO */}
+        <div className="px-6 mt-6">
+            <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 shadow-lg">
+                <p className="text-gray-500 text-[9px] font-black uppercase tracking-widest mb-3">PROGRESSO SOMBRIO</p>
+                <div className="flex justify-between items-end mb-3">
+                    <span className="text-white font-black text-lg">{currentXp} XP</span>
+                    <span className="text-gray-500 text-[10px] font-bold"><span className="text-red-500 font-black">{xpNeeded} XP</span> para nível {level + 1}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 bg-white/5 rounded-full relative">
+                        <div className="absolute top-0 left-0 h-full bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]" style={{ width: `${progressPercent}%` }}></div>
+                        <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md" style={{ left: `calc(${progressPercent}% - 6px)` }}></div>
+                    </div>
+                    <span className="text-red-500 font-black text-xs">{progressPercent.toFixed(0)}%</span>
+                </div>
             </div>
         </div>
 
+        {/* CITAÇÃO (BIO) */}
+        {!isEditing && (
+            <div className="px-6 mt-4">
+                <div className="bg-gradient-to-r from-red-950/30 to-[#0a0a0c] border border-white/5 border-l-[3px] border-l-red-600 rounded-xl p-5 flex items-center justify-between shadow-lg">
+                    <div className="flex items-start gap-3">
+                        <span className="text-red-600 text-3xl font-serif leading-none mt-1">“</span>
+                        <p className="text-gray-300 text-sm italic font-medium pt-1">"{bio || `Leitor Nível ${level}.`}"</p>
+                    </div>
+                    <svg className="w-8 h-8 text-white/5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5Z" />
+                    </svg>
+                </div>
+            </div>
+        )}
+
         {/* MENU DE ABAS DO PERFIL */}
-        <div className="mb-8 border-b border-red-900/30">
-          <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar snap-x px-2">
-            {['Estatísticas', 'Emblemas', 'Inventário', 'Histórico', 'Configurações'].map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`snap-start px-4 pb-5 font-black transition-all duration-300 whitespace-nowrap text-[11px] sm:text-xs uppercase tracking-widest md:tracking-[0.2em] relative group
-              ${activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                {tab}
-                {activeTab === tab && (
-                    <div className="absolute bottom-[-1px] left-1/2 -translate-x-1/2 w-full h-[3px] bg-gradient-to-r from-transparent via-red-600 to-transparent rounded-t-full shadow-[0_0_15px_rgba(220,38,38,0.8)]"></div>
-                )}
-              </button>
-            ))}
-          </div>
+        <div className="px-6 mt-8 border-b border-white/10 flex gap-6 overflow-x-auto no-scrollbar">
+          {['ESTATÍSTICAS', 'EMBLEMAS', 'INVENTÁRIO', 'HISTÓRICO', 'CONFIGURAÇÕES'].map((tab) => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 font-black transition-all duration-300 whitespace-nowrap text-[10px] uppercase tracking-widest relative ${activeTab.toUpperCase() === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+              {tab}
+              {activeTab.toUpperCase() === tab && (
+                  <div className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]"></div>
+              )}
+            </button>
+          ))}
         </div>
         
         {/* ABA: ESTATÍSTICAS */}
-        {activeTab === "Estatísticas" && (
-          <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <Library className="w-8 h-8 text-amber-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-amber-500"/>
-                    <span className="text-4xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-6 h-6 animate-spin"/> : Object.keys(libraryData).length}</span>
-                    <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Obras Salvas</span>
-                </div>
-                <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <BookOpen className="w-8 h-8 text-red-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-red-500"/>
-                    <span className="text-4xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-6 h-6 animate-spin"/> : historyData.length}</span>
-                    <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Caps Lidos</span>
-                </div>
-                <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <Compass className="w-8 h-8 text-blue-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-blue-500"/>
-                    <span className="text-4xl font-black text-white mb-1">{!dataLoaded ? <Loader2 className="w-6 h-6 animate-spin"/> : obrasLidasIds.length}</span>
-                    <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Iniciadas</span>
-                </div>
-                <div className="bg-[#0a0a0c]/80 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-xl flex flex-col items-center justify-center shadow-lg hover:border-red-600/50 transition-colors group">
-                    <Zap className="w-8 h-8 text-rose-500/50 mb-3 group-hover:scale-110 transition-transform duration-300 group-hover:text-rose-500"/>
-                    <span className="text-4xl font-black text-white mb-1">{currentXp}</span>
-                    <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Poder Vital</span>
-                </div>
-            </div>
+        {activeTab.toUpperCase() === "ESTATÍSTICAS" && (
+          <div className="px-6 mt-6 grid grid-cols-2 gap-4 pb-20 animate-in fade-in duration-300">
+              {/* Obras Salvas */}
+              <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-amber-500/50 transition-colors">
+                  <div className="absolute inset-0 bg-[url('https://i.ibb.co/B2PkBMDX/file-00000000482871f5a7d7653e8ca359e3-removebg-preview.png')] bg-cover opacity-10 mix-blend-overlay"></div>
+                  <div className="w-10 h-10 rounded-full border border-amber-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                      <Library className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white relative z-10">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : Object.keys(libraryData).length}</h3>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1 relative z-10">Obras Salvas</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
+              </div>
+              
+              {/* Caps Lidos */}
+              <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-red-500/50 transition-colors">
+                  <div className="absolute inset-0 bg-[url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')] bg-cover opacity-10 mix-blend-overlay"></div>
+                  <div className="w-10 h-10 rounded-full border border-red-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                      <BookOpen className="w-5 h-5 text-red-500" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white relative z-10">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : historyData.length}</h3>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1 relative z-10">Caps Lidos</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
+              </div>
+              
+              {/* Iniciadas */}
+              <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-blue-500/50 transition-colors">
+                  <div className="absolute inset-0 bg-[url('https://i.ibb.co/cK3rLmhY/file-00000000a89471f5b61f4284cf8c9779-removebg-preview.png')] bg-cover opacity-10 mix-blend-overlay"></div>
+                  <div className="w-10 h-10 rounded-full border border-blue-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                      <Compass className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white relative z-10">{!dataLoaded ? <Loader2 className="w-5 h-5 animate-spin"/> : obrasLidasIds.length}</h3>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1 relative z-10">Iniciadas</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+              </div>
+              
+              {/* Poder Vital */}
+              <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-rose-500/50 transition-colors">
+                  <div className="absolute inset-0 bg-[url('https://i.ibb.co/VcF093w9/file-000000000a60720ea0dc89a96aeb27e0-removebg-preview.png')] bg-cover opacity-10 mix-blend-overlay"></div>
+                  <div className="w-10 h-10 rounded-full border border-rose-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
+                      <Zap className="w-5 h-5 text-rose-500" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white relative z-10">{currentXp}</h3>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1 relative z-10">Poder Vital</p>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
+              </div>
           </div>
         )}
 
         {/* ABA: EMBLEMAS */}
-        {activeTab === "Emblemas" && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+        {activeTab.toUpperCase() === "EMBLEMAS" && (
+            <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300">
                 <ShadowCard>
                   <div className="flex items-center gap-3 mb-8 border-b border-red-900/30 pb-5">
                     <Flame className="w-6 h-6 text-red-600 animate-pulse" />
@@ -360,8 +376,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         )}
 
         {/* ABA: INVENTÁRIO */}
-        {activeTab === "Inventário" && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+        {activeTab.toUpperCase() === "INVENTÁRIO" && (
+            <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300">
                 <ShadowCard>
                   <div className="flex items-center gap-3 mb-8 border-b border-red-900/30 pb-5">
                     <Box className="w-6 h-6 text-red-600" />
@@ -421,32 +437,34 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         )}
 
         {/* ABA: HISTÓRICO */}
-        {activeTab === "Histórico" && (
-            <ShadowCard className="animate-in fade-in slide-in-from-left-4 duration-300">
-                {visibleHistory.length === 0 ? (
-                    <div className="text-center py-16"><History className="w-12 h-12 mx-auto text-red-900/30 mb-4"/><p className="text-gray-500 text-xs font-black uppercase tracking-widest">As sombras não possuem registros.</p></div>
-                ) : (
-                   <div className="flex flex-col gap-4">
-                      {visibleHistory.slice(0, 15).map(hist => {
-                          const mg = mangas.find(m => m.id === hist.mangaId);
-                          return (
-                              <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#050505] border border-white/5 p-4 rounded-xl flex items-center gap-5 cursor-pointer hover:border-red-600/50 transition-all duration-300 group shadow-sm">
-                                  <div className="w-14 h-20 rounded-lg overflow-hidden bg-black flex-shrink-0 border border-red-900/30 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.3)]">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" /> : <BookOpen className="w-5 h-5 m-auto mt-7 text-red-900/50"/>}</div>
-                                  <div className="flex-1"><h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-red-500 transition-colors duration-300">{hist.mangaTitle}</h4><p className="text-red-600 font-black text-[10px] uppercase tracking-widest mt-1.5 bg-red-950/30 inline-block px-2 py-1 rounded-md border border-red-900/50">Capítulo {hist.chapterNumber}</p></div>
-                                  <p className="text-[9px] text-gray-500 font-bold uppercase hidden sm:block">{timeAgo(hist.timestamp)}</p>
-                                  <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-red-500 transition-colors duration-300" />
-                              </div>
-                          )
-                      })}
-                      <button onClick={() => setConfirmAction('history')} className="mt-8 w-full py-4 bg-[#050505] border border-red-900/50 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-red-950/40 hover:border-red-500 transition-colors duration-300 flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Limpar Registros Sombrios</button>
-                   </div>
-                )}
-            </ShadowCard>
+        {activeTab.toUpperCase() === "HISTÓRICO" && (
+            <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300">
+                <ShadowCard>
+                    {visibleHistory.length === 0 ? (
+                        <div className="text-center py-16"><History className="w-12 h-12 mx-auto text-red-900/30 mb-4"/><p className="text-gray-500 text-xs font-black uppercase tracking-widest">As sombras não possuem registros.</p></div>
+                    ) : (
+                       <div className="flex flex-col gap-4">
+                          {visibleHistory.slice(0, 15).map(hist => {
+                              const mg = mangas.find(m => m.id === hist.mangaId);
+                              return (
+                                  <div key={hist.id} onClick={() => { if(mg) onNavigate('details', mg); }} className="bg-[#050505] border border-white/5 p-4 rounded-xl flex items-center gap-5 cursor-pointer hover:border-red-600/50 transition-all duration-300 group shadow-sm">
+                                      <div className="w-14 h-20 rounded-lg overflow-hidden bg-black flex-shrink-0 border border-red-900/30 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.3)]">{mg ? <img src={mg.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" /> : <BookOpen className="w-5 h-5 m-auto mt-7 text-red-900/50"/>}</div>
+                                      <div className="flex-1"><h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-red-500 transition-colors duration-300">{hist.mangaTitle}</h4><p className="text-red-600 font-black text-[10px] uppercase tracking-widest mt-1.5 bg-red-950/30 inline-block px-2 py-1 rounded-md border border-red-900/50">Capítulo {hist.chapterNumber}</p></div>
+                                      <p className="text-[9px] text-gray-500 font-bold uppercase hidden sm:block">{timeAgo(hist.timestamp)}</p>
+                                      <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-red-500 transition-colors duration-300" />
+                                  </div>
+                              )
+                          })}
+                          <button onClick={() => setConfirmAction('history')} className="mt-8 w-full py-4 bg-[#050505] border border-red-900/50 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-red-950/40 hover:border-red-500 transition-colors duration-300 flex justify-center items-center gap-2"><Trash2 className="w-4 h-4"/> Limpar Registros Sombrios</button>
+                       </div>
+                    )}
+                </ShadowCard>
+            </div>
         )}
 
         {/* ABA: CONFIGURAÇÕES */}
-        {activeTab === "Configurações" && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300 space-y-6">
+        {activeTab.toUpperCase() === "CONFIGURAÇÕES" && (
+            <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300 space-y-6">
                 <ShadowCard>
                   <h3 className="text-xl font-black text-white mb-8 uppercase tracking-tight flex items-center gap-3"><Settings className="w-5 h-5 text-red-500"/> Preferências Kage</h3>
                   <div className="flex items-center justify-between mb-8 pb-8 border-b border-white/5">
