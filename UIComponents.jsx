@@ -10,6 +10,8 @@ export const KageLogo = React.memo(({ className = "w-64 h-64", showContour = fal
       <img 
         src="https://i.ibb.co/gF4zyvkk/Gemini-Generated-Image-gj2yhugj2yhugj2y-removebg-preview.png" 
         alt="Mangakage Mascot" 
+        loading="eager"
+        fetchPriority="high"
         className="relative z-10 w-full h-full object-contain drop-shadow-[0_5px_15px_rgba(220,38,38,0.4)]"
       />
     </div>
@@ -22,19 +24,12 @@ export const SplashScreen = React.memo(() => {
   
   return (
     <div className={`fixed inset-0 z-[9999] bg-[#050505] flex items-center justify-center font-sans transition-opacity duration-700 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-      <style>{`
-        body, html { background-color: #050505 !important; }
-        .bg-opening-custom {
-            background-image: url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png');
-            background-size: cover;
-            background-position: center;
-        }
-      `}</style>
+      <style>{`body, html { background-color: #050505 !important; }`}</style>
       
-      {/* FUNDO DA ABERTURA SINCRONIZADO */}
-      <div className="absolute inset-0 bg-opening-custom">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#050505]"></div>
-          <div className="absolute inset-0 bg-black/40"></div>
+      {/* FUNDO CSS RÁPIDO AO INVÉS DE IMAGEM PESADA */}
+      <div className="absolute inset-0 bg-[#050505]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.15)_0%,transparent_60%)]"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
       </div>
 
       <div className={`transition-all duration-1000 ease-out z-10 flex flex-col items-center ${fade ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4 opacity-0'}`}>
