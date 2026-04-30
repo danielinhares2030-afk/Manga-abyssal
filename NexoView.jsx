@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, ShoppingCart, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight } from 'lucide-react';
+import { Target, Hexagon, ShoppingCart, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle } from 'lucide-react';
 import { doc, updateDoc, collectionGroup, getDocs, query, deleteDoc } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { auth, db } from './firebase';
-import { addXpLogic, removeXpLogic, getLevelTitle, getRarityColor, cleanCosmeticUrl } from './helpers';
+import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
 import { APP_ID } from './constants';
 
 export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems, buyItem }) {
-    const [activeTab, setActiveTab] = useState("Ranking");
+    const [activeTab, setActiveTab] = useState("Loja");
     const [enigmaAnswer, setEnigmaAnswer] = useState("");
     const [timeLeft, setTimeLeft] = useState("");
     const [confirmModal, setConfirmModal] = useState(null); 
-    const [isForgingMission, setIsForgingMission] = useState(false); 
+    const [isForgingMissionAnim, setIsForgingMissionAnim] = useState(false); 
     const [synthesizing, setSynthesizing] = useState(false);
     const [rankingList, setRankingList] = useState([]);
     const [loadingRank, setLoadingRank] = useState(false);
     const [shopCategory, setShopCategory] = useState('avatar');
     
-    // ESTADO: Controla a animação de morte permanente
     const [isErased, setIsErased] = useState(false);
 
     const rankConfigs = {
@@ -74,8 +73,12 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     }, [userProfileData.activeMission]);
 
     const triggerForgeMission = async (difficulty) => {
-        setConfirmModal(null); setIsForgingMission(true);
-        setTimeout(() => { generateMission(difficulty); }, 1500); 
+        setConfirmModal(null); 
+        setIsForgingMissionAnim(true);
+        setTimeout(() => { 
+            generateMission(difficulty); 
+            setIsForgingMissionAnim(false);
+        }, 2500); 
     };
 
     const generateMission = async (difficulty) => {
@@ -149,7 +152,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     showToast(`Pacto Formado. A contagem regressiva começou.`, "success");
                 }
             }
-        } catch(e) { showToast("Colapso ao forjar contrato.", "error"); } finally { setIsForgingMission(false); }
+        } catch(e) { showToast("Colapso ao forjar contrato.", "error"); }
     };
 
     const handleEnigmaSubmit = async (e) => {
@@ -212,11 +215,30 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         ));
     };
 
+    // Cores exatas e estilos idênticos à imagem solicitada
+    const getCardRarityColors = (rarity) => {
+        const r = (rarity || '').toUpperCase();
+        if (r === 'LENDÁRIO') return { bg: 'bg-[#0f0f0f]', border: 'border-yellow-600', text: 'text-yellow-500', glow: 'shadow-[0_0_15px_rgba(202,138,4,0.1)]' };
+        if (r === 'ÉPICO') return { bg: 'bg-[#0f0f0f]', border: 'border-purple-600', text: 'text-purple-500', glow: 'shadow-[0_0_15px_rgba(147,51,234,0.1)]' };
+        if (r === 'RARO') return { bg: 'bg-[#0f0f0f]', border: 'border-blue-600', text: 'text-blue-500', glow: 'shadow-[0_0_15px_rgba(37,99,235,0.1)]' };
+        return { bg: 'bg-[#0f0f0f]', border: 'border-gray-500', text: 'text-gray-400', glow: '' };
+    };
+
     const equipped = userProfileData.equipped_items || {};
 
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
+            {/* ANIMAÇÃO DA FORJA DA MISSÃO */}
+            {isForgingMissionAnim && (
+                <div className="fixed inset-0 z-[9999] bg-[#020202] flex flex-col items-center justify-center overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.2)_0%,transparent_60%)] animate-pulse"></div>
+                    <Hexagon className="w-48 h-48 text-red-600 animate-[spin_2s_linear_infinite]" strokeWidth={1} />
+                    <Flame className="absolute w-24 h-24 text-red-500 animate-bounce drop-shadow-[0_0_20px_rgba(220,38,38,1)]" />
+                    <h2 className="mt-8 text-2xl font-black text-red-500 uppercase tracking-[0.3em] animate-pulse drop-shadow-md">Forjando Pacto...</h2>
+                </div>
+            )}
+
             {isErased && (
                 <div className="fixed inset-0 z-[99999] bg-[#000000] flex flex-col items-center justify-center overflow-hidden">
                     <style>{`
@@ -224,15 +246,11 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         .animate-glitch { animation: glitch-severe 0.15s linear infinite; }
                     `}</style>
                     <div className="absolute inset-0 bg-red-900/30 animate-pulse mix-blend-overlay"></div>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-50 mix-blend-screen animate-pulse"></div>
                     <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-                    
                     <Skull className="w-32 h-32 md:w-48 md:h-48 text-red-600 mb-8 animate-glitch relative z-20 drop-shadow-[0_0_50px_rgba(220,38,38,1)]" />
-                    
                     <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-red-600 uppercase tracking-widest animate-glitch relative z-20 text-center px-4 leading-tight w-full drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">
                         Conta Desintegrada
                     </h1>
-                    
                     <p className="text-white tracking-[0.5em] mt-6 uppercase font-bold text-[10px] md:text-xs relative z-20 bg-black/50 px-4 py-2 border border-red-900/50">Você falhou no Julgamento Kage</p>
                 </div>
             )}
@@ -336,7 +354,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5 relative z-10">
                                     <div className="flex gap-6 text-[10px] font-black uppercase tracking-widest bg-[#0a0a0c] px-4 py-2 border border-white/5">
                                         <span className="text-white flex items-center gap-2"><Sparkles className="w-3 h-3 text-white"/> +{userProfileData.activeMission.rewardXp} XP</span>
-                                        <span className="text-amber-500 flex items-center gap-2"><div className="w-2 h-2 bg-amber-500 rounded-full"></div> +{userProfileData.activeMission.rewardCoins} M</span>
+                                        <span className="text-amber-500 flex items-center gap-2"><div className="w-2 h-2 bg-amber-500 rotate-45 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div> +{userProfileData.activeMission.rewardCoins} M</span>
                                     </div>
                                     
                                     <div className="flex gap-4 w-full sm:w-auto">
@@ -404,7 +422,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                 )}
 
-                {/* FORJA */}
                 {activeTab === "Forja" && (
                     <div className="animate-in fade-in duration-300 max-w-2xl mx-auto mt-4 relative z-10">
                         <div className="bg-[#050505] border border-red-600/30 p-10 md:p-14 text-center relative overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.15)] rounded-tl-3xl rounded-br-3xl">
@@ -434,28 +451,41 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                 )}
 
-                {/* LOJA */}
+                {/* LOJA IDÊNTICA À IMAGEM */}
                 {activeTab === "Loja" && (
                     <div className="animate-in fade-in duration-300 max-w-6xl mx-auto">
-                        <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 bg-[#050505] p-6 border-l-[4px] border-red-600 border-t border-b border-r border-white/5 shadow-lg">
-                            <div className="text-center sm:text-left">
-                                <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Mercado <span className="text-red-600">Sombrio</span></h3>
-                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Adquira anomalias visuais para o seu Perfil.</p>
-                            </div>
-                            <div className="bg-[#0a0a0c] px-6 py-3 border border-amber-500/30 text-amber-500 font-black text-lg flex items-center gap-3 shadow-[inset_0_0_10px_rgba(245,158,11,0.1)]">
-                                <div className="w-3 h-3 bg-amber-500 rotate-45"></div> {userProfileData.coins || 0}
+                        
+                        {/* BANNER PRINCIPAL DA LOJA */}
+                        <div className="relative border border-red-600/50 rounded-2xl p-6 md:p-10 mb-8 overflow-hidden bg-[#050000]">
+                            <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-cover bg-center" style={{ backgroundImage: "url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')" }}></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+                            
+                            <div className="relative z-10">
+                                <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">MERCADO<br/><span className="text-red-600">SOMBRIO</span></h2>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-3 mb-6 max-w-xs">Adquira anomalias visuais para o seu perfil.</p>
+                                
+                                <div className="inline-flex flex-col items-center justify-center border border-amber-500/30 bg-[#0a0a0c]/80 backdrop-blur-md px-8 py-3 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                                    <div className="flex items-center gap-3 text-2xl font-black text-amber-500">
+                                        <div className="w-4 h-4 bg-amber-500 rotate-45 shadow-[0_0_10px_rgba(245,158,11,0.8)]"></div> {userProfileData.coins || 0}
+                                    </div>
+                                    <span className="text-[8px] text-amber-500/70 font-black uppercase tracking-[0.2em] mt-1">Suas Sombras</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-2 snap-x">
-                            {[ {id:'avatar', label:'Avatares'}, {id:'capa_fundo', label:'Paredes de Fundo'}, {id:'moldura', label:'Auras (Molduras)'}, {id:'nickname', label:'Selos de Nome'} ].map(cat => (
-                                <button key={cat.id} onClick={() => setShopCategory(cat.id)} className={`flex-shrink-0 px-6 py-2.5 font-black text-[9px] uppercase tracking-widest transition-all border transform skew-x-[-15deg] ${ shopCategory === cat.id ? 'bg-red-600 border-transparent text-white' : 'bg-[#050505] border-white/5 text-gray-500 hover:text-white' }`}>
-                                    <div className="skew-x-[15deg]">{cat.label}</div>
+                        {/* TABS DE CATEGORIAS ESTILIZADAS */}
+                        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 px-1">
+                            {[ {id:'avatar', label:'Avatares', icon: User}, {id:'capa_fundo', label:'Paredes de Fundo', icon: Image}, {id:'moldura', label:'Auras (Molduras)', icon: Circle} ].map(cat => (
+                                <button key={cat.id} onClick={() => setShopCategory(cat.id)} className={`flex items-center gap-2 px-6 py-3 font-black text-xs uppercase tracking-widest transition-all skew-x-[-10deg] border ${ shopCategory === cat.id ? 'bg-gradient-to-r from-red-600 to-red-800 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-[#0a0a0c] border-white/10 text-gray-500 hover:text-white hover:bg-white/5' }`}>
+                                    <div className="skew-x-[10deg] flex items-center gap-2 whitespace-nowrap">
+                                        <cat.icon className="w-4 h-4" /> {cat.label}
+                                    </div>
                                 </button>
                             ))}
                         </div>
                           
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {/* GRID DE ITENS (ESTILO CARTÃO COM BORDA DE RARIDADE) */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                             {shopItems.filter(item => {
                                 const cat = (item.categoria || item.type || '').toLowerCase();
                                 if (shopCategory === 'capa_fundo') return cat === 'capa_fundo' || cat === 'capa';
@@ -463,29 +493,30 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                             }).map(item => {
                               const hasItem = userProfileData.inventory?.includes(item.id);
                               const cat = (item.categoria || item.type || '').toLowerCase();
+                              const rStyle = getCardRarityColors(item.raridade);
 
                               return (
-                                <div key={item.id} className="bg-[#050505] border border-white/5 p-4 flex flex-col items-center text-center hover:border-red-600/40 transition-all relative group rounded-tl-xl rounded-br-xl shadow-lg">
+                                <div key={item.id} className={`bg-[#050505] border rounded-xl p-5 flex flex-col items-center relative overflow-hidden transition-all group ${rStyle.border} ${rStyle.glow}`}>
                                   {(item.css || item.animacao) && ( <style dangerouslySetInnerHTML={{__html: `.${item.cssClass} { ${item.css} } ${item.animacao || ''}`}} /> )}
                                   
-                                  <div className={`absolute top-0 left-0 text-[6px] font-black px-2 py-1 uppercase tracking-widest border-b border-r bg-[#0a0a0c] ${getRarityColor(item.raridade).replace('text-', 'border-').replace('text-', 'text-')}`}>
+                                  {/* TAG RARIDADE NO CANTO */}
+                                  <div className={`absolute top-0 left-0 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-br-xl border-b border-r ${rStyle.border} ${rStyle.text} ${rStyle.bg}`}>
                                       {item.raridade || 'COMUM'}
                                   </div>
 
-                                  <div className={`w-24 h-24 mt-4 mb-4 bg-[#0a0a0c] flex items-center justify-center overflow-hidden border border-white/5 relative flex-shrink-0 ${cat === 'avatar' ? item.cssClass : ''}`}>
-                                    {['capa_fundo', 'capa'].includes(cat) && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700" /> )}
+                                  <div className={`w-28 h-28 mt-8 mb-5 rounded-full flex items-center justify-center overflow-hidden border ${rStyle.border} relative flex-shrink-0 bg-[#0a0a0c] shadow-inner group-hover:scale-105 transition-transform ${cat === 'avatar' ? item.cssClass : ''}`}>
+                                    {['capa_fundo', 'capa'].includes(cat) && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="w-full h-full object-cover opacity-80" /> )}
                                     {cat === 'moldura' && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none scale-[1.15]" style={{ mixBlendMode: 'screen' }} /> )}
-                                    {cat === 'avatar' && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="w-full h-full object-cover relative z-10 group-hover:scale-110 transition-transform duration-500" /> )}
-                                    {cat === 'nickname' && ( <div className={`font-black text-base z-20 ${item.cssClass}`}>Kage</div> )}
+                                    {cat === 'avatar' && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="w-full h-full object-cover relative z-10" /> )}
                                   </div>
                                   
-                                  <h4 className="text-gray-300 font-black mb-4 text-[10px] uppercase tracking-widest line-clamp-1 w-full">{item.nome || item.name}</h4>
+                                  <h4 className="text-white font-black mb-4 text-sm uppercase tracking-widest line-clamp-1 w-full text-center">{item.nome || item.name}</h4>
                                   
                                   {hasItem ? (
-                                    <button disabled className="w-full bg-[#0a0a0c] border border-white/5 text-gray-700 font-black py-2.5 text-[8px] uppercase tracking-widest cursor-not-allowed">No Inventário</button>
+                                    <button disabled className="w-full bg-[#0a0a0c] border border-white/5 text-gray-700 font-black py-3 rounded-lg text-[9px] uppercase tracking-widest cursor-not-allowed">Adquirido</button>
                                   ) : (
-                                    <button onClick={() => buyItem(item)} className="w-full bg-transparent border border-amber-600/50 text-amber-500 hover:bg-amber-600 hover:text-black font-black py-2.5 text-[9px] uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
-                                        Adquirir <div className="w-1.5 h-1.5 bg-current rotate-45"></div> {item.preco}
+                                    <button onClick={() => buyItem(item)} className={`w-full bg-transparent border ${rStyle.border} ${rStyle.text} hover:bg-white/5 font-black py-3 rounded-lg text-[10px] uppercase tracking-widest transition-colors flex items-center justify-center gap-2`}>
+                                        ADQUIRIR <div className={`w-2 h-2 ${rStyle.bg} rotate-45 ${rStyle.border} border`}></div> {item.preco}
                                     </button>
                                   )}
                                 </div>
@@ -495,10 +526,8 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                 )}
 
-                {/* RANKING (DESIGN REFORMULADO IDÊNTICO À IMAGEM) */}
                 {activeTab === "Ranking" && (
                     <div className="animate-in fade-in duration-300 max-w-4xl mx-auto pb-10">
-                        {/* Header */}
                         <div className="flex justify-between items-end mb-10 border-b border-red-900/30 pb-4">
                             <div>
                                 <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
@@ -518,9 +547,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                             <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 text-red-600 animate-spin"/></div>
                         ) : (
                             <>
-                                {/* PODIUM TOP 3 */}
                                 <div className="flex justify-center items-end gap-2 md:gap-4 mb-10 mt-8">
-                                    {/* 2nd Place */}
                                     {rankingList[1] && (
                                         <div className="w-[30%] max-w-[160px] bg-gradient-to-b from-[#1a1a1a] to-[#050505] rounded-t-2xl border-t-[3px] border-gray-400 p-4 relative flex flex-col items-center shadow-[0_-10px_30px_rgba(156,163,175,0.15)] order-1">
                                             <Crown className="absolute -top-6 w-8 h-8 text-gray-300 drop-shadow-[0_0_10px_rgba(209,213,219,0.8)]" />
@@ -535,7 +562,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                             <div className="text-[8px] text-gray-500 font-bold mt-1">{rankingList[1].xp} / {(rankingList[1].level || 1) * 100} XP</div>
                                         </div>
                                     )}
-                                    {/* 1st Place */}
                                     {rankingList[0] && (
                                         <div className="w-[35%] max-w-[190px] bg-gradient-to-b from-[#2a1b00] to-[#050505] rounded-t-2xl border-t-[4px] border-yellow-500 p-5 relative flex flex-col items-center shadow-[0_-15px_40px_rgba(234,179,8,0.25)] order-2 z-10 transform scale-110 mb-2">
                                             <Crown className="absolute -top-8 w-10 h-10 text-yellow-400 fill-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,1)]" />
@@ -550,7 +576,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                             <div className="text-[9px] text-yellow-600 font-bold mt-1.5">{rankingList[0].xp} / {(rankingList[0].level || 1) * 100} XP</div>
                                         </div>
                                     )}
-                                    {/* 3rd Place */}
                                     {rankingList[2] && (
                                         <div className="w-[30%] max-w-[160px] bg-gradient-to-b from-[#2a1305] to-[#050505] rounded-t-2xl border-t-[3px] border-amber-700 p-4 relative flex flex-col items-center shadow-[0_-10px_30px_rgba(180,83,9,0.15)] order-3">
                                             <Crown className="absolute -top-6 w-8 h-8 text-amber-600 drop-shadow-[0_0_10px_rgba(217,119,6,0.8)]" />
@@ -567,7 +592,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     )}
                                 </div>
 
-                                {/* LISTA RESTANTE (4+) */}
                                 <div className="flex flex-col gap-3">
                                     {rankingList.slice(3).map((player, idx) => (
                                         <div key={player.id} className="bg-[#050505] border border-red-900/30 hover:border-red-600/50 rounded-2xl p-4 flex items-center gap-4 shadow-lg transition-colors group">
@@ -593,7 +617,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                                 <div className="bg-transparent border border-white/10 px-3 py-1.5 rounded-lg text-white font-black text-[9px] uppercase tracking-widest hidden sm:block">
                                                     NV. {player.level}
                                                 </div>
-                                                <svg className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors hidden sm:block" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
                                                 <ChevronRight className="w-5 h-5 text-red-900 group-hover:text-red-500 transition-colors" />
                                             </div>
                                         </div>
