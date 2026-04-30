@@ -173,7 +173,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
       )}
 
-      {/* HEADER CAPA (Idêntico a imagem) */}
       <div className="w-full h-[250px] relative group overflow-hidden bg-black z-0">
         {cleanCosmeticUrl(eq.capa_fundo?.preview) ? ( 
             <img src={cleanCosmeticUrl(eq.capa_fundo.preview)} className={`w-full h-full object-cover object-center opacity-70 mix-blend-screen ${eq.capa_fundo.cssClass || ''}`} /> 
@@ -185,15 +184,16 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
         
-        <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/50 border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] text-white font-bold uppercase tracking-widest hover:bg-white/10 transition-colors z-10">
-            <Camera className="w-4 h-4" /> Alterar capa
-        </button>
+        {/* CORREÇÃO DO BOTÃO "ALTERAR CAPA" */}
+        {isEditing && (
+            <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/50 border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] text-white font-bold uppercase tracking-widest hover:bg-white/10 transition-colors z-10">
+                <Camera className="w-4 h-4" /> Alterar capa
+            </button>
+        )}
         <input type="file" accept="image/*" ref={coverInputRef} className="hidden" onChange={(e) => handleImageUpload(e, 'cover')} />
       </div>
 
       <div className="max-w-6xl mx-auto">
-        
-        {/* AVATAR E INFO (Idêntico a imagem) */}
         <div className="px-6 relative z-10 -mt-20 flex gap-5">
             <div className="relative flex-shrink-0">
                 <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-red-600 bg-black p-1 shadow-[0_0_20px_rgba(220,38,38,0.5)] flex items-center justify-center overflow-hidden relative ${(!eq.moldura?.preview && eq.moldura) ? eq.moldura.cssClass : ''}`}>
@@ -223,7 +223,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         </div>
 
-        {/* TROFÉUS E BOTÕES (Idêntico a imagem) */}
         <div className="px-6 mt-4 relative z-10">
             <div className="inline-flex items-center gap-2 border border-amber-600/50 bg-amber-950/20 px-3 py-1.5 rounded-lg mb-4">
                 <Trophy className="w-3 h-3 text-amber-500" />
@@ -235,7 +234,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                     <Edit3 className="w-4 h-4" /> {isEditing ? 'Selar Perfil' : 'Editar perfil'}
                 </button>
                 <button onClick={onLogout} className="bg-transparent border border-white/10 text-gray-400 p-2.5 rounded-xl hover:bg-white/5 transition-colors">
-                    {/* Usando LogOut já que é mais viável no perfil, imitando a curvinha */}
                     <LogOut className="w-5 h-5 rotate-180" />
                 </button>
             </div>
@@ -261,7 +259,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         )}
 
-        {/* PROGRESSO SOMBRIO */}
         <div className="px-6 mt-6">
             <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 shadow-lg">
                 <p className="text-gray-500 text-[9px] font-black uppercase tracking-widest mb-3">PROGRESSO SOMBRIO</p>
@@ -279,7 +276,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         </div>
 
-        {/* CITAÇÃO (BIO) */}
         {!isEditing && (
             <div className="px-6 mt-4">
                 <div className="bg-gradient-to-r from-red-950/30 to-[#0a0a0c] border border-white/5 border-l-[3px] border-l-red-600 rounded-xl p-5 flex items-center justify-between shadow-lg">
@@ -294,7 +290,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         )}
 
-        {/* MENU DE ABAS DO PERFIL */}
         <div className="px-6 mt-8 border-b border-white/10 flex gap-6 overflow-x-auto no-scrollbar">
           {['ESTATÍSTICAS', 'EMBLEMAS', 'INVENTÁRIO', 'HISTÓRICO', 'CONFIGURAÇÕES'].map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 font-black transition-all duration-300 whitespace-nowrap text-[10px] uppercase tracking-widest relative ${activeTab.toUpperCase() === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>
@@ -306,10 +301,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           ))}
         </div>
         
-        {/* ABA: ESTATÍSTICAS */}
         {activeTab.toUpperCase() === "ESTATÍSTICAS" && (
           <div className="px-6 mt-6 grid grid-cols-2 gap-4 pb-20 animate-in fade-in duration-300">
-              {/* Obras Salvas */}
               <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-amber-500/50 transition-colors">
                   <div className="absolute inset-0 bg-[url('https://i.ibb.co/B2PkBMDX/file-00000000482871f5a7d7653e8ca359e3-removebg-preview.png')] bg-cover opacity-10 mix-blend-overlay"></div>
                   <div className="w-10 h-10 rounded-full border border-amber-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
@@ -320,9 +313,8 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
               </div>
               
-              {/* Caps Lidos */}
               <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-red-500/50 transition-colors">
-                  <div className="absolute inset-0 bg-[url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')] bg-cover opacity-10 mix-blend-overlay"></div>
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/20 via-[#0a0a0c] to-[#0a0a0c] opacity-50 mix-blend-overlay"></div>
                   <div className="w-10 h-10 rounded-full border border-red-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                       <BookOpen className="w-5 h-5 text-red-500" />
                   </div>
@@ -331,7 +323,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
               </div>
               
-              {/* Iniciadas */}
               <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-blue-500/50 transition-colors">
                   <div className="absolute inset-0 bg-[url('https://i.ibb.co/cK3rLmhY/file-00000000a89471f5b61f4284cf8c9779-removebg-preview.png')] bg-cover opacity-10 mix-blend-overlay"></div>
                   <div className="w-10 h-10 rounded-full border border-blue-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
@@ -342,7 +333,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
               </div>
               
-              {/* Poder Vital */}
               <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-5 relative overflow-hidden group hover:border-rose-500/50 transition-colors">
                   <div className="absolute inset-0 bg-[url('https://i.ibb.co/VcF093w9/file-000000000a60720ea0dc89a96aeb27e0-removebg-preview.png')] bg-cover opacity-10 mix-blend-overlay"></div>
                   <div className="w-10 h-10 rounded-full border border-rose-500/30 flex items-center justify-center mb-4 relative z-10 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
@@ -355,7 +345,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
           </div>
         )}
 
-        {/* ABA: EMBLEMAS */}
         {activeTab.toUpperCase() === "EMBLEMAS" && (
             <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300">
                 <ShadowCard>
@@ -375,7 +364,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         )}
 
-        {/* ABA: INVENTÁRIO */}
         {activeTab.toUpperCase() === "INVENTÁRIO" && (
             <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300">
                 <ShadowCard>
@@ -436,7 +424,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         )}
 
-        {/* ABA: HISTÓRICO */}
         {activeTab.toUpperCase() === "HISTÓRICO" && (
             <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300">
                 <ShadowCard>
@@ -462,7 +449,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             </div>
         )}
 
-        {/* ABA: CONFIGURAÇÕES */}
         {activeTab.toUpperCase() === "CONFIGURAÇÕES" && (
             <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300 space-y-6">
                 <ShadowCard>
