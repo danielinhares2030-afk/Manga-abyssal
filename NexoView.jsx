@@ -85,23 +85,20 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         try {
             const now = Date.now();
             
+            // MISSÃO DE MORTE PERMANENTE MODIFICADA E EXTREMAMENTE DIFÍCIL
             if (difficulty === 'ABSOLUTO') {
-                if (!mangas || mangas.length < 5) return showToast("Falta conhecimento para o julgamento.", "error");
+                if (!mangas || mangas.length < 1) return showToast("Falta conhecimento para o julgamento.", "error");
                 
                 let shuffled = [...mangas].sort(() => 0.5 - Math.random());
-                let targets = shuffled.slice(0, 5);
+                // Tenta achar um manga que tenha uma sinopse grande o suficiente pra pegar do meio
+                let target = shuffled.find(m => m.synopsis && m.synopsis.length > 80) || shuffled[0];
                 
-                let finalQuestion = `[ JULGAMENTO KAGE ]\n\nDesvende as 5 Obras Exatas na Ordem (separadas por vírgula):\n\n`;
-                let answers = [];
+                // Pega 50 caracteres do MEIO da sinopse, removendo o título original se houver
+                let midPoint = Math.floor((target.synopsis?.length || 0) / 3);
+                let cleanDesc = target.synopsis ? target.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(target.title, 'gi'), '█████').substring(midPoint, midPoint + 50) : "Sem registros astrais desta obra.";
                 
-                targets.forEach((m, index) => {
-                    let cleanDesc = m.synopsis ? m.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(m.title, 'gi'), '█████').substring(0, 120) : "Sem registros astrais desta obra.";
-                    finalQuestion += `${index + 1}. Gêneros: ${m.genres?.join(', ') || 'Nenhum'}\nFragmento Obscuro: "${cleanDesc}..."\n\n`;
-                    answers.push(m.title.toLowerCase().trim());
-                });
-
-                finalQuestion += `AVISO CRÍTICO: Falhar resultará na desintegração irreversível da sua conta.`;
-                let finalAnswer = answers.join(', ');
+                let finalQuestion = `[ JULGAMENTO ABSOLUTO ]\n\nGêneros: ${target.genres?.join(', ') || 'Nenhum'}\n\nFragmento: "...${cleanDesc}..."\n\nQual é a obra?`;
+                let finalAnswer = target.title.toLowerCase().trim();
 
                 let newMission = { id: Date.now().toString(), type: 'permadeath', difficulty: 'ABSOLUTO', title: "Julgamento Kage", question: finalQuestion, answer: [finalAnswer], rewardXp: 5000, rewardCoins: 3000, deadline: now + (15 * 60 * 1000) };
                 await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: newMission });
@@ -132,7 +129,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     const authorStr = (randomManga.author || "").toLowerCase();
                     
                     if (authorStr && authorStr !== "" && !authorStr.includes("desconhecid")) {
-                        q = `[ ENIGMA DO VAZIO ]\n\nA mente por trás desta criação é: ${randomManga.author}.\n\nQual é a obra?`;
+                        q = `[ ENIGMA DO VAZIO ]\n\nA mente por trás desta criação é:\n${randomManga.author}.\n\nQual é a obra?`;
                     } else if (randomManga.genres && randomManga.genres.length > 0 && randomManga.synopsis) {
                         let cleanDesc = randomManga.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(randomManga.title, 'gi'), '█████');
                         q = `[ ENIGMA DO VAZIO ]\n\nGêneros: ${randomManga.genres.join(', ')}\n\nRelato: "${cleanDesc.substring(0, conf.charLimit)}..."\n\nQual é a obra?`;
@@ -165,14 +162,19 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: (userProfileData.coins || 0) + m.rewardCoins, xp: newXp, level: newLvl, activeMission: null });
                showToast("Julgamento Superado. Você transcendeu.", "success"); if(didLevelUp) onLevelUp(newLvl);
             } else {
-               setIsErased(true);
-               setTimeout(async () => {
+               // CHANCE DE SALVAÇÃO (15%)
+               const salvationChance = Math.random();
+               if (salvationChance < 0.15) {
+                   await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: null });
+                   showToast("Você errou. Mas o Espectro achou sua ignorância tão patética que sentiu pena. Sua conta foi poupada... desta vez.", "info");
+               } else {
+                   setIsErased(true);
                    try {
                        await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'));
-                       await deleteUser(auth.currentUser);
-                       window.location.reload(); 
-                   } catch(err) { console.error(err); window.location.reload(); }
-               }, 4500); 
+                       if (auth.currentUser) await deleteUser(auth.currentUser);
+                   } catch(err) { console.error(err); }
+                   setTimeout(() => { auth.signOut(); window.location.reload(); }, 4500); 
+               }
             }
             return;
         }
@@ -206,16 +208,16 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }, 1500);
     };
 
+    // UI DAS CAIXAS DE ENIGMA ALTERADA IGUAL À IMAGEM
     const renderMissionText = (text) => {
         if (!text) return null;
         return text.split('\n\n').map((block, i) => (
-            <div key={i} className={`bg-black/50 border-l-[3px] border-red-600 p-4 mb-3 rounded-r-lg shadow-sm ${i === 0 ? 'bg-red-900/20 border-red-500' : ''}`}>
+            <div key={i} className="bg-[#0a0a0c] border-l-[3px] border-red-600 p-4 mb-3 rounded-r-lg shadow-sm">
                 <p className="text-gray-300 text-xs md:text-sm font-bold leading-relaxed whitespace-pre-wrap">{block}</p>
             </div>
         ));
     };
 
-    // Cores exatas e estilos idênticos à imagem solicitada
     const getCardRarityColors = (rarity) => {
         const r = (rarity || '').toUpperCase();
         if (r === 'LENDÁRIO') return { bg: 'bg-[#0f0f0f]', border: 'border-yellow-600', text: 'text-yellow-500', glow: 'shadow-[0_0_15px_rgba(202,138,4,0.1)]' };
@@ -229,13 +231,14 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
-            {/* ANIMAÇÃO DA FORJA DA MISSÃO */}
+            {/* ANIMAÇÃO DA FORJA DA MISSÃO (ALTERADA) */}
             {isForgingMissionAnim && (
-                <div className="fixed inset-0 z-[9999] bg-[#020202] flex flex-col items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.2)_0%,transparent_60%)] animate-pulse"></div>
-                    <Hexagon className="w-48 h-48 text-red-600 animate-[spin_2s_linear_infinite]" strokeWidth={1} />
-                    <Flame className="absolute w-24 h-24 text-red-500 animate-bounce drop-shadow-[0_0_20px_rgba(220,38,38,1)]" />
-                    <h2 className="mt-8 text-2xl font-black text-red-500 uppercase tracking-[0.3em] animate-pulse drop-shadow-md">Forjando Pacto...</h2>
+                <div className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center overflow-hidden">
+                    <div className="relative flex items-center justify-center mb-8">
+                        <Hexagon className="w-40 h-40 text-red-600" strokeWidth={1.5} />
+                        <Flame className="absolute w-16 h-16 text-red-600 animate-pulse drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]" strokeWidth={1.5} />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-red-600/90 uppercase tracking-[0.4em] drop-shadow-md">Forjando Pacto...</h2>
                 </div>
             )}
 
@@ -268,7 +271,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         <div className={`bg-[#050000] border border-red-600 p-8 shadow-[0_0_50px_rgba(220,38,38,0.8)] max-w-sm w-full text-center relative overflow-hidden`} onClick={e => e.stopPropagation()}>
                             <Skull className="w-16 h-16 text-red-600 mx-auto mb-4 animate-pulse relative z-10" />
                             <h3 className="text-2xl font-black text-red-500 mb-2 uppercase tracking-widest relative z-10">Pacto de Sangue</h3>
-                            <p className="text-[10px] text-gray-400 font-bold mb-8 uppercase tracking-[0.2em] relative z-10">Se você errar a resposta final, <b className="text-red-500">sua conta será excluída permanentemente</b> do banco de dados.</p>
+                            <p className="text-[10px] text-gray-400 font-bold mb-8 uppercase tracking-[0.2em] relative z-10">Se você errar a resposta final, <b className="text-red-500">sua conta será excluída permanentemente</b> do banco de dados. Só um milagre pode te salvar.</p>
                             <div className="flex gap-4 relative z-10">
                                 <button onClick={() => setConfirmModal(null)} className="flex-1 bg-black border border-white/10 hover:border-white/30 text-gray-300 font-black py-3 text-[10px] uppercase tracking-widest transition-all">Recuar</button>
                                 <button onClick={() => triggerForgeMission('ABSOLUTO')} className="flex-1 bg-red-900 border border-red-500 hover:bg-red-600 text-white font-black py-3 text-[10px] uppercase tracking-widest transition-all">Aceitar Morte</button>
@@ -326,7 +329,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     </div>
                                 </div>
 
-                                <div className="bg-[#0a0a0c] border border-white/5 p-6 md:p-8 mb-8 relative z-10 shadow-inner">
+                                <div className="bg-[#050505] p-2 md:p-6 mb-8 relative z-10">
                                     <div className="mt-2">
                                         {renderMissionText(userProfileData.activeMission.desc || userProfileData.activeMission.question)}
                                     </div>
@@ -343,10 +346,11 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                         </div>
                                     )}
 
+                                    {/* CAMPO DE RESPOSTA IDÊNTICO À IMAGEM 1 */}
                                     {(userProfileData.activeMission.type === 'enigma' || userProfileData.activeMission.type === 'permadeath') && (
-                                        <form onSubmit={handleEnigmaSubmit} className="mt-8 flex gap-3">
-                                            <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="Resposta Final..." className="flex-1 bg-black border border-white/10 px-5 py-3 text-white text-xs font-bold uppercase tracking-widest outline-none focus:border-red-600 transition-colors" />
-                                            <button type="submit" className="bg-red-600 px-6 text-white hover:bg-red-500 transition-colors flex items-center justify-center"><Key className="w-5 h-5"/></button>
+                                        <form onSubmit={handleEnigmaSubmit} className="mt-6 flex h-[52px]">
+                                            <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="RESPOSTA FINAL..." className="flex-1 bg-[#0a0a0c] border border-white/5 border-r-0 px-5 text-gray-300 text-xs font-black uppercase tracking-widest outline-none focus:border-red-600 transition-colors rounded-l-lg" />
+                                            <button type="submit" className="bg-[#dc2626] w-16 text-white hover:bg-red-500 transition-colors flex items-center justify-center rounded-r-lg shadow-[0_0_15px_rgba(220,38,38,0.4)]"><Key className="w-5 h-5"/></button>
                                         </form>
                                     )}
                                 </div>
@@ -404,7 +408,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     
                                     <div className="relative z-10 mb-6 sm:mb-0 text-center sm:text-left">
                                         <h3 className={`text-3xl font-black uppercase tracking-tighter text-red-600`}>Julgamento Absoluto</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 max-w-sm">Decifre 5 enigmas perfeitamente. Erre, e sua conta será desintegrada do sistema.</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 max-w-sm">Decifre 1 enigma impossível. Erre, e sua conta será desintegrada do sistema.</p>
                                     </div>
 
                                     <div className="flex flex-col items-center sm:items-end gap-4 relative z-10 w-full sm:w-auto">
@@ -451,11 +455,9 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                 )}
 
-                {/* LOJA IDÊNTICA À IMAGEM */}
                 {activeTab === "Loja" && (
                     <div className="animate-in fade-in duration-300 max-w-6xl mx-auto">
                         
-                        {/* BANNER PRINCIPAL DA LOJA */}
                         <div className="relative border border-red-600/50 rounded-2xl p-6 md:p-10 mb-8 overflow-hidden bg-[#050000]">
                             <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-cover bg-center" style={{ backgroundImage: "url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')" }}></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
@@ -473,7 +475,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                             </div>
                         </div>
 
-                        {/* TABS DE CATEGORIAS ESTILIZADAS */}
                         <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 px-1">
                             {[ {id:'avatar', label:'Avatares', icon: User}, {id:'capa_fundo', label:'Paredes de Fundo', icon: Image}, {id:'moldura', label:'Auras (Molduras)', icon: Circle} ].map(cat => (
                                 <button key={cat.id} onClick={() => setShopCategory(cat.id)} className={`flex items-center gap-2 px-6 py-3 font-black text-xs uppercase tracking-widest transition-all skew-x-[-10deg] border ${ shopCategory === cat.id ? 'bg-gradient-to-r from-red-600 to-red-800 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-[#0a0a0c] border-white/10 text-gray-500 hover:text-white hover:bg-white/5' }`}>
@@ -484,7 +485,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                             ))}
                         </div>
                           
-                        {/* GRID DE ITENS (ESTILO CARTÃO COM BORDA DE RARIDADE) */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                             {shopItems.filter(item => {
                                 const cat = (item.categoria || item.type || '').toLowerCase();
@@ -499,7 +499,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                 <div key={item.id} className={`bg-[#050505] border rounded-xl p-5 flex flex-col items-center relative overflow-hidden transition-all group ${rStyle.border} ${rStyle.glow}`}>
                                   {(item.css || item.animacao) && ( <style dangerouslySetInnerHTML={{__html: `.${item.cssClass} { ${item.css} } ${item.animacao || ''}`}} /> )}
                                   
-                                  {/* TAG RARIDADE NO CANTO */}
                                   <div className={`absolute top-0 left-0 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-br-xl border-b border-r ${rStyle.border} ${rStyle.text} ${rStyle.bg}`}>
                                       {item.raridade || 'COMUM'}
                                   </div>
