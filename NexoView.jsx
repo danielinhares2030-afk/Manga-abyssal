@@ -1,34 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, ShoppingCart, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle } from 'lucide-react';
-import { doc, updateDoc, collectionGroup, getDocs, query, deleteDoc } from "firebase/firestore";
-import { deleteUser } from "firebase/auth";
+import { Target, Hexagon, ShoppingCart, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Package, Calendar, BookOpen } from 'lucide-react';
+import { doc, updateDoc, collectionGroup, getDocs, query, increment } from "firebase/firestore";
 import { auth, db } from './firebase';
-import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
+import { addXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
 import { APP_ID } from './constants';
 
 export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems, buyItem }) {
-    const [activeTab, setActiveTab] = useState("Loja");
-    const [enigmaAnswer, setEnigmaAnswer] = useState("");
-    const [timeLeft, setTimeLeft] = useState("");
-    const [confirmModal, setConfirmModal] = useState(null); 
-    const [isForgingMissionAnim, setIsForgingMissionAnim] = useState(false); 
+    const [activeTab, setActiveTab] = useState("Caixas");
     const [synthesizing, setSynthesizing] = useState(false);
     const [rankingList, setRankingList] = useState([]);
     const [loadingRank, setLoadingRank] = useState(false);
     const [shopCategory, setShopCategory] = useState('avatar');
     
-    const [isErased, setIsErased] = useState(false);
-
-    const rankConfigs = {
-        'Rank E': { rxp: 10, rcoin: 5, pxp: 15, pcoin: 10, time: 15, charLimit: 300, enigmaTries: 3, color: 'text-gray-400', border: 'border-gray-500', shadow: 'shadow-gray-500/20' },
-        'Rank C': { rxp: 30, rcoin: 15, pxp: 50, pcoin: 25, time: 10, charLimit: 200, enigmaTries: 3, color: 'text-lime-400', border: 'border-lime-500', shadow: 'shadow-lime-500/20' },
-        'Rank B': { rxp: 50, rcoin: 25, pxp: 80, pcoin: 40, time: 8, charLimit: 120, enigmaTries: 2, color: 'text-cyan-400', border: 'border-cyan-500', shadow: 'shadow-cyan-500/20' },
-        'Rank A': { rxp: 100, rcoin: 50, pxp: 150, pcoin: 80, time: 5, charLimit: 80, enigmaTries: 2, color: 'text-amber-500', border: 'border-amber-500', shadow: 'shadow-amber-500/20' },
-        'Rank S': { rxp: 250, rcoin: 120, pxp: 400, pcoin: 200, time: 3, charLimit: 60, enigmaTries: 1, color: 'text-orange-500', border: 'border-orange-500', shadow: 'shadow-orange-500/20' },
-        'Rank SSS':{ rxp: 600, rcoin: 300, pxp: 1000, pcoin: 500, time: 1, charLimit: 40, enigmaTries: 1, color: 'text-red-600', border: 'border-red-600', shadow: 'shadow-red-600/30' }
-    };
-
-    const RANK_CARDS = Object.keys(rankConfigs);
+    // Estados do novo Sistema de Caixas (Loot Box)
+    const [isOpeningBoxAnim, setIsOpeningBoxAnim] = useState(false);
+    const [boxReward, setBoxReward] = useState(null);
 
     useEffect(() => {
         if(activeTab === 'Ranking') fetchRanking();
@@ -56,146 +42,88 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }
     };
 
-    useEffect(() => {
-        if (!userProfileData.activeMission) return;
-        const updateTimer = () => {
-            const diff = userProfileData.activeMission.deadline - Date.now();
-            if (diff <= 0) { setTimeLeft("00:00:00 (FALHA)"); } else {
-                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const m = Math.floor((diff / 1000 / 60) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                setTimeLeft(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-            }
-        };
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
-        return () => clearInterval(interval);
-    }, [userProfileData.activeMission]);
+    // LÓGICA: RESGATE DIÁRIO DE CAIXA
+    const lastClaim = userProfileData.lastDailyBox || 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const canClaimDaily = lastClaim < today.getTime();
 
-    const triggerForgeMission = async (difficulty) => {
-        setConfirmModal(null); 
-        setIsForgingMissionAnim(true);
-        setTimeout(() => { 
-            generateMission(difficulty); 
-            setIsForgingMissionAnim(false);
-        }, 2500); 
-    };
-
-    const generateMission = async (difficulty) => {
+    const handleClaimDaily = async () => {
         try {
-            const now = Date.now();
-            
-            // MISSÃO DE MORTE PERMANENTE MODIFICADA E EXTREMAMENTE DIFÍCIL
-            if (difficulty === 'ABSOLUTO') {
-                if (!mangas || mangas.length < 1) return showToast("Falta conhecimento para o julgamento.", "error");
-                
-                let shuffled = [...mangas].sort(() => 0.5 - Math.random());
-                // Tenta achar um manga que tenha uma sinopse grande o suficiente pra pegar do meio
-                let target = shuffled.find(m => m.synopsis && m.synopsis.length > 80) || shuffled[0];
-                
-                // Pega 50 caracteres do MEIO da sinopse, removendo o título original se houver
-                let midPoint = Math.floor((target.synopsis?.length || 0) / 3);
-                let cleanDesc = target.synopsis ? target.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(target.title, 'gi'), '█████').substring(midPoint, midPoint + 50) : "Sem registros astrais desta obra.";
-                
-                let finalQuestion = `[ JULGAMENTO ABSOLUTO ]\n\nGêneros: ${target.genres?.join(', ') || 'Nenhum'}\n\nFragmento: "...${cleanDesc}..."\n\nQual é a obra?`;
-                let finalAnswer = target.title.toLowerCase().trim();
-
-                let newMission = { id: Date.now().toString(), type: 'permadeath', difficulty: 'ABSOLUTO', title: "Julgamento Kage", question: finalQuestion, answer: [finalAnswer], rewardXp: 5000, rewardCoins: 3000, deadline: now + (15 * 60 * 1000) };
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: newMission });
-                showToast(`Pacto Absoluto Forjado. Sua vida está em jogo.`, "error");
-                return;
-            }
-
-            const conf = rankConfigs[difficulty];
-            const missionPool = ['read', 'search_visual', 'enigma'];
-            const chosenType = missionPool[Math.floor(Math.random() * missionPool.length)];
-
-            if (mangas && mangas.length > 0) {
-                const availableMangas = mangas.filter(m => {
-                    const c = userProfileData.completedMissions || [];
-                    return !c.includes("search_local_" + m.id) && !c.includes("enigma_" + m.id) && !c.includes(m.id);
-                });
-                
-                const randomManga = availableMangas.length > 0 ? availableMangas[Math.floor(Math.random() * availableMangas.length)] : mangas[Math.floor(Math.random() * mangas.length)];
-                let newMission = null;
-
-                if (chosenType === 'search_visual' && randomManga.synopsis) {
-                    let cleanDesc = randomManga.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(randomManga.title, 'gi'), '█████');
-                    let q = `[ ALVO MARCADO ]\n\nFragmento:\n"${cleanDesc.substring(0, conf.charLimit)}..."\n\nATENÇÃO: Você só tem UMA chance. Se clicar na obra errada no catálogo, a missão falha instantaneamente.`;
-                    newMission = { id: Date.now().toString(), type: 'search_local', difficulty, title: "Caçada Implacável", question: q, targetManga: randomManga.id, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000) };
-                
-                } else if (chosenType === 'enigma') {
-                    let q = "";
-                    const authorStr = (randomManga.author || "").toLowerCase();
-                    
-                    if (authorStr && authorStr !== "" && !authorStr.includes("desconhecid")) {
-                        q = `[ ENIGMA DO VAZIO ]\n\nA mente por trás desta criação é:\n${randomManga.author}.\n\nQual é a obra?`;
-                    } else if (randomManga.genres && randomManga.genres.length > 0 && randomManga.synopsis) {
-                        let cleanDesc = randomManga.synopsis.replace(/<[^>]*>?/gm, '').replace(new RegExp(randomManga.title, 'gi'), '█████');
-                        q = `[ ENIGMA DO VAZIO ]\n\nGêneros: ${randomManga.genres.join(', ')}\n\nRelato: "${cleanDesc.substring(0, conf.charLimit)}..."\n\nQual é a obra?`;
-                    } else {
-                        q = `[ ENIGMA DO VAZIO ]\n\nDecifre o selo oculto pelas sombras da obra de número ${randomManga.id.substring(0,4)}...`;
-                    }
-                    newMission = { id: Date.now().toString(), type: 'enigma', difficulty, title: "Decodificação Kage", question: q, answer: [randomManga.title.toLowerCase().trim()], attemptsLeft: conf.enigmaTries, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (conf.time * 60 * 1000), targetManga: randomManga.id };
-                
-                } else {
-                    let readTarget = difficulty === 'Rank E' ? 1 : 3;
-                    let q = `[ EXTRAÇÃO DE ESSÊNCIA ]\n\nTransmute a energia de ${readTarget} capítulo(s) da obra:\n\n"${randomManga.title}".`;
-                    newMission = { id: Date.now().toString(), type: 'read', difficulty, title: `Extração de Essência`, desc: q, targetManga: randomManga.id, targetCount: readTarget, currentCount: 0, rewardXp: conf.rxp, rewardCoins: conf.rcoin, penaltyXp: conf.pxp, penaltyCoins: conf.pcoin, deadline: now + (readTarget * 45 * 60 * 1000) };
-                }
-
-                if (newMission) {
-                    await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: newMission });
-                    showToast(`Pacto Formado. A contagem regressiva começou.`, "success");
-                }
-            }
-        } catch(e) { showToast("Colapso ao forjar contrato.", "error"); }
-    };
-
-    const handleEnigmaSubmit = async (e) => {
-        e.preventDefault(); const m = userProfileData.activeMission;
-        const userAnswer = enigmaAnswer.toLowerCase().trim();
-
-        if (m.type === 'permadeath') {
-            if (userAnswer === m.answer[0]) {
-               let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
-               await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: (userProfileData.coins || 0) + m.rewardCoins, xp: newXp, level: newLvl, activeMission: null });
-               showToast("Julgamento Superado. Você transcendeu.", "success"); if(didLevelUp) onLevelUp(newLvl);
-            } else {
-               // CHANCE DE SALVAÇÃO (15%)
-               const salvationChance = Math.random();
-               if (salvationChance < 0.15) {
-                   await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { activeMission: null });
-                   showToast("Você errou. Mas o Espectro achou sua ignorância tão patética que sentiu pena. Sua conta foi poupada... desta vez.", "info");
-               } else {
-                   setIsErased(true);
-                   try {
-                       await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'));
-                       if (auth.currentUser) await deleteUser(auth.currentUser);
-                   } catch(err) { console.error(err); }
-                   setTimeout(() => { auth.signOut(); window.location.reload(); }, 4500); 
-               }
-            }
-            return;
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), {
+                caixas: increment(1),
+                lastDailyBox: Date.now()
+            });
+            showToast("Caixa Diária resgatada com sucesso!", "success");
+        } catch (e) {
+            showToast("Erro ao resgatar oferenda.", "error");
         }
-
-        if (userAnswer === m.answer[0]) {
-           let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
-           let currentCompleted = userProfileData.completedMissions || []; 
-           if (m.targetManga) currentCompleted.push("enigma_" + m.targetManga);
-           await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), { coins: (userProfileData.coins || 0) + m.rewardCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
-           showToast("Código quebrado. Recompensa extraída!", "success"); if(didLevelUp) onLevelUp(newLvl); 
-        } else { showToast("Análise incorreta. Cuidado.", "error"); }
     };
 
-    const cancelMission = async () => {
-        const m = userProfileData.activeMission;
-        if (m.type === 'permadeath') return showToast("Este pacto não pode ser quebrado.", "error");
+    // LÓGICA: ABRIR CAIXA DO VAZIO (LOOT BOX)
+    const handleOpenBox = async () => {
+        const caixas = userProfileData.caixas || 0;
+        if (caixas < 1) return showToast("Você não possui Caixas do Vazio.", "error");
 
-        const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-        let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
-        await updateDoc(profileRef, { coins: Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins), xp: newXp, level: newLvl, activeMission: null });
-        showToast("Você recuou. O Sistema cobrou seu preço.", "error");
+        setIsOpeningBoxAnim(true);
+        
+        setTimeout(async () => {
+            try {
+                let rewardType = '';
+                let rewardValue = null;
+                let newCoins = userProfileData.coins || 0;
+                let { newXp, newLvl, didLevelUp } = { newXp: userProfileData.xp || 0, newLvl: userProfileData.level || 1, didLevelUp: false };
+                let newInv = [...(userProfileData.inventory || [])];
+
+                // Sorteio das Recompensas
+                const roll = Math.random();
+                
+                if (roll < 0.15) {
+                    // 15% Chance: Item Cosmético da Loja
+                    const availableItems = shopItems.filter(i => !newInv.includes(i.id));
+                    if (availableItems.length > 0) {
+                        rewardType = 'cosmetic';
+                        const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+                        rewardValue = randomItem;
+                        newInv.push(randomItem.id);
+                    } else {
+                        // Fallback caso já tenha todos os itens
+                        rewardType = 'coins';
+                        rewardValue = 1000;
+                        newCoins += rewardValue;
+                    }
+                } else if (roll < 0.45) {
+                    // 30% Chance: Poder Vital (XP) Boost
+                    rewardType = 'xp';
+                    rewardValue = Math.floor(Math.random() * 500) + 150; // XP entre 150 e 650
+                    const xpLogic = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, rewardValue);
+                    newXp = xpLogic.newXp;
+                    newLvl = xpLogic.newLvl;
+                    didLevelUp = xpLogic.didLevelUp;
+                } else {
+                    // 55% Chance: Moedas Astrais (Sombras)
+                    rewardType = 'coins';
+                    rewardValue = Math.floor(Math.random() * 300) + 50; // Moedas entre 50 e 350
+                    newCoins += rewardValue;
+                }
+
+                // Atualiza os dados no banco
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), {
+                    caixas: increment(-1),
+                    coins: newCoins,
+                    xp: newXp,
+                    level: newLvl,
+                    inventory: newInv
+                });
+
+                setBoxReward({ type: rewardType, value: rewardValue });
+                if (didLevelUp) onLevelUp(newLvl);
+            } catch (e) {
+                showToast("Erro ao romper o selo da caixa.", "error");
+            } finally {
+                setIsOpeningBoxAnim(false);
+            }
+        }, 2500);
     };
 
     const runSynthesis = async () => {
@@ -206,16 +134,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
           if (res?.success) showToast(`Transmutação Bem-Sucedida!`, 'success');
           else showToast(`Colapso! Matéria desintegrada.`, 'error');
         }, 1500);
-    };
-
-    // UI DAS CAIXAS DE ENIGMA ALTERADA IGUAL À IMAGEM
-    const renderMissionText = (text) => {
-        if (!text) return null;
-        return text.split('\n\n').map((block, i) => (
-            <div key={i} className="bg-[#0a0a0c] border-l-[3px] border-red-600 p-4 mb-3 rounded-r-lg shadow-sm">
-                <p className="text-gray-300 text-xs md:text-sm font-bold leading-relaxed whitespace-pre-wrap">{block}</p>
-            </div>
-        ));
     };
 
     const getCardRarityColors = (rarity) => {
@@ -231,30 +149,42 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
-            {/* ANIMAÇÃO DA FORJA DA MISSÃO (ALTERADA) */}
-            {isForgingMissionAnim && (
+            {/* ANIMAÇÃO DE ABERTURA DA CAIXA */}
+            {isOpeningBoxAnim && (
                 <div className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center overflow-hidden">
-                    <div className="relative flex items-center justify-center mb-8">
-                        <Hexagon className="w-40 h-40 text-red-600" strokeWidth={1.5} />
-                        <Flame className="absolute w-16 h-16 text-red-600 animate-pulse drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]" strokeWidth={1.5} />
-                    </div>
-                    <h2 className="text-xl sm:text-2xl font-black text-red-600/90 uppercase tracking-[0.4em] drop-shadow-md">Forjando Pacto...</h2>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.3)_0%,transparent_60%)] animate-pulse"></div>
+                    <Package className="w-32 h-32 text-red-600 animate-bounce drop-shadow-[0_0_30px_rgba(220,38,38,1)]" strokeWidth={1.5} />
+                    <h2 className="mt-8 text-2xl font-black text-red-600 uppercase tracking-[0.4em] animate-pulse drop-shadow-md">Rompendo Selo...</h2>
                 </div>
             )}
 
-            {isErased && (
-                <div className="fixed inset-0 z-[99999] bg-[#000000] flex flex-col items-center justify-center overflow-hidden">
-                    <style>{`
-                        @keyframes glitch-severe { 0% { transform: translate(0); filter: hue-rotate(0deg); } 20% { transform: translate(-10px, 5px); filter: hue-rotate(90deg); } 40% { transform: translate(-10px, -10px); filter: hue-rotate(-90deg); } 60% { transform: translate(10px, 10px); filter: hue-rotate(180deg); } 80% { transform: translate(10px, -10px); filter: hue-rotate(45deg); } 100% { transform: translate(0); filter: hue-rotate(0deg); } }
-                        .animate-glitch { animation: glitch-severe 0.15s linear infinite; }
-                    `}</style>
-                    <div className="absolute inset-0 bg-red-900/30 animate-pulse mix-blend-overlay"></div>
-                    <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-                    <Skull className="w-32 h-32 md:w-48 md:h-48 text-red-600 mb-8 animate-glitch relative z-20 drop-shadow-[0_0_50px_rgba(220,38,38,1)]" />
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-red-600 uppercase tracking-widest animate-glitch relative z-20 text-center px-4 leading-tight w-full drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">
-                        Conta Desintegrada
-                    </h1>
-                    <p className="text-white tracking-[0.5em] mt-6 uppercase font-bold text-[10px] md:text-xs relative z-20 bg-black/50 px-4 py-2 border border-red-900/50">Você falhou no Julgamento Kage</p>
+            {/* MODAL DE RECOMPENSA */}
+            {boxReward && (
+                <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300">
+                    <div className="bg-[#0a0a0c] border border-red-600/50 rounded-2xl p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(220,38,38,0.3)] relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(220,38,38,0.2),transparent_70%)] pointer-events-none"></div>
+                        
+                        <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-6 relative z-10">Recompensa Extraída!</h3>
+                        
+                        <div className="flex justify-center mb-6 relative z-10">
+                            {boxReward.type === 'coins' && <div className="w-24 h-24 rounded-full bg-amber-950/40 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.4)]"><div className="w-10 h-10 bg-amber-500 rotate-45 shadow-lg"></div></div>}
+                            {boxReward.type === 'xp' && <div className="w-24 h-24 rounded-full bg-blue-950/40 border-2 border-blue-500 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)]"><Zap className="w-12 h-12 text-blue-500 drop-shadow-lg"/></div>}
+                            {boxReward.type === 'cosmetic' && (
+                                <div className="w-24 h-24 rounded-full bg-[#050505] border-2 border-red-500 overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.4)] relative">
+                                    {cleanCosmeticUrl(boxReward.value.preview) ? <img src={cleanCosmeticUrl(boxReward.value.preview)} className="w-full h-full object-cover" /> : <Package className="w-10 h-10 text-red-500"/>}
+                                </div>
+                            )}
+                        </div>
+                        
+                        <h4 className="text-lg font-black text-white uppercase relative z-10">
+                            {boxReward.type === 'coins' && `+${boxReward.value} Sombras`}
+                            {boxReward.type === 'xp' && `+${boxReward.value} Poder Vital`}
+                            {boxReward.type === 'cosmetic' && boxReward.value.nome}
+                        </h4>
+                        {boxReward.type === 'cosmetic' && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest mt-1 relative z-10">Anomalia Visual Adquirida</p>}
+                        
+                        <button onClick={() => setBoxReward(null)} className="mt-8 bg-red-600 hover:bg-red-500 text-white font-black w-full py-3 rounded-xl text-xs uppercase tracking-widest transition-colors relative z-10 shadow-lg">Aceitar Destino</button>
+                    </div>
                 </div>
             )}
 
@@ -265,41 +195,14 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 </div>
             )}
 
-            {confirmModal && (
-                <div className="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in zoom-in-95 duration-200" onClick={() => setConfirmModal(null)}>
-                    {confirmModal === 'ABSOLUTO' ? (
-                        <div className={`bg-[#050000] border border-red-600 p-8 shadow-[0_0_50px_rgba(220,38,38,0.8)] max-w-sm w-full text-center relative overflow-hidden`} onClick={e => e.stopPropagation()}>
-                            <Skull className="w-16 h-16 text-red-600 mx-auto mb-4 animate-pulse relative z-10" />
-                            <h3 className="text-2xl font-black text-red-500 mb-2 uppercase tracking-widest relative z-10">Pacto de Sangue</h3>
-                            <p className="text-[10px] text-gray-400 font-bold mb-8 uppercase tracking-[0.2em] relative z-10">Se você errar a resposta final, <b className="text-red-500">sua conta será excluída permanentemente</b> do banco de dados. Só um milagre pode te salvar.</p>
-                            <div className="flex gap-4 relative z-10">
-                                <button onClick={() => setConfirmModal(null)} className="flex-1 bg-black border border-white/10 hover:border-white/30 text-gray-300 font-black py-3 text-[10px] uppercase tracking-widest transition-all">Recuar</button>
-                                <button onClick={() => triggerForgeMission('ABSOLUTO')} className="flex-1 bg-red-900 border border-red-500 hover:bg-red-600 text-white font-black py-3 text-[10px] uppercase tracking-widest transition-all">Aceitar Morte</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className={`bg-[#050505] border-l-[4px] border-r-[4px] border-t border-b ${rankConfigs[confirmModal].border} border-t-white/10 border-b-white/10 p-8 shadow-[0_0_40px_rgba(0,0,0,1)] max-w-sm w-full text-center relative overflow-hidden`} onClick={e => e.stopPropagation()}>
-                            <Hexagon className={`absolute -right-8 -top-8 w-32 h-32 ${rankConfigs[confirmModal].color} opacity-10 rotate-12`} />
-                            <Target className={`w-14 h-14 ${rankConfigs[confirmModal].color} mx-auto mb-4 animate-pulse relative z-10`} />
-                            <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-widest relative z-10">Aceitar Pacto?</h3>
-                            <p className="text-[10px] text-gray-400 font-bold mb-8 uppercase tracking-[0.2em] relative z-10">O sangue assinado não pode ser apagado.</p>
-                            <div className="flex gap-4 relative z-10">
-                                <button onClick={() => setConfirmModal(null)} className="flex-1 bg-[#0a0a0c] border border-white/10 hover:border-white/30 text-gray-300 font-black py-3 text-[10px] uppercase tracking-widest transition-all skew-x-[-10deg]"><div className="skew-x-[10deg]">Recuar</div></button>
-                                <button onClick={() => triggerForgeMission(confirmModal)} className={`flex-1 bg-[#0a0a0c] border border-${rankConfigs[confirmModal].border.split('-')[1]}-500/50 hover:bg-${rankConfigs[confirmModal].border.split('-')[1]}-600/20 text-${rankConfigs[confirmModal].color.split('-')[1]}-400 font-black py-3 text-[10px] uppercase tracking-widest transition-all skew-x-[-10deg]`}><div className="skew-x-[10deg]">Selar Alma</div></button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
             <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
                 
                 <div className="flex md:justify-center gap-4 mb-12 overflow-x-auto no-scrollbar snap-x w-full px-2">
-                    {['Pactos', 'Forja', 'Loja', 'Ranking'].map((tab) => (
+                    {['Caixas', 'Forja', 'Loja', 'Ranking'].map((tab) => (
                         <button key={tab} onClick={() => setActiveTab(tab)} className={`relative px-8 py-3 font-black text-[10px] uppercase tracking-[0.3em] transition-all transform skew-x-[-15deg] group border-b-2
                             ${activeTab === tab ? 'bg-red-600/10 border-red-600 text-white' : 'bg-transparent border-transparent text-gray-500 hover:text-red-400'}`}>
                             <div className="skew-x-[15deg] flex items-center gap-2">
-                                {tab === "Pactos" && <Target className="w-3.5 h-3.5"/>}
+                                {tab === "Caixas" && <Package className="w-3.5 h-3.5"/>}
                                 {tab === "Forja" && <Hexagon className="w-3.5 h-3.5"/>}
                                 {tab === "Loja" && <ShoppingCart className="w-3.5 h-3.5"/>}
                                 {tab === "Ranking" && <Trophy className="w-3.5 h-3.5"/>}
@@ -309,120 +212,56 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     ))}
                 </div>
 
-                {activeTab === "Pactos" && (
-                    <div className="animate-in fade-in duration-300">
-                        {userProfileData.activeMission ? (
-                            <div className={`bg-[#050505] border-t border-b border-l-[4px] ${userProfileData.activeMission.type === 'permadeath' ? 'border-red-600 shadow-[0_0_50px_rgba(220,38,38,0.3)]' : rankConfigs[userProfileData.activeMission.difficulty].border} border-t-white/5 border-b-white/5 p-8 md:p-12 max-w-3xl mx-auto shadow-2xl relative overflow-hidden`}>
-                                <div className={`absolute -right-20 -bottom-20 opacity-5 ${userProfileData.activeMission.type === 'permadeath' ? 'text-red-600' : rankConfigs[userProfileData.activeMission.difficulty].color} animate-[spin_40s_linear_infinite]`}>
-                                    {userProfileData.activeMission.type === 'permadeath' ? <Skull className="w-96 h-96" /> : <Hexagon className="w-96 h-96" strokeWidth={0.5} />}
-                                </div>
-
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10 gap-6">
-                                    <div>
-                                        <div className={`inline-block px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] border bg-[#0a0a0c] ${userProfileData.activeMission.type === 'permadeath' ? 'border-red-600 text-red-500 animate-pulse' : `${rankConfigs[userProfileData.activeMission.difficulty].border} ${rankConfigs[userProfileData.activeMission.difficulty].color}`}`}>
-                                            {userProfileData.activeMission.type === 'permadeath' ? 'JULGAMENTO ABSOLUTO' : `Anomalia: ${userProfileData.activeMission.difficulty}`}
-                                        </div>
-                                        <h3 className={`text-3xl md:text-4xl font-black mt-4 uppercase tracking-tighter drop-shadow-md ${userProfileData.activeMission.type === 'permadeath' ? 'text-red-500' : 'text-white'}`}>{userProfileData.activeMission.title}</h3>
-                                    </div>
-                                    <div className={`bg-[#0a0a0c] border px-5 py-3 rounded-none flex items-center gap-3 font-black text-sm shadow-[0_0_15px_rgba(220,38,38,0.2)] ${userProfileData.activeMission.type === 'permadeath' ? 'border-red-600 text-red-600' : 'border-red-500/50 text-red-500'}`}>
-                                        <Timer className="w-4 h-4 animate-pulse" /> <span className="tracking-[0.3em]">{timeLeft}</span>
-                                    </div>
-                                </div>
-
-                                <div className="bg-[#050505] p-2 md:p-6 mb-8 relative z-10">
-                                    <div className="mt-2">
-                                        {renderMissionText(userProfileData.activeMission.desc || userProfileData.activeMission.question)}
-                                    </div>
-                                    
-                                    {userProfileData.activeMission.type === 'read' && (
-                                        <div className="mt-8">
-                                            <div className="w-full bg-black h-2 mb-3 border border-white/5 overflow-hidden">
-                                                <div className={`h-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-900 to-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)]`} style={{width: `${(userProfileData.activeMission.currentCount / userProfileData.activeMission.targetCount) * 100}%`}}></div>
-                                            </div>
-                                            <div className="flex justify-between text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-                                                <span>Progresso</span>
-                                                <span className="text-red-500">{userProfileData.activeMission.currentCount} / {userProfileData.activeMission.targetCount} Caps</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* CAMPO DE RESPOSTA IDÊNTICO À IMAGEM 1 */}
-                                    {(userProfileData.activeMission.type === 'enigma' || userProfileData.activeMission.type === 'permadeath') && (
-                                        <form onSubmit={handleEnigmaSubmit} className="mt-6 flex h-[52px]">
-                                            <input type="text" value={enigmaAnswer} onChange={e=>setEnigmaAnswer(e.target.value)} placeholder="RESPOSTA FINAL..." className="flex-1 bg-[#0a0a0c] border border-white/5 border-r-0 px-5 text-gray-300 text-xs font-black uppercase tracking-widest outline-none focus:border-red-600 transition-colors rounded-l-lg" />
-                                            <button type="submit" className="bg-[#dc2626] w-16 text-white hover:bg-red-500 transition-colors flex items-center justify-center rounded-r-lg shadow-[0_0_15px_rgba(220,38,38,0.4)]"><Key className="w-5 h-5"/></button>
-                                        </form>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5 relative z-10">
-                                    <div className="flex gap-6 text-[10px] font-black uppercase tracking-widest bg-[#0a0a0c] px-4 py-2 border border-white/5">
-                                        <span className="text-white flex items-center gap-2"><Sparkles className="w-3 h-3 text-white"/> +{userProfileData.activeMission.rewardXp} XP</span>
-                                        <span className="text-amber-500 flex items-center gap-2"><div className="w-2 h-2 bg-amber-500 rotate-45 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div> +{userProfileData.activeMission.rewardCoins} M</span>
-                                    </div>
-                                    
-                                    <div className="flex gap-4 w-full sm:w-auto">
-                                        {userProfileData.activeMission.type === 'read' && (
-                                            <button onClick={() => { const m = mangas.find(mg => mg.id === userProfileData.activeMission.targetManga); if(m) onNavigate('details', m); }} className="flex-1 bg-white border border-white text-black font-black text-[9px] uppercase tracking-widest py-3 px-6 hover:bg-transparent hover:text-white transition-colors flex items-center justify-center gap-2">
-                                                Rastrear Alvo <ArrowRight className="w-3 h-3" />
-                                            </button>
-                                        )}
-                                        {userProfileData.activeMission.type !== 'permadeath' && (
-                                            <button onClick={cancelMission} className="flex-1 sm:flex-none text-red-500 hover:text-white hover:bg-red-600 border border-red-500/30 px-6 py-3 font-black text-[9px] uppercase tracking-widest transition-all text-center flex items-center justify-center gap-2">
-                                                <Skull className="w-3 h-3" /> Quebrar Pacto
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                {/* NOVO SISTEMA: CAIXAS DO VAZIO (LOOT BOX) */}
+                {activeTab === "Caixas" && (
+                    <div className="animate-in fade-in duration-300 max-w-4xl mx-auto pb-10">
+                        <div className="relative border border-red-600/50 rounded-2xl p-6 md:p-10 mb-8 overflow-hidden bg-[#050000] shadow-lg">
+                            <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-cover bg-center" style={{ backgroundImage: "url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')" }}></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+                            
+                            <div className="relative z-10">
+                                <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">CAIXAS DO<br/><span className="text-red-600">VAZIO</span></h2>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-3 mb-6 max-w-md">Abra as caixas para extrair Sombras, Poder Vital ou Anomalias Visuais raríssimas.</p>
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-                                {RANK_CARDS.map(rId => (
-                                    <div key={rId} className={`bg-[#050505] border-t border-b border-l-[4px] border-r border-t-white/5 border-b-white/5 border-r-white/5 ${rankConfigs[rId].border} p-6 flex flex-col justify-between hover:scale-[1.02] hover:${rankConfigs[rId].shadow} transition-all duration-300 group relative overflow-hidden`}>
-                                        <Hexagon className={`absolute -right-10 -top-10 w-40 h-40 ${rankConfigs[rId].color} opacity-5 group-hover:opacity-10 transition-opacity rotate-45`} />
-                                        
-                                        <div className="relative z-10 mb-6">
-                                            <h3 className={`text-2xl font-black uppercase tracking-tighter ${rankConfigs[rId].color}`}>{rId}</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Classificação de Anomalia</p>
-                                        </div>
+                        </div>
 
-                                        <div className="space-y-2 mb-8 relative z-10 bg-[#0a0a0c] p-4 border border-white/5">
-                                            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em]">
-                                                <span className="text-gray-500">Recompensa:</span>
-                                                <span className="text-white">{rankConfigs[rId].rxp}XP | {rankConfigs[rId].rcoin}M</span>
-                                            </div>
-                                            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em]">
-                                                <span className="text-gray-500">Penalidade:</span>
-                                                <span className="text-red-500">-{rankConfigs[rId].pxp}XP | -{rankConfigs[rId].pcoin}M</span>
-                                            </div>
-                                        </div>
-
-                                        <button onClick={() => setConfirmModal(rId)} className="w-full py-3 bg-transparent border border-white/10 text-white font-black text-[9px] uppercase tracking-widest group-hover:bg-white group-hover:text-black transition-all relative z-10 flex items-center justify-center gap-2">
-                                            Sintetizar Desafio <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                                        </button>
-                                    </div>
-                                ))}
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* ABRIR CAIXA */}
+                            <div className="bg-[#050505] border border-white/5 rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-lg group hover:border-red-600/50 transition-colors">
+                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
+                                <Package className="w-24 h-24 text-red-600 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
                                 
-                                <div className={`col-span-full sm:col-span-2 lg:col-span-3 bg-gradient-to-br from-[#1a0505] to-[#0a0202] border-t border-b border-l-[4px] border-r border-t-red-900/30 border-b-red-900/30 border-r-red-900/30 border-l-red-600 p-6 flex flex-col sm:flex-row items-center justify-between hover:shadow-[0_0_30px_rgba(220,38,38,0.2)] transition-all duration-300 group relative overflow-hidden mt-4`}>
-                                    <Skull className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 text-red-600 opacity-[0.03] group-hover:opacity-10 transition-opacity`} />
-                                    
-                                    <div className="relative z-10 mb-6 sm:mb-0 text-center sm:text-left">
-                                        <h3 className={`text-3xl font-black uppercase tracking-tighter text-red-600`}>Julgamento Absoluto</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 max-w-sm">Decifre 1 enigma impossível. Erre, e sua conta será desintegrada do sistema.</p>
-                                    </div>
+                                <h3 className="text-4xl font-black text-white relative z-10 leading-none">{userProfileData.caixas || 0}</h3>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest relative z-10 mb-6 mt-1">Caixas Disponíveis</p>
 
-                                    <div className="flex flex-col items-center sm:items-end gap-4 relative z-10 w-full sm:w-auto">
-                                        <div className="bg-black/60 p-3 border border-red-900/30 flex gap-6 text-[9px] font-black uppercase tracking-[0.2em] w-full sm:w-auto justify-center">
-                                            <span className="text-white">5000 XP</span>
-                                            <span className="text-red-500">Morte Permanente</span>
-                                        </div>
-                                        <button onClick={() => setConfirmModal('ABSOLUTO')} className="w-full sm:w-auto px-8 py-3 bg-red-600 border border-transparent text-white font-black text-[9px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.3)]">
-                                            <AlertTriangle className="w-4 h-4"/> Aceitar Julgamento
+                                <button onClick={handleOpenBox} disabled={(userProfileData.caixas || 0) < 1 || isOpeningBoxAnim} className="w-full bg-red-600 disabled:bg-[#0a0a0c] disabled:border disabled:border-white/5 disabled:text-gray-600 hover:bg-red-500 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all relative z-10 shadow-[0_0_20px_rgba(220,38,38,0.4)] disabled:shadow-none">
+                                    Romper Selo
+                                </button>
+                            </div>
+
+                            {/* OBTER CAIXAS */}
+                            <div className="flex flex-col gap-6">
+                                <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden shadow-lg">
+                                    <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2"><Calendar className="w-4 h-4 text-red-500"/> Pacto Diário</h4>
+                                    <p className="text-xs text-gray-400 font-medium mb-4 leading-relaxed">Acesse o sistema todos os dias para receber 1 Caixa do Vazio gratuitamente.</p>
+                                    
+                                    {canClaimDaily ? (
+                                        <button onClick={handleClaimDaily} className="bg-transparent border border-red-500 text-red-500 hover:bg-red-600 hover:text-white font-black py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all">
+                                            Resgatar Oferenda
                                         </button>
-                                    </div>
+                                    ) : (
+                                        <button disabled className="bg-[#0a0a0c] border border-white/5 text-gray-600 font-black py-3 rounded-xl text-[10px] uppercase tracking-widest cursor-not-allowed">
+                                            Já Resgatado Hoje
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden shadow-lg flex-1">
+                                    <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2"><BookOpen className="w-4 h-4 text-red-500"/> Devoção à Leitura</h4>
+                                    <p className="text-xs text-gray-400 font-medium leading-relaxed">Continue lendo obras no catálogo. O Sistema recompensa ninjas focados enviando caixas ocultas automaticamente após você ler alguns capítulos.</p>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </div>
                 )}
 
@@ -457,7 +296,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
 
                 {activeTab === "Loja" && (
                     <div className="animate-in fade-in duration-300 max-w-6xl mx-auto">
-                        
                         <div className="relative border border-red-600/50 rounded-2xl p-6 md:p-10 mb-8 overflow-hidden bg-[#050000]">
                             <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-cover bg-center" style={{ backgroundImage: "url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')" }}></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
