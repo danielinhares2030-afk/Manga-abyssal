@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, EyeOff, Eye, UserCircle, Zap, X, Loader2, Send, ArrowDownAz, ArrowUpZa, Sparkles } from 'lucide-react';
-import { query, collection, onSnapshot, addDoc } from "firebase/firestore";
+import { MessageSquare, EyeOff, Eye, UserCircle, Zap, X, Loader2, Send, ArrowDownAz, ArrowUpZa, Sparkles, Trash2 } from 'lucide-react';
+import { query, collection, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from './firebase';
 import { APP_ID } from './constants';
 
@@ -46,12 +46,22 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
     } catch(e) { showToast("Erro ao comunicar com o Vazio.", "error"); } finally { setSubmittingComment(false); }
   };
 
+  const handleDeleteComment = async (commentId) => {
+      if (!window.confirm("Deseja apagar sua mensagem do vazio?")) return;
+      try {
+          const path = chapterId ? `obras/${mangaId}/capitulos/${chapterId}/comments` : `obras/${mangaId}/comments`;
+          await deleteDoc(doc(db, path, commentId));
+          showToast("Mensagem apagada.", "info");
+      } catch(e) {
+          showToast("Erro ao apagar mensagem.", "error");
+      }
+  };
+
   const sortedComments = [...comments].sort((a, b) => sortOrder === 'desc' ? b.createdAt - a.createdAt : a.createdAt - b.createdAt);
 
   return (
     <div className="w-full mx-auto relative z-10 font-sans">
       
-      {/* HEADER COMENTÁRIOS */}
       <div className="flex items-center gap-3 mb-6">
         <MessageSquare className="w-6 h-6 text-cyan-400" />
         <h2 className="text-xl font-black text-white tracking-wide">
@@ -59,7 +69,6 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
         </h2>
       </div>
       
-      {/* ABAS RECENTES / ANTIGOS */}
       <div className="flex border-b border-white/10 w-full mb-4">
         <button onClick={() => setSortOrder('desc')} className={`flex-1 flex items-center justify-center gap-2 pb-3 text-xs font-black uppercase tracking-widest transition-colors ${sortOrder === 'desc' ? 'border-b-2 border-cyan-400 text-cyan-400' : 'text-gray-500 hover:text-gray-300'}`}>
             <ArrowDownAz className="w-4 h-4"/> Recentes
@@ -69,7 +78,6 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
         </button>
       </div>
 
-      {/* BOTÃO OCULTAR */}
       <div className="flex justify-center mb-8">
           <button onClick={()=>setShowComments(!showComments)} className="text-gray-500 hover:text-white transition-colors flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
              {showComments ? <><EyeOff className="w-3.5 h-3.5"/> Ocultar</> : <><Eye className="w-3.5 h-3.5"/> Mostrar</>}
@@ -79,7 +87,6 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
       {showComments && (
         <div className="animate-in fade-in duration-500">
           
-          {/* CAIXA DE TEXTO NO ESTILO DA PRINT */}
           <div className="flex items-center gap-4 mb-16">
             <div className="w-12 h-12 rounded-full border border-cyan-500/30 overflow-hidden flex-shrink-0 flex items-center justify-center p-0.5">
                <div className="w-full h-full rounded-full overflow-hidden bg-[#050505]">
@@ -110,7 +117,6 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
             </div>
           </div>
 
-          {/* LISTA DE COMENTÁRIOS OU ESTADO VAZIO */}
           <div className="space-y-6">
             {sortedComments.length === 0 ? (
               <div className="py-12 flex flex-col items-center justify-center text-center">
@@ -126,7 +132,7 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
               </div>
             ) : (
               sortedComments.map(comment => (
-                <div key={comment.id} className={`flex gap-4 group ${comment.replyToUser ? 'ml-12 relative before:content-[""] before:absolute before:-left-6 before:top-0 before:w-[2px] before:h-full before:bg-cyan-900/30' : ''}`}>
+                <div key={comment.id} className={`flex gap-4 relative group ${comment.replyToUser ? 'ml-12 before:content-[""] before:absolute before:-left-6 before:top-0 before:w-[2px] before:h-full before:bg-cyan-900/30' : ''}`}>
                   <div className="w-10 h-10 rounded-full border border-white/5 overflow-hidden bg-[#050505] flex-shrink-0">
                      {comment.userAvatar ? <img src={comment.userAvatar} loading="lazy" className="w-full h-full object-cover" /> : <UserCircle className="w-full h-full text-gray-600 p-1.5" />}
                   </div>
@@ -141,6 +147,13 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
                     </p>
                     <button onClick={() => setReplyingTo(comment)} className="text-[10px] text-gray-500 hover:text-cyan-400 font-black mt-2 transition-colors">RESPONDER</button>
                   </div>
+                  
+                  {/* BOTÃO DE EXCLUIR */}
+                  {user && comment.userId === user.uid && (
+                      <button onClick={() => handleDeleteComment(comment.id)} className="absolute top-0 right-0 text-gray-600 hover:text-red-500 transition-colors p-2 opacity-0 group-hover:opacity-100">
+                          <Trash2 className="w-4 h-4"/>
+                      </button>
+                  )}
                 </div>
               ))
             )}
