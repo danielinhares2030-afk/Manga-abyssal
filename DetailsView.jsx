@@ -11,6 +11,7 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
     const [detailsTab, setDetailsTab] = useState('capitulos'); 
     const [showLibraryMenu, setShowLibraryMenu] = useState(false); 
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
+    const [animateRating, setAnimateRating] = useState(false); // Estado para a animação das estrelas
 
     const libraryStatuses = ['Lendo', 'Concluído', 'Pausado', 'Dropado', 'Planejo Ler'];
 
@@ -18,6 +19,11 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
 
     const handleRate = async (ratingValue) => {
         if (!user) return showToast("Apenas ninjas registrados podem avaliar.", "warning");
+        
+        // Ativa a animação de pulso
+        setAnimateRating(true);
+        setTimeout(() => setAnimateRating(false), 400);
+
         try {
             const newRating = ((localRating + ratingValue) / 2).toFixed(1);
             const finalRating = Number(newRating);
@@ -60,15 +66,16 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
     const firstChapter = chapters.length > 0 ? chapters[chapters.length - 1] : null;
     const nextChapterToRead = lastRead ? chapters.find(c => Number(c.number) === Number(lastRead.chapterNumber) + 1) || chapters.find(c => c.id === lastRead.id) : firstChapter;
 
-    // Funções de estética visual da nova interface
+    // CORREÇÃO: Lógica ajustada para as notas fracas
     const getRatingLabel = (rate) => {
         if(rate >= 4.8) return "OBRA-PRIMA";
         if(rate >= 4.0) return "EXCELENTE";
         if(rate >= 3.0) return "MUITO BOM";
-        return "BOM";
+        if(rate >= 2.0) return "BOM";
+        if(rate >= 1.0) return "MEDÍOCRE";
+        return "RUIM";
     };
 
-    // Pegando os leitores reais do banco e formatando
     const formatReaders = (num) => {
         if (!num) return '0';
         return num >= 1000 ? (num / 1000).toFixed(1) + 'K' : num.toString();
@@ -93,7 +100,6 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                     {/* CAPA DA OBRA (LADO ESQUERDO) */}
                     <div className="w-full md:w-[320px] flex-shrink-0 flex justify-center md:justify-start">
                         <div className="relative w-full max-w-[280px] md:max-w-full">
-                            {/* Efeito de brilho neon vermelho por trás da capa */}
                             <div className="absolute -inset-1 bg-red-600/40 blur-[20px] rounded-2xl pointer-events-none"></div>
                             
                             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(220,38,38,0.3)] border border-red-600/30 z-10">
@@ -101,7 +107,6 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
                             </div>
 
-                            {/* Badge "EM LANÇAMENTO" */}
                             <div className="absolute top-3 left-3 bg-red-950/90 backdrop-blur-md border border-red-900/50 text-red-500 text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded flex items-center gap-1.5 z-20 shadow-lg">
                                 <Flame className="w-3 h-3" /> {manga.status || 'EM LANÇAMENTO'}
                             </div>
@@ -117,26 +122,24 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                             Autor desconhecido
                         </p>
                         
-                        {/* AVALIAÇÃO (ESTRELAS E NOTA) */}
+                        {/* AVALIAÇÃO COM ANIMAÇÃO */}
                         <div className="flex items-center gap-6 mb-8">
                             <div>
-                                <div className="flex items-center gap-1.5 mb-1">
+                                <div className={`flex items-center gap-1.5 mb-1 transition-transform duration-300 ${animateRating ? 'scale-125' : 'scale-100'}`}>
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <button key={star} onClick={() => handleRate(star)} className="focus:outline-none hover:scale-110 transition-transform px-0.5">
                                             <Star className={`w-6 h-6 ${star <= Math.round(localRating) ? 'text-red-600 fill-red-600 drop-shadow-[0_0_8px_rgba(220,38,38,0.6)]' : 'text-gray-700'}`} />
                                         </button>
                                     ))}
-                                    <Star className="w-6 h-6 text-gray-700 ml-1" />
                                 </div>
-                                <p className="text-[10px] text-gray-500 font-medium">Avaliação da comunidade</p>
+                                <p className="text-[10px] text-gray-500 font-medium mt-2">Avaliação da comunidade</p>
                             </div>
-                            <div className="flex flex-col items-center border-l border-white/10 pl-6">
-                                <span className="text-3xl font-black text-white leading-none">{localRating.toFixed(1)}</span>
-                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-1">{getRatingLabel(localRating)}</span>
+                            <div className={`flex flex-col items-center border-l border-white/10 pl-6 transition-all duration-300 ${animateRating ? 'text-red-500 scale-110' : 'text-white scale-100'}`}>
+                                <span className="text-3xl font-black leading-none">{localRating.toFixed(1)}</span>
+                                <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${animateRating ? 'text-white' : 'text-red-500'}`}>{getRatingLabel(localRating)}</span>
                             </div>
                         </div>
 
-                        {/* CARDS DE ESTATÍSTICAS (GÊNERO, CAPÍTULOS, LEITORES) */}
                         <div className="grid grid-cols-3 gap-3 mb-8">
                             <div className="bg-[#0f0f13] border border-white/5 rounded-xl p-3 flex flex-col justify-center gap-1.5 shadow-md">
                                 <Bookmark className="w-4 h-4 text-red-600 mb-1" />
@@ -155,7 +158,6 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                             </div>
                         </div>
 
-                        {/* BOTÃO PRINCIPAL: LER AGORA */}
                         <button onClick={() => nextChapterToRead ? onChapterClick(manga, nextChapterToRead) : showToast("Nenhum capítulo disponível", "warning")} className="w-full bg-gradient-to-r from-red-950 via-red-700 to-red-950 border border-red-500/50 text-white font-black py-4 rounded-xl flex items-center justify-between px-6 transition-all hover:scale-[1.01] shadow-[0_0_20px_rgba(220,38,38,0.2)] group mb-4">
                             <div className="flex items-center gap-3 w-full justify-center relative">
                                 <BookOpen className="w-5 h-5 absolute left-0" />
@@ -164,7 +166,6 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                             </div>
                         </button>
 
-                        {/* BOTÕES SECUNDÁRIOS (BIBLIOTECA E COMPARTILHAR) */}
                         <div className="flex items-center gap-3 mb-2">
                             <div className="relative flex-1">
                                 <button onClick={() => setShowLibraryMenu(!showLibraryMenu)} className={`w-full py-3 rounded-xl border flex items-center justify-center transition-all duration-300 font-black text-[10px] uppercase tracking-widest gap-2 ${inLibrary ? 'bg-red-950/40 border-red-600/50 text-red-500' : 'bg-[#0f0f13] border-white/5 text-gray-400 hover:text-white hover:border-red-500/30'}`}>
@@ -187,11 +188,9 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                     </div>
                 </div>
 
-                {/* SINOPSE (COM CAPA NO FUNDO DIREITO) */}
                 <div className="mt-10 relative z-10 w-full">
                     <div className="relative overflow-hidden bg-[#0a0a0c] border border-white/5 rounded-2xl shadow-xl">
                         
-                        {/* Imagem de Fundo (Lado Direito) */}
                         <div className="absolute right-0 top-0 w-3/4 md:w-1/2 h-full opacity-30 mix-blend-screen pointer-events-none" style={{ maskImage: 'linear-gradient(to right, transparent, black)', WebkitMaskImage: '-webkit-linear-gradient(left, transparent, black)' }}>
                             <img src={manga.coverUrl} className="w-full h-full object-cover object-top" alt="Background" />
                         </div>
@@ -214,7 +213,6 @@ export default function DetailsView({ manga, libraryData, historyData, user, use
                     </div>
                 </div>
 
-                {/* ABAS: CAPÍTULOS E COMENTÁRIOS */}
                 <div className="mt-12 relative z-10 w-full">
                     <div className="flex items-center gap-6 mb-6 border-b border-white/10 pb-4">
                         <button onClick={() => setDetailsTab('capitulos')} className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors pb-2 border-b-2 ${detailsTab === 'capitulos' ? 'text-white border-red-600' : 'text-gray-600 border-transparent hover:text-gray-400'}`}>
