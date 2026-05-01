@@ -17,17 +17,12 @@ import { PopularView } from './PopularView';
 import DetailsView from './DetailsView';
 import ReaderView from './ReaderView';
 
-const MAIN_LOGO = "https://i.ibb.co/gF4zyvkk/Gemini-Generated-Image-gj2yhugj2yhugj2y-removebg-preview.png";
-
-// SPLASH SCREEN COM ANIMAÇÃO CINEMÁTICA E FUNDO IMERSIVO
+// SPLASH SCREEN COM ANIMAÇÃO CINEMÁTICA E TEXTO NATIVO
 function SplashScreen() {
-  const [imgFailed, setImgFailed] = useState(false);
-
   return (
     <div className="fixed inset-0 z-[9999] bg-[#030000] flex items-center justify-center transition-opacity duration-500 ease-out overflow-hidden">
       <style>{`
         .logo-anim {
-          width: 220px;
           opacity: 0;
           filter: blur(10px);
           transform: scale(0.85) translateY(15px);
@@ -42,7 +37,6 @@ function SplashScreen() {
         }
       `}</style>
       
-      {/* Fundo Atmosférico da Splash */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-screen pointer-events-none"></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-red-600/20 rounded-full blur-[60px] mix-blend-screen pointer-events-none"></div>
       
@@ -51,16 +45,13 @@ function SplashScreen() {
               <circle cx="50" cy="50" r="30" fill="currentColor" filter="blur(15px)" />
           </svg>
           
-          {!imgFailed ? (
-            <img 
-                src={MAIN_LOGO} 
-                className="logo-anim object-contain relative z-10 drop-shadow-[0_0_20px_rgba(220,38,38,1)]" 
-                alt="MangaKage Logo" 
-                onError={() => setImgFailed(true)} 
-            />
-          ) : (
-            <KageLogo className="logo-anim text-red-600" showContour={false} />
-          )}
+          <div className="logo-anim flex flex-col items-center justify-center drop-shadow-[0_0_20px_rgba(220,38,38,1)]">
+            <KageLogo className="w-20 h-20 md:w-24 md:h-24 text-red-600 mb-2" showContour={false} />
+            <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter flex items-center justify-center gap-1">
+                <span className="text-white">MANGA</span>
+                <span className="text-red-600">KAGE</span>
+            </h1>
+          </div>
       </div>
     </div>
   );
@@ -94,7 +85,6 @@ function MangakageApp() {
   const [notifications, setNotifications] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false); 
 
-  // Tempo aumentado (1.2s) para a animação épica ter tempo de brilhar
   useEffect(() => { 
       const timer = setTimeout(() => setSplashTimerDone(true), 1200); 
       return () => clearTimeout(timer); 
@@ -314,17 +304,9 @@ function MangakageApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               
-              <div className="flex items-center cursor-pointer group" onClick={() => navigateTo('home')}>
-                <div className="relative flex items-center justify-center">
-                  <svg className="absolute w-20 h-20 text-red-600/30 animate-pulse pointer-events-none" style={{ mixBlendMode: 'screen' }} viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="30" fill="currentColor" filter="blur(10px)" />
-                  </svg>
-                  <img 
-                      src={MAIN_LOGO} 
-                      className="h-10 md:h-12 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]" 
-                      alt="MangaKage" 
-                  />
-                </div>
+              <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
+                <KageLogo className="w-10 h-10 md:w-12 md:h-12 group-hover:scale-110 transition-transform duration-300" showContour={false} />
+                <span className="text-xl font-black text-white tracking-[0.2em] uppercase hidden sm:block">MANGA<span className="text-red-600">KAGE</span></span>
               </div>
               
               <div className="hidden md:block flex-1 max-w-lg mx-8 relative group">
