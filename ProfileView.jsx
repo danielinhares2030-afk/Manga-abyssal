@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Compass, History, Library, Camera, Edit3, LogOut, Loader2, BookOpen, AlertTriangle, Trophy, Zap, Trash2, RefreshCw, Settings, Flame, Eye, Bookmark, Hexagon, Crown, Ghost, Lock, Sparkles, Box, ChevronRight, Swords } from 'lucide-react';
+import { Compass, History, Library, Camera, Edit3, LogOut, Loader2, BookOpen, AlertTriangle, Trophy, Zap, Trash2, RefreshCw, Settings, Flame, Eye, EyeOff, Bookmark, Hexagon, Crown, Ghost, Lock, Sparkles, Box, ChevronRight, Swords } from 'lucide-react';
 import { updateProfile } from "firebase/auth";
 import { doc, setDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from './firebase';
@@ -68,7 +68,14 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
   const handleSave = async (e) => {
     e.preventDefault(); setLoading(true);
-    try { await updateProfile(auth.currentUser, { displayName: name }); const docData = { coverUrl: coverBase64, avatarUrl: avatarBase64, bio: bio }; await setDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), docData, { merge: true }); onUpdateData(docData); showToast('Perfil forjado nas sombras!', 'success'); setIsEditing(false); } catch (error) { showToast(`Erro ao salvar.`, 'error'); } finally { setLoading(false); }
+    try { 
+        await updateProfile(auth.currentUser, { displayName: name }); 
+        const docData = { coverUrl: coverBase64, avatarUrl: avatarBase64, bio: bio, name: name }; 
+        await setDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), docData, { merge: true }); 
+        onUpdateData(docData); 
+        showToast('Perfil forjado nas sombras!', 'success'); 
+        setIsEditing(false); 
+    } catch (error) { showToast(`Erro ao salvar.`, 'error'); } finally { setLoading(false); }
   };
 
   const handleEquipCosmetic = async (item) => {
@@ -159,15 +166,18 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
 
   return (
     <div className={`animate-in fade-in duration-300 w-full pb-24 font-sans min-h-screen text-gray-200 bg-[#050505] overflow-x-hidden`}>
+      
+      {/* MODAL DE CONFIRMAÇÃO OTIMIZADO ("Sem Silicone") */}
       {confirmAction && (
-          <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-              <div className="bg-[#0a0a0c] border border-red-600/50 p-8 rounded-xl max-w-sm w-full text-center shadow-[0_0_40px_rgba(220,38,38,0.2)]">
-                  <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                  <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Confirmar Ação?</h3>
-                  <p className="text-sm text-gray-400 mb-8 font-medium">{confirmAction === 'history' ? 'O registro do tempo será apagado permanentemente.' : 'A matriz será recarregada para limpar o fluxo.'}</p>
-                  <div className="flex gap-4">
-                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-[#050505] border border-white/10 text-gray-300 font-black py-3 rounded-lg hover:bg-white/5 transition-colors text-xs uppercase tracking-widest">Recuar</button>
-                      <button onClick={executeConfirmAction} className="flex-1 bg-red-600/20 text-red-500 border border-red-500/40 font-black py-3 rounded-lg transition-colors hover:bg-red-500 hover:text-white text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.3)]">Confirmar</button>
+          <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
+              <div className="bg-[#050505] border border-red-600/60 p-8 rounded-2xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(220,38,38,0.2)] relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
+                  <AlertTriangle className="w-14 h-14 text-red-500 mx-auto mb-5 relative z-10 drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
+                  <h3 className="text-xl font-black text-white mb-3 uppercase tracking-widest relative z-10">Confirmar Ação?</h3>
+                  <p className="text-sm text-gray-400 mb-8 font-bold relative z-10 leading-relaxed">{confirmAction === 'history' ? 'O registro do tempo será desintegrado permanentemente.' : 'A matriz será recarregada para limpar o fluxo.'}</p>
+                  <div className="flex gap-4 relative z-10">
+                      <button onClick={() => setConfirmAction(null)} className="flex-1 bg-[#0a0a0c] border border-white/10 text-gray-300 font-black py-3.5 rounded-xl hover:bg-white/5 transition-colors text-[10px] uppercase tracking-widest">Recuar</button>
+                      <button onClick={executeConfirmAction} className="flex-1 bg-red-600/20 text-red-500 border border-red-500/40 font-black py-3.5 rounded-xl transition-all hover:bg-red-600 hover:text-white hover:border-red-500 text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)]">Confirmar</button>
                   </div>
               </div>
           </div>
@@ -184,7 +194,6 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
         
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
         
-        {/* CORREÇÃO DO BOTÃO "ALTERAR CAPA" */}
         {isEditing && (
             <button onClick={() => coverInputRef.current.click()} className="absolute top-4 right-4 bg-black/50 border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] text-white font-bold uppercase tracking-widest hover:bg-white/10 transition-colors z-10">
                 <Camera className="w-4 h-4" /> Alterar capa
@@ -453,6 +462,19 @@ export function ProfileView({ user, userProfileData, historyData, libraryData, d
             <div className="px-6 mt-6 pb-20 animate-in fade-in duration-300 space-y-6">
                 <ShadowCard>
                   <h3 className="text-xl font-black text-white mb-8 uppercase tracking-tight flex items-center gap-3"><Settings className="w-5 h-5 text-red-500"/> Preferências Kage</h3>
+                  
+                  {/* NOVA CONFIGURAÇÃO DE PRIVACIDADE */}
+                  <div className="flex items-center justify-between mb-8 pb-8 border-b border-white/5">
+                    <div>
+                        <p className="text-sm font-black text-white uppercase tracking-widest">Privacidade das Sombras</p>
+                        <p className="text-xs text-gray-500 mt-1 font-bold">Ocultar seu perfil de outros ninjas.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" checked={userSettings?.isPrivate || false} onChange={(e) => { updateSettings({ isPrivate: e.target.checked }); showToast("Nível de ocultação alterado.", "success"); }} />
+                        <div className="w-14 h-7 bg-[#050505] border border-white/20 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[4px] after:bg-gray-400 peer-checked:after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all duration-300 peer-checked:bg-gradient-to-r peer-checked:from-red-700 peer-checked:to-red-500 shadow-inner"></div>
+                    </label>
+                  </div>
+
                   <div className="flex items-center justify-between mb-8 pb-8 border-b border-white/5">
                     <div><p className="text-sm font-black text-white uppercase tracking-widest">Modo de Leitura</p><p className="text-xs text-gray-500 mt-1 font-bold">Como você consome as memórias.</p></div>
                     <select value={userSettings?.readMode || 'Cascata'} onChange={(e) => { updateSettings({ readMode: e.target.value }); showToast("Preferência atualizada.", "success"); }} className="bg-[#050505] border border-red-600/30 text-white text-xs font-bold rounded-lg px-5 py-3.5 outline-none focus:border-red-600 shadow-sm cursor-pointer transition-colors duration-300">
