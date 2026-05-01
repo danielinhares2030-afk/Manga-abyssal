@@ -1,9 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Package, PackageOpen, Calendar, BookOpen } from 'lucide-react';
+import { Target, Hexagon, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Calendar, BookOpen } from 'lucide-react';
 import { doc, updateDoc, collectionGroup, getDocs, query, increment } from "firebase/firestore";
 import { auth, db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
 import { APP_ID } from './constants';
+
+// NOVO: BAÚ SOMBRIO FEITO EM SVG PURO (Carregamento instantâneo e sem imagens externas)
+const KageChest = ({ className = "w-24 h-24", isOpen = false }) => (
+  <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="boxGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#1a0505"/>
+        <stop offset="100%" stopColor="#050000"/>
+      </linearGradient>
+      <filter id="neonGlow">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    {/* Brilho interno projetado pra fora (se aberto) */}
+    {isOpen && (
+      <path d="M20 60 L60 10 L100 60 Z" fill="#ef4444" opacity="0.6" filter="url(#neonGlow)" />
+    )}
+
+    {/* Corpo do Baú */}
+    <path d="M15 55 L105 55 L95 100 L25 100 Z" fill="url(#boxGrad)" stroke="#b91c1c" strokeWidth="2"/>
+    <path d="M15 55 L105 55 L95 100 L25 100 Z" fill="none" stroke="#ef4444" strokeWidth="1" opacity="0.3"/>
+    
+    {/* Detalhes do Corpo */}
+    <line x1="35" y1="55" x2="40" y2="100" stroke="#7f1d1d" strokeWidth="3"/>
+    <line x1="85" y1="55" x2="80" y2="100" stroke="#7f1d1d" strokeWidth="3"/>
+    <line x1="60" y1="55" x2="60" y2="100" stroke="#7f1d1d" strokeWidth="3"/>
+    <circle cx="60" cy="75" r="12" fill="#050000" stroke="#b91c1c" strokeWidth="2"/>
+
+    {/* Tampa do Baú com animação nativa */}
+    <g style={{ transform: isOpen ? 'translateY(-25px) rotate(-12deg)' : 'none', transformOrigin: '60px 55px', transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
+      <path d="M10 55 C 10 15, 110 15, 110 55 Z" fill="url(#boxGrad)" stroke="#b91c1c" strokeWidth="2"/>
+      <path d="M25 55 C 28 30, 92 30, 95 55" fill="none" stroke="#7f1d1d" strokeWidth="3"/>
+      <path d="M45 55 C 47 40, 73 40, 75 55" fill="none" stroke="#7f1d1d" strokeWidth="3"/>
+      
+      {/* Fechadura Mística Neon */}
+      <circle cx="60" cy="55" r="14" fill="#000" stroke="#ef4444" strokeWidth="2" filter="url(#neonGlow)"/>
+      <path d="M60 48 L64 60 L56 60 Z" fill="#ef4444" filter="url(#neonGlow)"/>
+    </g>
+    
+    {/* Partículas voando se aberto */}
+    {isOpen && (
+      <g filter="url(#neonGlow)">
+        <circle cx="60" cy="45" r="15" fill="#ef4444" opacity="0.8"/>
+        <circle cx="45" cy="25" r="3" fill="#fca5a5" />
+        <circle cx="75" cy="30" r="4" fill="#fca5a5" />
+        <circle cx="60" cy="15" r="3" fill="#fca5a5" />
+      </g>
+    )}
+  </svg>
+);
 
 export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems }) {
     const [activeTab, setActiveTab] = useState("Caixas");
@@ -153,7 +208,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
-            {/* NOVA ANIMAÇÃO ÉPICA DA CAIXA (LOOT BOX) */}
+            {/* ANIMAÇÃO ÉPICA DA CAIXA (LOOT BOX) */}
             {isOpeningBoxAnim && (
                 <div className="fixed inset-0 z-[9999] bg-[#000000] flex flex-col items-center justify-center overflow-hidden">
                     <style>{`
@@ -189,28 +244,22 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         @keyframes fade-in-late { 0%, 85% { opacity: 0; transform: translateY(20px); } 90%, 100% { opacity: 1; transform: translateY(0); } }
                     `}</style>
 
-                    {/* Fundo base piscando levemente */}
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.2)_0%,transparent_70%)] text-hide-after"></div>
 
-                    {/* Raios de Luz Giratórios (Aparecem quando abre) */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 anim-chest-open">
                         <div className="w-[150vw] h-[150vw] anim-rays" style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(220,38,38,0.3) 10deg, transparent 20deg, transparent 40deg, rgba(220,38,38,0.3) 50deg, transparent 60deg, transparent 80deg, rgba(220,38,38,0.3) 90deg, transparent 100deg, transparent 120deg, rgba(220,38,38,0.3) 130deg, transparent 140deg, transparent 160deg, rgba(220,38,38,0.3) 170deg, transparent 180deg, transparent 200deg, rgba(220,38,38,0.3) 210deg, transparent 220deg, transparent 240deg, rgba(220,38,38,0.3) 250deg, transparent 260deg, transparent 280deg, rgba(220,38,38,0.3) 290deg, transparent 300deg, transparent 320deg, rgba(220,38,38,0.3) 330deg, transparent 340deg, transparent 360deg)' }}></div>
                     </div>
 
-                    {/* Clarão da Explosão */}
                     <div className="absolute w-96 h-96 rounded-full anim-chest-burst z-10 pointer-events-none"></div>
 
-                    {/* Caixa Fechada Tremendo */}
                     <div className="absolute flex flex-col items-center justify-center anim-chest-shake z-20">
-                        <Package className="w-32 h-32 text-red-600" strokeWidth={1.5} />
+                        <KageChest className="w-32 h-32" isOpen={false} />
                     </div>
 
-                    {/* Caixa Aberta Revelada */}
                     <div className="absolute flex flex-col items-center justify-center anim-chest-open z-30">
-                        <PackageOpen className="w-40 h-40 text-red-500 drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]" strokeWidth={1.5} />
+                        <KageChest className="w-40 h-40" isOpen={true} />
                     </div>
 
-                    {/* Textos Trocando */}
                     <div className="absolute bottom-32 w-full text-center z-40">
                         <h2 className="text-2xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(220,38,38,0.8)] text-hide-after absolute inset-0">
                             Rompendo Selo...
@@ -234,7 +283,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                             {boxReward.type === 'xp' && <div className="w-24 h-24 rounded-full bg-blue-950/40 border-2 border-blue-500 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)]"><Zap className="w-12 h-12 text-blue-500 drop-shadow-lg"/></div>}
                             {boxReward.type === 'cosmetic' && (
                                 <div className="w-24 h-24 rounded-full bg-[#050505] border-2 border-red-500 overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.4)] relative">
-                                    {cleanCosmeticUrl(boxReward.value.preview) ? <img src={cleanCosmeticUrl(boxReward.value.preview)} className="w-full h-full object-cover" /> : <Package className="w-10 h-10 text-red-500"/>}
+                                    {cleanCosmeticUrl(boxReward.value.preview) ? <img src={cleanCosmeticUrl(boxReward.value.preview)} className="w-full h-full object-cover" /> : <KageChest className="w-12 h-12" isOpen={true} />}
                                 </div>
                             )}
                         </div>
@@ -265,7 +314,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         <button key={tab} onClick={() => setActiveTab(tab)} className={`relative px-8 py-3 font-black text-[10px] uppercase tracking-[0.3em] transition-all transform skew-x-[-15deg] group border-b-2
                             ${activeTab === tab ? 'bg-red-600/10 border-red-600 text-white' : 'bg-transparent border-transparent text-gray-500 hover:text-red-400'}`}>
                             <div className="skew-x-[15deg] flex items-center gap-2">
-                                {tab === "Caixas" && <Package className="w-3.5 h-3.5"/>}
+                                {tab === "Caixas" && <KageChest className="w-4 h-4" isOpen={false} />}
                                 {tab === "Forja" && <Hexagon className="w-3.5 h-3.5"/>}
                                 {tab === "Ranking" && <Trophy className="w-3.5 h-3.5"/>}
                                 {tab}
@@ -289,7 +338,8 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="bg-[#050505] border border-white/5 rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-lg group hover:border-red-600/50 transition-colors">
                                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
-                                <Package className="w-24 h-24 text-red-600 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" strokeWidth={1.5}/>
+                                
+                                <KageChest className="w-24 h-24 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" isOpen={false} />
                                 
                                 <h3 className="text-4xl font-black text-white relative z-10 leading-none">{userProfileData.caixas || 0}</h3>
                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest relative z-10 mb-6 mt-1">Caixas Disponíveis</p>
