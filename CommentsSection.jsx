@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, EyeOff, Eye, UserCircle, Zap, X, Loader2, Send, ArrowDownAz, ArrowUpZa, Sparkles, Trash2, AlertTriangle } from 'lucide-react';
+import { MessageSquare, EyeOff, Eye, UserCircle, Zap, X, Loader2, Send, ArrowDownAz, ArrowUpZa, Sparkles, Trash2, AlertTriangle, Hexagon } from 'lucide-react';
 import { query, collection, onSnapshot, addDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { db } from './firebase';
 import { APP_ID } from './constants';
 import { cleanCosmeticUrl, getLevelTitle } from './helpers';
 
-// COMPONENTE: Cartão de Perfil Público (Surreal e Sombrio)
+// COMPONENTE: Cartão de Perfil Público 
 const PublicProfileModal = ({ userId, onClose, currentUserId }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -22,53 +22,53 @@ const PublicProfileModal = ({ userId, onClose, currentUserId }) => {
 
     return (
         <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-300" onClick={onClose}>
-            <div className="bg-[#050505] border border-red-600/50 rounded-2xl w-full max-w-sm relative overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.2)]" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#05050a] border border-cyan-500/50 rounded-2xl w-full max-w-sm relative overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.2)]" onClick={e => e.stopPropagation()}>
                 {loading ? (
-                    <div className="p-16 flex justify-center"><Loader2 className="w-10 h-10 text-red-600 animate-spin"/></div>
+                    <div className="p-16 flex justify-center"><Loader2 className="w-10 h-10 text-cyan-500 animate-spin"/></div>
                 ) : !data ? (
-                    <div className="p-10 text-center text-gray-500 font-black uppercase tracking-widest text-xs">Ninja desintegrado da matriz.</div>
+                    <div className="p-10 text-center text-gray-500 font-black uppercase tracking-widest text-xs">Usuário não encontrado.</div>
                 ) : data.settings?.isPrivate && userId !== currentUserId ? (
-                    <div className="p-12 text-center bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.1),transparent_70%)]">
-                        <EyeOff className="w-16 h-16 text-red-900 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
-                        <h3 className="text-white font-black text-xl uppercase tracking-widest">Perfil Oculto</h3>
-                        <p className="text-gray-500 text-[10px] mt-3 font-bold uppercase tracking-[0.2em]">Este ninja ativou a camuflagem das sombras.</p>
-                        <button onClick={onClose} className="mt-8 bg-red-950/40 text-red-500 border border-red-900/50 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-900/60 transition-colors">Retornar</button>
+                    <div className="p-12 text-center bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.1),transparent_70%)]">
+                        <EyeOff className="w-16 h-16 text-cyan-900 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
+                        <h3 className="text-white font-black text-xl uppercase tracking-widest">Perfil Privado</h3>
+                        <p className="text-gray-500 text-[10px] mt-3 font-bold uppercase tracking-[0.2em]">Este usuário ocultou seu perfil do sistema.</p>
+                        <button onClick={onClose} className="mt-8 bg-cyan-950/40 text-cyan-400 border border-cyan-900/50 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-cyan-900/60 transition-colors">Retornar</button>
                     </div>
                 ) : (
                     <div className="pb-8">
                         {/* Banner Público */}
-                        <div className="h-32 w-full bg-red-950/30 relative border-b border-red-900/30">
+                        <div className="h-32 w-full bg-blue-950/30 relative border-b border-cyan-900/30">
                             {data.coverUrl ? <img src={cleanCosmeticUrl(data.coverUrl)} className="w-full h-full object-cover opacity-50 mix-blend-screen" /> : <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>}
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent"></div>
-                            <button onClick={onClose} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:text-red-500 hover:bg-black transition-colors backdrop-blur-md"><X className="w-4 h-4"/></button>
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#05050a] via-transparent to-transparent"></div>
+                            <button onClick={onClose} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:text-cyan-400 hover:bg-black transition-colors backdrop-blur-md"><X className="w-4 h-4"/></button>
                         </div>
                         {/* Avatar Público */}
                         <div className="relative -mt-16 flex justify-center">
-                            <div className="w-28 h-28 rounded-full border-[3px] border-[#050505] bg-[#0a0a0c] relative flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-                                <img src={cleanCosmeticUrl(data.equipped_items?.avatar?.preview) || data.avatarUrl || 'https://placehold.co/150x150/050505/dc2626?text=K'} className="w-full h-full object-cover rounded-full" />
+                            <div className="w-28 h-28 rounded-full border-[3px] border-[#05050a] bg-[#0a0a16] relative flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                                <img src={cleanCosmeticUrl(data.equipped_items?.avatar?.preview) || data.avatarUrl || 'https://placehold.co/150x150/020205/0ea5e9?text=N'} className="w-full h-full object-cover rounded-full" />
                                 {data.equipped_items?.moldura?.preview && <img src={cleanCosmeticUrl(data.equipped_items.moldura.preview)} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain pointer-events-none" style={{mixBlendMode: 'screen'}} />}
                             </div>
                         </div>
                         {/* Info Pública */}
                         <div className="text-center mt-4 px-6">
-                            <h3 className="text-2xl font-black text-white uppercase tracking-tight">{data.name || 'Ninja Anônimo'}</h3>
-                            <div className="inline-flex items-center gap-2 mt-2 bg-red-950/30 border border-red-900/50 px-4 py-1.5 rounded-full">
-                                <Sparkles className="w-3 h-3 text-red-500" />
-                                <span className="text-red-500 text-[10px] font-black uppercase tracking-widest">Nível {data.level || 1} • {getLevelTitle(data.level || 1)}</span>
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tight">{data.name || 'Leitor Anônimo'}</h3>
+                            <div className="inline-flex items-center gap-2 mt-2 bg-blue-950/30 border border-cyan-900/50 px-4 py-1.5 rounded-full">
+                                <Sparkles className="w-3 h-3 text-cyan-400" />
+                                <span className="text-cyan-400 text-[10px] font-black uppercase tracking-widest">Nível {data.level || 1} • {getLevelTitle(data.level || 1)}</span>
                             </div>
-                            <p className="text-gray-400 text-xs italic mt-5 leading-relaxed font-medium line-clamp-3">"{data.bio || 'Mergulhado no domínio das sombras.'}"</p>
+                            <p className="text-gray-400 text-xs italic mt-5 leading-relaxed font-medium line-clamp-3">"{data.bio || 'Explorando o universo dos mangás.'}"</p>
                         </div>
                         {/* Atributos Públicos */}
                         <div className="grid grid-cols-3 gap-2 mt-8 px-8 border-t border-white/5 pt-8">
                             <div className="text-center flex flex-col items-center">
-                                <div className="w-10 h-10 rounded-full bg-red-950/20 border border-red-900/30 flex items-center justify-center mb-2"><Zap className="w-4 h-4 text-red-500"/></div>
+                                <div className="w-10 h-10 rounded-full bg-cyan-950/20 border border-cyan-900/30 flex items-center justify-center mb-2"><Zap className="w-4 h-4 text-cyan-400"/></div>
                                 <span className="block text-lg font-black text-white">{data.xp || 0}</span>
-                                <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Poder Vital</span>
+                                <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Pontos XP</span>
                             </div>
                             <div className="text-center flex flex-col items-center">
                                 <div className="w-10 h-10 rounded-full bg-amber-950/20 border border-amber-900/30 flex items-center justify-center mb-2"><div className="w-3 h-3 bg-amber-500 rotate-45"></div></div>
                                 <span className="block text-lg font-black text-white">{data.coins || 0}</span>
-                                <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Sombras</span>
+                                <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Moedas</span>
                             </div>
                             <div className="text-center flex flex-col items-center">
                                 <div className="w-10 h-10 rounded-full bg-blue-950/20 border border-blue-900/30 flex items-center justify-center mb-2"><Hexagon className="w-4 h-4 text-blue-500"/></div>
@@ -125,8 +125,8 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
               mangaId: mangaId, chapterId: chapterId || null, createdAt: Date.now(), read: false
           });
       }
-      setNewComment(''); setReplyingTo(null); showToast("Mensagem gravada no Vazio!", "success");
-    } catch(e) { showToast("Erro ao comunicar com o Vazio.", "error"); } finally { setSubmittingComment(false); }
+      setNewComment(''); setReplyingTo(null); showToast("Mensagem processada pelo sistema!", "success");
+    } catch(e) { showToast("Erro de comunicação com o servidor.", "error"); } finally { setSubmittingComment(false); }
   };
 
   const executeDeleteComment = async () => {
@@ -134,8 +134,8 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
       try {
           const path = chapterId ? `obras/${mangaId}/capitulos/${chapterId}/comments` : `obras/${mangaId}/comments`;
           await deleteDoc(doc(db, path, commentToDelete));
-          showToast("Mensagem desintegrada.", "success");
-      } catch(e) { showToast("Erro ao apagar mensagem.", "error"); }
+          showToast("Mensagem excluída da base de dados.", "success");
+      } catch(e) { showToast("Erro ao apagar comentário.", "error"); }
       setCommentToDelete(null);
   };
 
@@ -147,14 +147,14 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
       {/* MODAL CUSTOMIZADO: APAGAR COMENTÁRIO */}
       {commentToDelete && (
           <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
-              <div className="bg-[#050505] border border-red-600/60 rounded-2xl p-8 max-w-sm w-full shadow-[0_0_50px_rgba(220,38,38,0.2)] text-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
-                  <AlertTriangle className="w-14 h-14 text-red-500 mx-auto mb-5 relative z-10 drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
+              <div className="bg-[#05050a] border border-cyan-500/50 rounded-2xl p-8 max-w-sm w-full shadow-[0_0_50px_rgba(6,182,212,0.2)] text-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.1),transparent_70%)] pointer-events-none"></div>
+                  <AlertTriangle className="w-14 h-14 text-cyan-500 mx-auto mb-5 relative z-10 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
                   <h3 className="text-xl font-black text-white uppercase tracking-widest mb-3 relative z-10">Apagar Mensagem?</h3>
-                  <p className="text-gray-400 text-xs font-bold mb-8 relative z-10 leading-relaxed">Esta ação desintegrará sua voz do vazio para sempre. Não há retorno.</p>
+                  <p className="text-gray-400 text-xs font-bold mb-8 relative z-10 leading-relaxed">Esta ação excluirá seu comentário permanentemente do banco de dados. Não há retorno.</p>
                   <div className="flex gap-4 relative z-10">
-                      <button onClick={() => setCommentToDelete(null)} className="flex-1 bg-[#0a0a0c] border border-white/10 text-gray-300 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white/5 transition-colors">Recuar</button>
-                      <button onClick={executeDeleteComment} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all">Desintegrar</button>
+                      <button onClick={() => setCommentToDelete(null)} className="flex-1 bg-[#0a0a16] border border-white/10 text-gray-300 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white/5 transition-colors">Cancelar</button>
+                      <button onClick={executeDeleteComment} className="flex-1 bg-red-600/80 hover:bg-red-500 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all border border-red-500/50">Excluir</button>
                   </div>
               </div>
           </div>
@@ -190,7 +190,7 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
           
           <div className="flex items-center gap-4 mb-16">
             <div className="w-12 h-12 rounded-full border border-cyan-500/30 overflow-hidden flex-shrink-0 flex items-center justify-center p-0.5">
-               <div className="w-full h-full rounded-full overflow-hidden bg-[#050505]">
+               <div className="w-full h-full rounded-full overflow-hidden bg-[#020205]">
                  {(userProfileData?.avatarUrl || user?.photoURL) ? <img src={userProfileData.avatarUrl || user.photoURL} loading="lazy" className="w-full h-full object-cover" /> : <UserCircle className="w-full h-full text-cyan-600/50 p-1" />}
                </div>
             </div>
@@ -207,11 +207,11 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
                     type="text" 
                     value={newComment} 
                     onChange={e=>setNewComment(e.target.value)} 
-                    placeholder={user ? "Ecoe a sua voz no Vazio..." : "Faça login para interagir."} 
+                    placeholder={user ? "Transmita sua mensagem para a rede..." : "Acesse o sistema para interagir."} 
                     disabled={!user || submittingComment} 
                     className="w-full bg-transparent border-none text-white text-sm font-medium outline-none placeholder:text-gray-600 disabled:opacity-50 pr-16" 
                   />
-                  <button type="submit" disabled={!user || submittingComment || !newComment.trim()} className="absolute right-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-xl disabled:opacity-50 disabled:grayscale transition-transform hover:scale-105 shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                  <button type="submit" disabled={!user || submittingComment || !newComment.trim()} className="absolute right-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-xl disabled:opacity-50 disabled:grayscale transition-transform hover:scale-105 shadow-[0_0_15px_rgba(6,182,212,0.4)]">
                      {submittingComment ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4 -ml-1 mt-0.5"/>}
                   </button>
                 </form>
@@ -223,20 +223,20 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
               <div className="py-12 flex flex-col items-center justify-center text-center">
                   <div className="relative mb-6">
                       <div className="absolute inset-0 bg-cyan-500/20 blur-[30px] rounded-full"></div>
-                      <MessageSquare className="w-16 h-16 text-cyan-400 relative z-10 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" strokeWidth={1.5} />
+                      <MessageSquare className="w-16 h-16 text-cyan-400 relative z-10 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" strokeWidth={1.5} />
                       <Sparkles className="absolute -top-2 -right-4 w-5 h-5 text-cyan-300 animate-pulse" />
                       <Sparkles className="absolute top-4 -left-6 w-4 h-4 text-cyan-500 animate-pulse delay-75" />
                   </div>
-                  <h3 className="text-white font-black text-sm uppercase tracking-widest mb-1">O SILÊNCIO REINA.</h3>
-                  <h3 className="text-cyan-400 font-black text-sm uppercase tracking-widest mb-3">SEJA O PRIMEIRO.</h3>
-                  <p className="text-gray-500 font-medium text-xs">Deixe sua marca. Sua voz pode inspirar.</p>
+                  <h3 className="text-white font-black text-sm uppercase tracking-widest mb-1">NENHUM REGISTRO ENCONTRADO.</h3>
+                  <h3 className="text-cyan-400 font-black text-sm uppercase tracking-widest mb-3">INICIE A TRANSMISSÃO.</h3>
+                  <p className="text-gray-500 font-medium text-xs">Deixe seu comentário. Compartilhe sua análise com outros leitores.</p>
               </div>
             ) : (
               sortedComments.map(comment => (
                 <div key={comment.id} className={`flex gap-4 relative group ${comment.replyToUser ? 'ml-12 before:content-[""] before:absolute before:-left-6 before:top-0 before:w-[2px] before:h-full before:bg-cyan-900/30' : ''}`}>
                   
                   {/* Foto de Perfil Clicável */}
-                  <div onClick={() => setSelectedUserId(comment.userId)} className="w-10 h-10 rounded-full border border-white/5 overflow-hidden bg-[#050505] flex-shrink-0 cursor-pointer hover:border-cyan-500 hover:shadow-[0_0_10px_rgba(34,211,238,0.4)] transition-all">
+                  <div onClick={() => setSelectedUserId(comment.userId)} className="w-10 h-10 rounded-full border border-white/5 overflow-hidden bg-[#05050a] flex-shrink-0 cursor-pointer hover:border-cyan-500 hover:shadow-[0_0_10px_rgba(6,182,212,0.4)] transition-all">
                      {comment.userAvatar ? <img src={comment.userAvatar} loading="lazy" className="w-full h-full object-cover" /> : <UserCircle className="w-full h-full text-gray-600 p-1.5" />}
                   </div>
                   
@@ -253,7 +253,7 @@ export const CommentsSection = React.memo(({ mangaId, chapterId, user, userProfi
                     <button onClick={() => setReplyingTo(comment)} className="text-[10px] text-gray-500 hover:text-cyan-400 font-black mt-2 transition-colors">RESPONDER</button>
                   </div>
                   
-                  {/* BOTÃO DE EXCLUIR MODIFICADO (CHAMA O NOVO MODAL) */}
+                  {/* BOTÃO DE EXCLUIR */}
                   {user && comment.userId === user.uid && (
                       <button onClick={() => setCommentToDelete(comment.id)} className="absolute top-0 right-0 text-gray-600 hover:text-red-500 transition-colors p-2 opacity-0 group-hover:opacity-100">
                           <Trash2 className="w-4 h-4"/>
