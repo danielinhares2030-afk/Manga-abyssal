@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Package, Calendar, BookOpen } from 'lucide-react';
+import { Target, Hexagon, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Package, PackageOpen, Calendar, BookOpen } from 'lucide-react';
 import { doc, updateDoc, collectionGroup, getDocs, query, increment } from "firebase/firestore";
 import { auth, db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
@@ -57,7 +57,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }
     };
 
-    // NOVA LÓGICA: COMPRAR CAIXA COM XP (SACRIFÍCIO VITAL)
     const handleBuyBoxWithXP = async () => {
         if ((userProfileData.xp || 0) < 1000) {
             return showToast("Poder Vital Insuficiente. Você precisa de 1000 XP.", "error");
@@ -67,7 +66,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }
 
         try {
-            // Usa a mesma função que penaliza o usuário nas missões para rebaixá-lo de nível se necessário
             let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, 1000);
             
             await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), {
@@ -155,11 +153,72 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
+            {/* NOVA ANIMAÇÃO ÉPICA DA CAIXA (LOOT BOX) */}
             {isOpeningBoxAnim && (
-                <div className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.3)_0%,transparent_60%)] animate-pulse"></div>
-                    <Package className="w-32 h-32 text-red-600 animate-bounce drop-shadow-[0_0_30px_rgba(220,38,38,1)]" strokeWidth={1.5} />
-                    <h2 className="mt-8 text-2xl font-black text-red-600 uppercase tracking-[0.4em] animate-pulse drop-shadow-md">Rompendo Selo...</h2>
+                <div className="fixed inset-0 z-[9999] bg-[#000000] flex flex-col items-center justify-center overflow-hidden">
+                    <style>{`
+                        .anim-chest-shake { animation: chest-shake 2.2s cubic-bezier(.36,.07,.19,.97) both; }
+                        .anim-chest-burst { animation: chest-burst 2.5s ease-out both; }
+                        .anim-chest-open { animation: chest-open 2.5s ease-out both; }
+                        .anim-rays { animation: spin-rays 8s linear infinite; }
+                        .text-hide-after { animation: fade-out 2.5s forwards; }
+                        .text-show-after { animation: fade-in-late 2.5s forwards; }
+                        
+                        @keyframes chest-shake {
+                            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(220,38,38,0.5)); }
+                            10%, 30%, 50%, 70% { transform: scale(1.1) translate(-6px, 3px) rotate(-6deg); filter: drop-shadow(0 0 20px rgba(220,38,38,0.8)); }
+                            20%, 40%, 60%, 80% { transform: scale(1.1) translate(6px, -3px) rotate(6deg); filter: drop-shadow(0 0 35px rgba(220,38,38,0.9)); }
+                            85% { transform: scale(1.2) rotate(0deg); filter: brightness(2) drop-shadow(0 0 80px rgba(220,38,38,1)); opacity: 1; }
+                            90%, 100% { transform: scale(1.5); opacity: 0; }
+                        }
+                        @keyframes chest-burst {
+                            0%, 82% { opacity: 0; transform: scale(0); }
+                            86% { opacity: 1; transform: scale(1.5); background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(220,38,38,0.9) 40%, transparent 70%); }
+                            100% { opacity: 0; transform: scale(4.5); background: radial-gradient(circle, rgba(255,255,255,0) 0%, rgba(220,38,38,0) 40%, transparent 70%); }
+                        }
+                        @keyframes chest-open {
+                            0%, 85% { opacity: 0; transform: scale(0.5) translateY(30px); }
+                            90% { opacity: 1; transform: scale(1.25) translateY(-15px); filter: drop-shadow(0 0 60px rgba(220,38,38,1)); }
+                            100% { opacity: 1; transform: scale(1.1) translateY(0); filter: drop-shadow(0 0 40px rgba(220,38,38,0.8)); }
+                        }
+                        @keyframes spin-rays {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                        @keyframes fade-out { 0%, 80% { opacity: 1; } 85%, 100% { opacity: 0; } }
+                        @keyframes fade-in-late { 0%, 85% { opacity: 0; transform: translateY(20px); } 90%, 100% { opacity: 1; transform: translateY(0); } }
+                    `}</style>
+
+                    {/* Fundo base piscando levemente */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.2)_0%,transparent_70%)] text-hide-after"></div>
+
+                    {/* Raios de Luz Giratórios (Aparecem quando abre) */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 anim-chest-open">
+                        <div className="w-[150vw] h-[150vw] anim-rays" style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(220,38,38,0.3) 10deg, transparent 20deg, transparent 40deg, rgba(220,38,38,0.3) 50deg, transparent 60deg, transparent 80deg, rgba(220,38,38,0.3) 90deg, transparent 100deg, transparent 120deg, rgba(220,38,38,0.3) 130deg, transparent 140deg, transparent 160deg, rgba(220,38,38,0.3) 170deg, transparent 180deg, transparent 200deg, rgba(220,38,38,0.3) 210deg, transparent 220deg, transparent 240deg, rgba(220,38,38,0.3) 250deg, transparent 260deg, transparent 280deg, rgba(220,38,38,0.3) 290deg, transparent 300deg, transparent 320deg, rgba(220,38,38,0.3) 330deg, transparent 340deg, transparent 360deg)' }}></div>
+                    </div>
+
+                    {/* Clarão da Explosão */}
+                    <div className="absolute w-96 h-96 rounded-full anim-chest-burst z-10 pointer-events-none"></div>
+
+                    {/* Caixa Fechada Tremendo */}
+                    <div className="absolute flex flex-col items-center justify-center anim-chest-shake z-20">
+                        <Package className="w-32 h-32 text-red-600" strokeWidth={1.5} />
+                    </div>
+
+                    {/* Caixa Aberta Revelada */}
+                    <div className="absolute flex flex-col items-center justify-center anim-chest-open z-30">
+                        <PackageOpen className="w-40 h-40 text-red-500 drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]" strokeWidth={1.5} />
+                    </div>
+
+                    {/* Textos Trocando */}
+                    <div className="absolute bottom-32 w-full text-center z-40">
+                        <h2 className="text-2xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(220,38,38,0.8)] text-hide-after absolute inset-0">
+                            Rompendo Selo...
+                        </h2>
+                        <h2 className="text-3xl font-black text-red-500 uppercase tracking-[0.5em] drop-shadow-[0_0_20px_rgba(220,38,38,1)] text-show-after absolute inset-0">
+                            Revelando!
+                        </h2>
+                    </div>
                 </div>
             )}
 
@@ -230,7 +289,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="bg-[#050505] border border-white/5 rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-lg group hover:border-red-600/50 transition-colors">
                                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
-                                <Package className="w-24 h-24 text-red-600 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+                                <Package className="w-24 h-24 text-red-600 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" strokeWidth={1.5}/>
                                 
                                 <h3 className="text-4xl font-black text-white relative z-10 leading-none">{userProfileData.caixas || 0}</h3>
                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest relative z-10 mb-6 mt-1">Caixas Disponíveis</p>
@@ -256,7 +315,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     )}
                                 </div>
 
-                                {/* NOVO: COMPRAR CAIXA COM XP (SACRIFÍCIO) */}
                                 <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden shadow-lg flex-1">
                                     <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-red-500"/> Sacrifício Vital</h4>
                                     <p className="text-xs text-gray-400 font-medium mb-4 leading-relaxed">Transmute 1000 XP em uma Caixa do Vazio. <br/>Atenção: Seu nível irá cair.</p>
