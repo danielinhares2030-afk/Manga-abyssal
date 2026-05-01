@@ -36,7 +36,10 @@ function MangakageApp() {
   const [shopItems, setShopItems] = useState(FALLBACK_SHOP_ITEMS);
   const [catalogState, setCatalogState] = useState({ filterType: "Todos", selectedGenres: [], visibleCount: 24, scrollPos: 0 });
   const [user, setUser] = useState(null);
-  const [userProfileData, setUserProfileData] = useState({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [] });
+  
+  // CORREÇÃO: O Estado inicial agora prevê caixas e resgate diário
+  const [userProfileData, setUserProfileData] = useState({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [], caixas: 0, lastDailyBox: 0 });
+  
   const [userSettings, setUserSettings] = useState({ readMode: 'Cascata', dataSaver: false, theme: 'Escuro' });
   const [libraryData, setLibraryData] = useState({});
   const [historyData, setHistoryData] = useState([]);
@@ -96,9 +99,10 @@ function MangakageApp() {
           const unsubProfile = onSnapshot(profileRef, (docSnap) => {
             if (docSnap.exists()) {
               const data = docSnap.data();
-              setUserProfileData({ bio: data.bio, avatarUrl: data.avatarUrl, coverUrl: data.coverUrl, xp: data.xp || 0, level: data.level || 1, coins: data.coins || 0, crystals: data.crystals || 0, inventory: data.inventory || [], equipped_items: data.equipped_items || {}, activeMission: data.activeMission || null, completedMissions: data.completedMissions || [] });
+              // CORREÇÃO: Lendo caixas e lastDailyBox do banco e passando pra interface
+              setUserProfileData({ bio: data.bio, avatarUrl: data.avatarUrl, coverUrl: data.coverUrl, xp: data.xp || 0, level: data.level || 1, coins: data.coins || 0, crystals: data.crystals || 0, inventory: data.inventory || [], equipped_items: data.equipped_items || {}, activeMission: data.activeMission || null, completedMissions: data.completedMissions || [], caixas: data.caixas || 0, lastDailyBox: data.lastDailyBox || 0 });
               if(data.settings) setUserSettings({ ...userSettings, ...data.settings }); 
-            } else { setDoc(profileRef, { bio: "Leitor Nível 1.", settings: userSettings, xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [] }, { merge: true }); }
+            } else { setDoc(profileRef, { bio: "Leitor Nível 1.", settings: userSettings, xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [], caixas: 0, lastDailyBox: 0 }, { merge: true }); }
           });
           const libraryRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'library');
           const unsubLib = onSnapshot(query(libraryRef), (snapshot) => { const libs = {}; snapshot.docs.forEach(d => libs[d.id] = d.data().status); setLibraryData(libs); });
@@ -108,7 +112,7 @@ function MangakageApp() {
           const unsubNotif = onSnapshot(query(notifRef), (snapshot) => { const notifs = []; snapshot.docs.forEach(d => notifs.push({ id: d.id, ...d.data() })); setNotifications(notifs.sort((a,b) => b.createdAt - a.createdAt)); setDataLoaded(true); });
           return () => { unsubProfile(); unsubLib(); unsubHist(); unsubNotif(); };
         } catch (error) { console.error(error); }
-      } else { setUserProfileData({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [] }); setLibraryData({}); setHistoryData([]); setNotifications([]); setDataLoaded(true); }
+      } else { setUserProfileData({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [], caixas: 0, lastDailyBox: 0 }); setLibraryData({}); setHistoryData([]); setNotifications([]); setDataLoaded(true); }
     });
     return () => unsubscribeAuth();
   }, [currentView]);
