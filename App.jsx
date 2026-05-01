@@ -5,7 +5,7 @@ import { doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, query, getDocs,
 import { app, auth, db } from './firebase'; 
 import { APP_ID, FALLBACK_SHOP_ITEMS } from './constants';
 import { getThemeClasses, removeXpLogic, addXpLogic, timeAgo, cleanCosmeticUrl } from './helpers';
-import { ErrorBoundary, GlobalToast, Footer } from './UIComponents';
+import { ErrorBoundary, GlobalToast, Footer, KageLogo } from './UIComponents';
 import { LoginView } from './LoginView';
 import { HomeView } from './HomeView';
 import { SearchView } from './SearchView';
@@ -17,38 +17,50 @@ import { PopularView } from './PopularView';
 import DetailsView from './DetailsView';
 import ReaderView from './ReaderView';
 
-// NOVO LOGO OFICIAL
 const MAIN_LOGO = "https://i.ibb.co/gF4zyvkk/Gemini-Generated-Image-gj2yhugj2yhugj2y-removebg-preview.png";
 
-// SPLASH SCREEN COM AURA SVG E NOVO LOGO
+// SPLASH SCREEN COM ANIMAÇÃO CINEMÁTICA E FUNDO IMERSIVO
 function SplashScreen() {
+  const [imgFailed, setImgFailed] = useState(false);
+
   return (
-    <div className="fixed inset-0 bg-[#000] flex items-center justify-center z-[9999] transition-opacity duration-300 ease-out">
+    <div className="fixed inset-0 z-[9999] bg-[#030000] flex items-center justify-center transition-opacity duration-500 ease-out overflow-hidden">
       <style>{`
-        .logo-instant {
+        .logo-anim {
           width: 220px;
           opacity: 0;
-          transform: scale(0.95);
-          animation: logoInstantIn 0.2s ease forwards;
+          filter: blur(10px);
+          transform: scale(0.85) translateY(15px);
+          animation: logoReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        @keyframes logoInstantIn {
-          to {
+        @keyframes logoReveal {
+          100% {
             opacity: 1;
-            transform: scale(1);
+            filter: blur(0px);
+            transform: scale(1) translateY(0);
           }
         }
       `}</style>
       
-      <div className="relative flex items-center justify-center">
-          {/* Aura SVG Pura */}
+      {/* Fundo Atmosférico da Splash */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-screen pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-red-600/20 rounded-full blur-[60px] mix-blend-screen pointer-events-none"></div>
+      
+      <div className="relative flex items-center justify-center z-10">
           <svg className="absolute w-64 h-64 text-red-600/40 animate-pulse pointer-events-none" style={{ mixBlendMode: 'screen' }} viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="30" fill="currentColor" filter="blur(15px)" />
           </svg>
-          <img 
-              src={MAIN_LOGO} 
-              className="logo-instant object-contain relative z-10 drop-shadow-[0_0_20px_rgba(220,38,38,1)]" 
-              alt="MangaKage Logo" 
-          />
+          
+          {!imgFailed ? (
+            <img 
+                src={MAIN_LOGO} 
+                className="logo-anim object-contain relative z-10 drop-shadow-[0_0_20px_rgba(220,38,38,1)]" 
+                alt="MangaKage Logo" 
+                onError={() => setImgFailed(true)} 
+            />
+          ) : (
+            <KageLogo className="logo-anim text-red-600" showContour={false} />
+          )}
       </div>
     </div>
   );
@@ -82,8 +94,9 @@ function MangakageApp() {
   const [notifications, setNotifications] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false); 
 
+  // Tempo aumentado (1.2s) para a animação épica ter tempo de brilhar
   useEffect(() => { 
-      const timer = setTimeout(() => setSplashTimerDone(true), 300); 
+      const timer = setTimeout(() => setSplashTimerDone(true), 1200); 
       return () => clearTimeout(timer); 
   }, []);
 
@@ -301,7 +314,6 @@ function MangakageApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               
-              {/* MENU DE NAVEGAÇÃO SUPERIOR COM O NOVO LOGO E SEM TEXTO DUPLICADO */}
               <div className="flex items-center cursor-pointer group" onClick={() => navigateTo('home')}>
                 <div className="relative flex items-center justify-center">
                   <svg className="absolute w-20 h-20 text-red-600/30 animate-pulse pointer-events-none" style={{ mixBlendMode: 'screen' }} viewBox="0 0 100 100">
