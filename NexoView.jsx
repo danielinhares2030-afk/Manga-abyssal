@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Hexagon, ShoppingCart, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Package, Calendar, BookOpen } from 'lucide-react';
+import { Target, Hexagon, Trophy, Timer, Skull, Zap, Loader2, ArrowRight, Key, Sparkles, Flame, AlertTriangle, Crown, ChevronDown, Globe, ChevronRight, User, Image, Circle, Package, Calendar, BookOpen } from 'lucide-react';
 import { doc, updateDoc, collectionGroup, getDocs, query, increment } from "firebase/firestore";
 import { auth, db } from './firebase';
-import { addXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
+import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
 import { APP_ID } from './constants';
 
-export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems, buyItem }) {
+export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems }) {
     const [activeTab, setActiveTab] = useState("Caixas");
     const [synthesizing, setSynthesizing] = useState(false);
     const [rankingList, setRankingList] = useState([]);
     const [loadingRank, setLoadingRank] = useState(false);
-    const [shopCategory, setShopCategory] = useState('avatar');
     
-    // Estados do novo Sistema de Caixas (Loot Box)
     const [isOpeningBoxAnim, setIsOpeningBoxAnim] = useState(false);
     const [boxReward, setBoxReward] = useState(null);
 
@@ -42,7 +40,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }
     };
 
-    // LÓGICA: RESGATE DIÁRIO DE CAIXA
     const lastClaim = userProfileData.lastDailyBox || 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -60,7 +57,30 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }
     };
 
-    // LÓGICA: ABRIR CAIXA DO VAZIO (LOOT BOX)
+    // NOVA LÓGICA: COMPRAR CAIXA COM XP (SACRIFÍCIO VITAL)
+    const handleBuyBoxWithXP = async () => {
+        if ((userProfileData.xp || 0) < 1000) {
+            return showToast("Poder Vital Insuficiente. Você precisa de 1000 XP.", "error");
+        }
+        if (!window.confirm("AVISO: Você sacrificará 1000 XP. Isso poderá causar a queda do seu Nível. Deseja forjar a caixa mesmo assim?")) {
+            return;
+        }
+
+        try {
+            // Usa a mesma função que penaliza o usuário nas missões para rebaixá-lo de nível se necessário
+            let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, 1000);
+            
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), {
+                xp: newXp,
+                level: newLvl,
+                caixas: increment(1)
+            });
+            showToast("Sacrifício aceito. Você forjou 1 Caixa do Vazio.", "success");
+        } catch (e) {
+            showToast("Falha no ritual de sacrifício.", "error");
+        }
+    };
+
     const handleOpenBox = async () => {
         const caixas = userProfileData.caixas || 0;
         if (caixas < 1) return showToast("Você não possui Caixas do Vazio.", "error");
@@ -75,11 +95,9 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 let { newXp, newLvl, didLevelUp } = { newXp: userProfileData.xp || 0, newLvl: userProfileData.level || 1, didLevelUp: false };
                 let newInv = [...(userProfileData.inventory || [])];
 
-                // Sorteio das Recompensas
                 const roll = Math.random();
                 
                 if (roll < 0.15) {
-                    // 15% Chance: Item Cosmético da Loja
                     const availableItems = shopItems.filter(i => !newInv.includes(i.id));
                     if (availableItems.length > 0) {
                         rewardType = 'cosmetic';
@@ -87,27 +105,23 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         rewardValue = randomItem;
                         newInv.push(randomItem.id);
                     } else {
-                        // Fallback caso já tenha todos os itens
                         rewardType = 'coins';
                         rewardValue = 1000;
                         newCoins += rewardValue;
                     }
                 } else if (roll < 0.45) {
-                    // 30% Chance: Poder Vital (XP) Boost
                     rewardType = 'xp';
-                    rewardValue = Math.floor(Math.random() * 500) + 150; // XP entre 150 e 650
+                    rewardValue = Math.floor(Math.random() * 500) + 150; 
                     const xpLogic = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, rewardValue);
                     newXp = xpLogic.newXp;
                     newLvl = xpLogic.newLvl;
                     didLevelUp = xpLogic.didLevelUp;
                 } else {
-                    // 55% Chance: Moedas Astrais (Sombras)
                     rewardType = 'coins';
-                    rewardValue = Math.floor(Math.random() * 300) + 50; // Moedas entre 50 e 350
+                    rewardValue = Math.floor(Math.random() * 300) + 50; 
                     newCoins += rewardValue;
                 }
 
-                // Atualiza os dados no banco
                 await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'), {
                     caixas: increment(-1),
                     coins: newCoins,
@@ -136,20 +150,11 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }, 1500);
     };
 
-    const getCardRarityColors = (rarity) => {
-        const r = (rarity || '').toUpperCase();
-        if (r === 'LENDÁRIO') return { bg: 'bg-[#0f0f0f]', border: 'border-yellow-600', text: 'text-yellow-500', glow: 'shadow-[0_0_15px_rgba(202,138,4,0.1)]' };
-        if (r === 'ÉPICO') return { bg: 'bg-[#0f0f0f]', border: 'border-purple-600', text: 'text-purple-500', glow: 'shadow-[0_0_15px_rgba(147,51,234,0.1)]' };
-        if (r === 'RARO') return { bg: 'bg-[#0f0f0f]', border: 'border-blue-600', text: 'text-blue-500', glow: 'shadow-[0_0_15px_rgba(37,99,235,0.1)]' };
-        return { bg: 'bg-[#0f0f0f]', border: 'border-gray-500', text: 'text-gray-400', glow: '' };
-    };
-
     const equipped = userProfileData.equipped_items || {};
 
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
-            {/* ANIMAÇÃO DE ABERTURA DA CAIXA */}
             {isOpeningBoxAnim && (
                 <div className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.3)_0%,transparent_60%)] animate-pulse"></div>
@@ -158,7 +163,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                 </div>
             )}
 
-            {/* MODAL DE RECOMPENSA */}
             {boxReward && (
                 <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300">
                     <div className="bg-[#0a0a0c] border border-red-600/50 rounded-2xl p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(220,38,38,0.3)] relative overflow-hidden">
@@ -198,13 +202,12 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
             <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
                 
                 <div className="flex md:justify-center gap-4 mb-12 overflow-x-auto no-scrollbar snap-x w-full px-2">
-                    {['Caixas', 'Forja', 'Loja', 'Ranking'].map((tab) => (
+                    {['Caixas', 'Forja', 'Ranking'].map((tab) => (
                         <button key={tab} onClick={() => setActiveTab(tab)} className={`relative px-8 py-3 font-black text-[10px] uppercase tracking-[0.3em] transition-all transform skew-x-[-15deg] group border-b-2
                             ${activeTab === tab ? 'bg-red-600/10 border-red-600 text-white' : 'bg-transparent border-transparent text-gray-500 hover:text-red-400'}`}>
                             <div className="skew-x-[15deg] flex items-center gap-2">
                                 {tab === "Caixas" && <Package className="w-3.5 h-3.5"/>}
                                 {tab === "Forja" && <Hexagon className="w-3.5 h-3.5"/>}
-                                {tab === "Loja" && <ShoppingCart className="w-3.5 h-3.5"/>}
                                 {tab === "Ranking" && <Trophy className="w-3.5 h-3.5"/>}
                                 {tab}
                             </div>
@@ -212,7 +215,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     ))}
                 </div>
 
-                {/* NOVO SISTEMA: CAIXAS DO VAZIO (LOOT BOX) */}
                 {activeTab === "Caixas" && (
                     <div className="animate-in fade-in duration-300 max-w-4xl mx-auto pb-10">
                         <div className="relative border border-red-600/50 rounded-2xl p-6 md:p-10 mb-8 overflow-hidden bg-[#050000] shadow-lg">
@@ -226,7 +228,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6">
-                            {/* ABRIR CAIXA */}
                             <div className="bg-[#050505] border border-white/5 rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-lg group hover:border-red-600/50 transition-colors">
                                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
                                 <Package className="w-24 h-24 text-red-600 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
@@ -239,7 +240,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                 </button>
                             </div>
 
-                            {/* OBTER CAIXAS */}
                             <div className="flex flex-col gap-6">
                                 <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden shadow-lg">
                                     <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2"><Calendar className="w-4 h-4 text-red-500"/> Pacto Diário</h4>
@@ -256,9 +256,14 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     )}
                                 </div>
 
+                                {/* NOVO: COMPRAR CAIXA COM XP (SACRIFÍCIO) */}
                                 <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden shadow-lg flex-1">
-                                    <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2"><BookOpen className="w-4 h-4 text-red-500"/> Devoção à Leitura</h4>
-                                    <p className="text-xs text-gray-400 font-medium leading-relaxed">Continue lendo obras no catálogo. O Sistema recompensa ninjas focados enviando caixas ocultas automaticamente após você ler alguns capítulos.</p>
+                                    <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-red-500"/> Sacrifício Vital</h4>
+                                    <p className="text-xs text-gray-400 font-medium mb-4 leading-relaxed">Transmute 1000 XP em uma Caixa do Vazio. <br/>Atenção: Seu nível irá cair.</p>
+                                    
+                                    <button onClick={handleBuyBoxWithXP} disabled={(userProfileData.xp || 0) < 1000} className="bg-transparent border border-red-900 text-red-500 hover:bg-red-900 hover:text-white disabled:border-white/5 disabled:text-gray-600 disabled:hover:bg-transparent disabled:cursor-not-allowed font-black py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all">
+                                        Sacrificar 1000 XP
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -290,75 +295,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                                     {synthesizing ? <><Loader2 className="w-5 h-5 animate-spin" /> Transmutando Matéria...</> : 'Iniciar Transmutação'}
                                 </div>
                             </button>
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === "Loja" && (
-                    <div className="animate-in fade-in duration-300 max-w-6xl mx-auto">
-                        <div className="relative border border-red-600/50 rounded-2xl p-6 md:p-10 mb-8 overflow-hidden bg-[#050000]">
-                            <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-cover bg-center" style={{ backgroundImage: "url('https://i.ibb.co/mrYd0BzW/file-0000000007e471f5939a825f3eab6db6.png')" }}></div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
-                            
-                            <div className="relative z-10">
-                                <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">MERCADO<br/><span className="text-red-600">SOMBRIO</span></h2>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-3 mb-6 max-w-xs">Adquira anomalias visuais para o seu perfil.</p>
-                                
-                                <div className="inline-flex flex-col items-center justify-center border border-amber-500/30 bg-[#0a0a0c]/80 backdrop-blur-md px-8 py-3 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-                                    <div className="flex items-center gap-3 text-2xl font-black text-amber-500">
-                                        <div className="w-4 h-4 bg-amber-500 rotate-45 shadow-[0_0_10px_rgba(245,158,11,0.8)]"></div> {userProfileData.coins || 0}
-                                    </div>
-                                    <span className="text-[8px] text-amber-500/70 font-black uppercase tracking-[0.2em] mt-1">Suas Sombras</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 px-1">
-                            {[ {id:'avatar', label:'Avatares', icon: User}, {id:'capa_fundo', label:'Paredes de Fundo', icon: Image}, {id:'moldura', label:'Auras (Molduras)', icon: Circle} ].map(cat => (
-                                <button key={cat.id} onClick={() => setShopCategory(cat.id)} className={`flex items-center gap-2 px-6 py-3 font-black text-xs uppercase tracking-widest transition-all skew-x-[-10deg] border ${ shopCategory === cat.id ? 'bg-gradient-to-r from-red-600 to-red-800 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-[#0a0a0c] border-white/10 text-gray-500 hover:text-white hover:bg-white/5' }`}>
-                                    <div className="skew-x-[10deg] flex items-center gap-2 whitespace-nowrap">
-                                        <cat.icon className="w-4 h-4" /> {cat.label}
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                          
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                            {shopItems.filter(item => {
-                                const cat = (item.categoria || item.type || '').toLowerCase();
-                                if (shopCategory === 'capa_fundo') return cat === 'capa_fundo' || cat === 'capa';
-                                return cat === shopCategory;
-                            }).map(item => {
-                              const hasItem = userProfileData.inventory?.includes(item.id);
-                              const cat = (item.categoria || item.type || '').toLowerCase();
-                              const rStyle = getCardRarityColors(item.raridade);
-
-                              return (
-                                <div key={item.id} className={`bg-[#050505] border rounded-xl p-5 flex flex-col items-center relative overflow-hidden transition-all group ${rStyle.border} ${rStyle.glow}`}>
-                                  {(item.css || item.animacao) && ( <style dangerouslySetInnerHTML={{__html: `.${item.cssClass} { ${item.css} } ${item.animacao || ''}`}} /> )}
-                                  
-                                  <div className={`absolute top-0 left-0 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-br-xl border-b border-r ${rStyle.border} ${rStyle.text} ${rStyle.bg}`}>
-                                      {item.raridade || 'COMUM'}
-                                  </div>
-
-                                  <div className={`w-28 h-28 mt-8 mb-5 rounded-full flex items-center justify-center overflow-hidden border ${rStyle.border} relative flex-shrink-0 bg-[#0a0a0c] shadow-inner group-hover:scale-105 transition-transform ${cat === 'avatar' ? item.cssClass : ''}`}>
-                                    {['capa_fundo', 'capa'].includes(cat) && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="w-full h-full object-cover opacity-80" /> )}
-                                    {cat === 'moldura' && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none scale-[1.15]" style={{ mixBlendMode: 'screen' }} /> )}
-                                    {cat === 'avatar' && cleanCosmeticUrl(item.preview) && ( <img src={cleanCosmeticUrl(item.preview)} className="w-full h-full object-cover relative z-10" /> )}
-                                  </div>
-                                  
-                                  <h4 className="text-white font-black mb-4 text-sm uppercase tracking-widest line-clamp-1 w-full text-center">{item.nome || item.name}</h4>
-                                  
-                                  {hasItem ? (
-                                    <button disabled className="w-full bg-[#0a0a0c] border border-white/5 text-gray-700 font-black py-3 rounded-lg text-[9px] uppercase tracking-widest cursor-not-allowed">Adquirido</button>
-                                  ) : (
-                                    <button onClick={() => buyItem(item)} className={`w-full bg-transparent border ${rStyle.border} ${rStyle.text} hover:bg-white/5 font-black py-3 rounded-lg text-[10px] uppercase tracking-widest transition-colors flex items-center justify-center gap-2`}>
-                                        ADQUIRIR <div className={`w-2 h-2 ${rStyle.bg} rotate-45 ${rStyle.border} border`}></div> {item.preco}
-                                    </button>
-                                  )}
-                                </div>
-                              )
-                            })}
                         </div>
                     </div>
                 )}
