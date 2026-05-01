@@ -5,7 +5,7 @@ import { auth, db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl } from './helpers';
 import { APP_ID } from './constants';
 
-const CHEST_CLOSED = "https://i.ibb.co/Rp3Djn30/file-0000000040c471f59ff80244c4b7c2b7-removebg-preview.png";
+const CHEST_CLOSED = "https://i.ibb.co/1Y3D0wTp/file-0000000025a071f59ae3ef7fa83b5dab.png";
 const CHEST_OPEN = "https://i.ibb.co/QFFkdpTK/file-0000000040c471f59ff80244c4b7c2b7.png";
 
 export function NexoView({ user, userProfileData, showToast, mangas, onNavigate, onLevelUp, synthesizeCrystal, shopItems }) {
