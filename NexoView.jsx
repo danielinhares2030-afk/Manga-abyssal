@@ -156,7 +156,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
     return (
         <div className={`pb-24 animate-in fade-in duration-500 relative font-sans min-h-screen text-gray-200 ${equipped.tema_perfil ? equipped.tema_perfil.cssClass : 'bg-[#030305]'}`}>
             
-            {/* ANIMAÇÃO ÉPICA DA CAIXA COM AS IMAGENS NOVAS */}
             {isOpeningBoxAnim && (
                 <div className="fixed inset-0 z-[9999] bg-[#000000] flex flex-col items-center justify-center overflow-hidden">
                     <style>{`
@@ -192,27 +191,27 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         @keyframes fade-in-late { 0%, 85% { opacity: 0; transform: translateY(20px); } 90%, 100% { opacity: 1; transform: translateY(0); } }
                     `}</style>
 
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.2)_0%,transparent_70%)] text-hide-after"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.2)_0%,transparent_70%)] text-hide-after pointer-events-none"></div>
 
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 anim-chest-open">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 anim-chest-open pointer-events-none">
                         <div className="w-[150vw] h-[150vw] anim-rays" style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(220,38,38,0.3) 10deg, transparent 20deg, transparent 40deg, rgba(220,38,38,0.3) 50deg, transparent 60deg, transparent 80deg, rgba(220,38,38,0.3) 90deg, transparent 100deg, transparent 120deg, rgba(220,38,38,0.3) 130deg, transparent 140deg, transparent 160deg, rgba(220,38,38,0.3) 170deg, transparent 180deg, transparent 200deg, rgba(220,38,38,0.3) 210deg, transparent 220deg, transparent 240deg, rgba(220,38,38,0.3) 250deg, transparent 260deg, transparent 280deg, rgba(220,38,38,0.3) 290deg, transparent 300deg, transparent 320deg, rgba(220,38,38,0.3) 330deg, transparent 340deg, transparent 360deg)' }}></div>
                     </div>
 
                     <div className="absolute w-96 h-96 rounded-full anim-chest-burst z-10 pointer-events-none"></div>
 
-                    <div className="absolute flex flex-col items-center justify-center anim-chest-shake z-20">
-                        <img src={CHEST_CLOSED} className="w-36 h-36 object-contain drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" alt="Chest Closed" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center anim-chest-shake z-20 pointer-events-none">
+                        <img src={CHEST_CLOSED} loading="eager" fetchPriority="high" className="w-36 h-36 md:w-48 md:h-48 object-contain drop-shadow-[0_0_15px_rgba(220,38,38,0.5)] flex-shrink-0" alt="Chest Closed" />
                     </div>
 
-                    <div className="absolute flex flex-col items-center justify-center anim-chest-open z-30">
-                        <img src={CHEST_OPEN} className="w-56 h-56 object-contain mix-blend-screen" alt="Chest Opened" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center anim-chest-open z-30 pointer-events-none">
+                        <img src={CHEST_OPEN} loading="eager" fetchPriority="high" className="w-56 h-56 md:w-72 md:h-72 object-contain mix-blend-screen flex-shrink-0" alt="Chest Opened" />
                     </div>
 
-                    <div className="absolute bottom-32 w-full text-center z-40">
-                        <h2 className="text-2xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(220,38,38,0.8)] text-hide-after absolute inset-0">
+                    <div className="absolute bottom-1/4 left-0 w-full flex justify-center z-40 pointer-events-none">
+                        <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(220,38,38,0.8)] text-hide-after absolute">
                             Rompendo Selo...
                         </h2>
-                        <h2 className="text-3xl font-black text-red-500 uppercase tracking-[0.5em] drop-shadow-[0_0_20px_rgba(220,38,38,1)] text-show-after absolute inset-0">
+                        <h2 className="text-3xl md:text-4xl font-black text-red-500 uppercase tracking-[0.5em] drop-shadow-[0_0_20px_rgba(220,38,38,1)] text-show-after absolute">
                             Revelando!
                         </h2>
                     </div>
@@ -262,7 +261,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         <button key={tab} onClick={() => setActiveTab(tab)} className={`relative px-8 py-3 font-black text-[10px] uppercase tracking-[0.3em] transition-all transform skew-x-[-15deg] group border-b-2
                             ${activeTab === tab ? 'bg-red-600/10 border-red-600 text-white' : 'bg-transparent border-transparent text-gray-500 hover:text-red-400'}`}>
                             <div className="skew-x-[15deg] flex items-center gap-2">
-                                {tab === "Caixas" && <img src={CHEST_CLOSED} className="w-4 h-4 object-contain opacity-80" alt="Chest Icon" />}
+                                {tab === "Caixas" && <img src={CHEST_CLOSED} loading="eager" fetchPriority="high" className="w-4 h-4 object-contain opacity-80 flex-shrink-0" alt="Chest Icon" />}
                                 {tab === "Forja" && <Hexagon className="w-3.5 h-3.5"/>}
                                 {tab === "Ranking" && <Trophy className="w-3.5 h-3.5"/>}
                                 {tab}
@@ -287,7 +286,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                             <div className="bg-[#050505] border border-white/5 rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-lg group hover:border-red-600/50 transition-colors">
                                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.1),transparent_70%)] pointer-events-none"></div>
                                 
-                                <img src={CHEST_CLOSED} className="w-28 h-28 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_20px_rgba(220,38,38,0.6)]" alt="Chest" />
+                                <img src={CHEST_CLOSED} loading="eager" fetchPriority="high" className="w-28 h-28 mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_20px_rgba(220,38,38,0.6)] flex-shrink-0" alt="Chest" />
                                 
                                 <h3 className="text-4xl font-black text-white relative z-10 leading-none">{userProfileData.caixas || 0}</h3>
                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest relative z-10 mb-6 mt-1">Caixas Disponíveis</p>
