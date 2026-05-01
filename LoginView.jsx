@@ -3,7 +3,8 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfi
 import { auth } from './firebase'; 
 import { Mail, Lock, User, Eye, EyeOff, ChevronRight, AlertCircle, Loader2 } from 'lucide-react';
 
-// Componentes SVG Estilizados
+const MAIN_LOGO = "https://i.ibb.co/gF4zyvkk/Gemini-Generated-Image-gj2yhugj2yhugj2y-removebg-preview.png";
+
 const Shuriken = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" />
@@ -57,26 +58,22 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
     <div className="min-h-screen font-sans flex flex-col items-center justify-center p-4 relative overflow-hidden bg-[#030000]">
       <style>{`body, html { background-color: #030000 !important; }`}</style>
       
-      {/* BACKGROUND ATMOSFÉRICO: Lua de Sangue */}
       <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[url('https://i.ibb.co/2Z500R7/file-000000002a28720eb9e79baeca3f81d1-removebg-preview.png')] bg-cover bg-center bg-no-repeat opacity-40 mix-blend-screen"></div>
           <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-red-600/30 rounded-full blur-[100px] mix-blend-screen"></div>
           <div className="absolute top-[-5%] left-1/2 -translate-x-1/2 w-[350px] h-[350px] bg-gradient-to-b from-red-600 to-transparent rounded-full opacity-60 blur-[15px]"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-40 mix-blend-screen"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#030000]/80 to-[#030000]"></div>
       </div>
 
       <div className="w-full max-w-[420px] relative z-10 animate-in fade-in duration-1000 mt-16 md:mt-20">
         
-        {/* CARTÃO PRINCIPAL */}
         <div className="relative border-[1.5px] border-red-600/60 bg-[#050000]/80 backdrop-blur-md px-6 sm:px-8 pt-16 pb-10 rounded-2xl shadow-[0_0_50px_rgba(220,38,38,0.15),inset_0_0_20px_rgba(220,38,38,0.1)]">
             
-            {/* Detalhes dos Cantos (Shurikens) */}
             <Shuriken className="absolute -top-2.5 -left-2.5 w-5 h-5 text-red-600 drop-shadow-[0_0_5px_rgba(220,38,38,1)] bg-[#030000] rounded-full p-0.5" />
             <Shuriken className="absolute -top-2.5 -right-2.5 w-5 h-5 text-red-600 drop-shadow-[0_0_5px_rgba(220,38,38,1)] bg-[#030000] rounded-full p-0.5" />
             <Shuriken className="absolute -bottom-2.5 -left-2.5 w-5 h-5 text-red-600 drop-shadow-[0_0_5px_rgba(220,38,38,1)] bg-[#030000] rounded-full p-0.5" />
             <Shuriken className="absolute -bottom-2.5 -right-2.5 w-5 h-5 text-red-600 drop-shadow-[0_0_5px_rgba(220,38,38,1)] bg-[#030000] rounded-full p-0.5" />
 
-            {/* BADGE SUPERIOR */}
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-[#050000] rounded-full border-[2px] border-red-600/80 flex items-center justify-center shadow-[0_0_30px_rgba(220,38,38,0.6)]">
                 <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-red-600 font-bold text-[10px] tracking-widest" style={{ writingMode: 'vertical-rl' }}>忍者</div>
                 <div className="absolute -right-6 top-1/2 -translate-y-1/2 text-red-600 font-bold text-[10px] tracking-widest" style={{ writingMode: 'vertical-rl' }}>影の領域</div>
@@ -87,12 +84,18 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                 </div>
             </div>
 
-            {/* TÍTULOS */}
-            <div className="text-center mb-8">
-                <h1 className="text-5xl font-black italic tracking-tighter flex items-center justify-center gap-1 drop-shadow-[0_0_15px_rgba(220,38,38,0.3)]">
-                    <span className="text-white">MANGA</span>
-                    <span className="text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]">KAGE</span>
-                </h1>
+            <div className="text-center mb-8 flex flex-col items-center">
+                <div className="relative flex justify-center items-center w-full mb-2">
+                    <svg className="absolute w-64 h-64 text-red-600/40 animate-pulse pointer-events-none" style={{ mixBlendMode: 'screen' }} viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="30" fill="currentColor" filter="blur(15px)" />
+                        <circle cx="50" cy="50" r="20" fill="rgba(220,38,38,0.6)" filter="blur(8px)" />
+                    </svg>
+                    <img 
+                        src={MAIN_LOGO} 
+                        className="w-56 h-auto object-contain relative z-10 drop-shadow-[0_0_20px_rgba(220,38,38,1)]" 
+                        alt="MangaKage Logo"
+                    />
+                </div>
                 <p className="text-gray-400 text-xs tracking-[0.3em] mt-2 font-medium">影 の 領 域</p>
                 <div className="flex items-center justify-center gap-3 mt-3 text-red-600/70 text-[8px] font-black uppercase tracking-[0.4em]">
                     <div className="w-8 h-[1px] bg-red-600/50"></div>
@@ -109,7 +112,6 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                 </div>
             )}
 
-            {/* FORMULÁRIO */}
             <form onSubmit={handleSubmit} className="space-y-6">
               
               {isRegister && (
@@ -117,10 +119,11 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                       <legend className="text-[9px] text-red-500 font-black uppercase tracking-[0.2em] px-2 flex items-center gap-1.5 ml-2">
                           <Shuriken className="w-3 h-3" /> NOME DE GUERRA
                       </legend>
+                      {/* Flex shrink e Min-w-0 para proteger o design */}
                       <div className="flex items-center gap-4 mt-1">
-                          <HexagonIcon className="w-11 h-11"><User className="w-4 h-4 text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" /></HexagonIcon>
-                          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Digite seu nome" className="flex-1 bg-transparent text-gray-300 text-sm font-bold outline-none placeholder:text-gray-600" required />
-                          <Shuriken className="w-4 h-4 text-gray-700" />
+                          <HexagonIcon className="w-11 h-11 flex-shrink-0"><User className="w-4 h-4 text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" /></HexagonIcon>
+                          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Digite seu nome" className="flex-1 min-w-0 bg-transparent text-gray-300 text-sm font-bold outline-none placeholder:text-gray-600" required />
+                          <Shuriken className="w-4 h-4 text-gray-700 flex-shrink-0" />
                       </div>
                   </fieldset>
               )}
@@ -129,10 +132,11 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                   <legend className="text-[9px] text-red-500 font-black uppercase tracking-[0.2em] px-2 flex items-center gap-1.5 ml-2">
                       <Shuriken className="w-3 h-3" /> IDENTIDADE NINJA
                   </legend>
+                  {/* Flex shrink e Min-w-0 para proteger o design */}
                   <div className="flex items-center gap-4 mt-1">
-                      <HexagonIcon className="w-11 h-11"><Mail className="w-4 h-4 text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" /></HexagonIcon>
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Digite seu e-mail" className="flex-1 bg-transparent text-gray-300 text-sm font-bold outline-none placeholder:text-gray-600" required />
-                      <Shuriken className="w-4 h-4 text-gray-700" />
+                      <HexagonIcon className="w-11 h-11 flex-shrink-0"><Mail className="w-4 h-4 text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" /></HexagonIcon>
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Digite seu e-mail" className="flex-1 min-w-0 bg-transparent text-gray-300 text-sm font-bold outline-none placeholder:text-gray-600" required />
+                      <Shuriken className="w-4 h-4 text-gray-700 flex-shrink-0" />
                   </div>
               </fieldset>
 
@@ -140,18 +144,18 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                   <legend className="text-[9px] text-red-500 font-black uppercase tracking-[0.2em] px-2 flex items-center gap-1.5 ml-2">
                       <Shuriken className="w-3 h-3" /> CÓDIGO SECRETO
                   </legend>
+                  {/* Flex shrink e Min-w-0 aplicados para que a senha não vaze para fora! */}
                   <div className="flex items-center gap-4 mt-1">
-                      <HexagonIcon className="w-11 h-11"><Lock className="w-4 h-4 text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" /></HexagonIcon>
-                      <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Digite sua senha" className="flex-1 bg-transparent text-gray-300 text-sm font-bold outline-none placeholder:text-gray-600" required />
+                      <HexagonIcon className="w-11 h-11 flex-shrink-0"><Lock className="w-4 h-4 text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" /></HexagonIcon>
+                      <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Digite sua senha" className="flex-1 min-w-0 bg-transparent text-gray-300 text-sm font-bold outline-none placeholder:text-gray-600" required />
                       
-                      <button type="button" onClick={() => setShowPass(!showPass)} className="flex items-center gap-1 text-red-700 hover:text-red-500 transition-colors">
+                      <button type="button" onClick={() => setShowPass(!showPass)} className="flex items-center gap-1 text-red-700 hover:text-red-500 transition-colors flex-shrink-0">
                           {showPass ? <EyeOff className="w-4 h-4"/> : <Eye className="w-4 h-4"/>}
                           <span className="text-[8px] font-black uppercase tracking-widest mt-0.5" style={{ writingMode: 'vertical-rl' }}>見る</span>
                       </button>
                   </div>
               </fieldset>
 
-              {/* BOTÃO ENTRAR */}
               <div className="pt-2">
                   <div className="flex items-center justify-center gap-2 mb-4">
                       <Shuriken className="w-3 h-3 text-red-600/40" />
@@ -188,7 +192,6 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
                 </button>
             </div>
 
-            {/* BADGE INFERIOR */}
             <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 w-14 h-14 bg-[#050000] rounded-full border-[1.5px] border-red-600/80 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.6)]">
                 <div className="absolute -left-5 top-1/2 -translate-y-1/2">
                     <Shuriken className="w-3 h-3 text-red-600/60" />
