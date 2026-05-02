@@ -123,7 +123,7 @@ export function CatalogView({ mangas, onNavigate, dataSaver, catalogState, setCa
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
                         className="w-full pl-11 pr-4 py-4 rounded-xl border border-white/5 bg-[#05050a]/90 backdrop-blur-md text-white outline-none focus:border-cyan-500/50 transition-all font-bold text-sm placeholder:text-gray-600 shadow-inner group-hover:border-white/10" 
-                        placeholder="Buscar no acervo..." 
+                        placeholder="Buscar obras..." 
                     />
                 </div>
 
