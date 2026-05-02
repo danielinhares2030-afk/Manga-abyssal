@@ -1,31 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from './firebase'; 
-import { Mail, Lock, User, Eye, EyeOff, ChevronRight, AlertCircle, Loader2, BookOpen, Zap, Heart, Check } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ChevronRight, AlertCircle, Loader2, Check } from 'lucide-react';
 
 const NexonLogo = ({ className }) => (
   <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="nexonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#4facfe" />
+      <linearGradient id="nexonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#00f2fe" />
+        <stop offset="100%" stopColor="#4facfe" />
+      </linearGradient>
+      <linearGradient id="nexonPurple" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#c084fc" />
         <stop offset="100%" stopColor="#818cf8" />
       </linearGradient>
     </defs>
-    {/* N Estilizado Fiel à Imagem */}
+    {/* Design do "N" Exato da Imagem */}
     <path 
-      d="M32 20V80M32 20L68 80M68 80V20" 
-      stroke="url(#nexonGrad)" 
-      strokeWidth="12" 
+      d="M 30 75 V 25 L 70 65" 
+      stroke="url(#nexonBlue)" 
+      strokeWidth="14" 
       strokeLinecap="round" 
-      strokeLinejoin="round"
+      strokeLinejoin="round" 
     />
     <path 
-      d="M32 25L68 75" 
-      stroke="#00f2fe" 
-      strokeWidth="4" 
+      d="M 70 25 V 75 L 30 35" 
+      stroke="url(#nexonPurple)" 
+      strokeWidth="14" 
       strokeLinecap="round" 
-      style={{ mixBlendMode: 'plus-lighter', opacity: 0.6 }}
+      strokeLinejoin="round" 
+      style={{ mixBlendMode: 'screen' }}
     />
+  </svg>
+);
+
+const SparkleStar = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]">
+     <path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z" fill="currentColor" />
   </svg>
 );
 
@@ -39,7 +50,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
   const [localError, setLocalError] = useState(null);
   const [showPass, setShowPass] = useState(false);
 
-  // Carregar dados salvos ao iniciar
+  // Carregar dados salvos ao iniciar (Lembrar de mim)
   useEffect(() => {
     const savedEmail = localStorage.getItem('nexon_email');
     const savedPass = localStorage.getItem('nexon_pass');
@@ -61,6 +72,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
         showToast("Registro concluído!", "success");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
+        // Lógica real de "Lembrar de Mim"
         if (rememberMe) {
           localStorage.setItem('nexon_email', email);
           localStorage.setItem('nexon_pass', password);
@@ -81,7 +93,7 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
 
   const handleForgotPassword = async () => {
     if (!email.includes('@')) {
-      showToast("Digite seu e-mail primeiro para recuperar.", "warning");
+      showToast("Digite seu e-mail no campo acima para recuperar.", "warning");
       return;
     }
     try {
@@ -92,105 +104,119 @@ export function LoginView({ onLoginSuccess, onGuestAccess, showToast }) {
     }
   };
 
-  const clipStyle = { clipPath: "polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 25px), calc(100% - 25px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px)" };
+  const clipStyle = { clipPath: "polygon(24px 0, calc(100% - 24px) 0, 100% 24px, 100% calc(100% - 24px), calc(100% - 24px) 100%, 24px 100%, 0 calc(100% - 24px), 0 24px)" };
 
   return (
     <div className="min-h-screen font-sans flex flex-col items-center justify-center p-4 relative overflow-hidden bg-[#030108]">
+      {/* FUNDO AMBIENTE */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.08)_0%,transparent_50%)] mix-blend-screen"></div>
+          <div className="absolute bottom-[-10%] right-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] mix-blend-screen"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#030108]/60 via-[#030108]/20 to-[#030108]"></div>
+      </div>
+
       <div className="w-full max-w-[380px] relative z-10 animate-in fade-in duration-700">
         
-        <div className="relative p-[1.5px] bg-gradient-to-br from-blue-500/40 via-transparent to-purple-600/40 shadow-2xl" style={clipStyle}>
-           <div className="bg-[#05030A] pt-12 pb-12 px-8 relative flex flex-col" style={clipStyle}>
+        {/* CONTAINER COM BORDA CHANFRADA */}
+        <div className="relative p-[1.5px] bg-gradient-to-br from-blue-500/50 via-[#1a1a2e] to-purple-600/50 shadow-[0_0_30px_rgba(59,130,246,0.15)]" style={clipStyle}>
+           <div className="bg-[#05030A] pt-12 pb-10 px-8 relative flex flex-col items-center" style={clipStyle}>
               
-              <div className="flex flex-col items-center mb-8">
-                  <NexonLogo className="w-20 h-20 mb-4 drop-shadow-[0_0_15px_rgba(79,172,254,0.5)]" />
-                  <h1 className="text-white text-[34px] font-bold tracking-[0.2em] leading-none mb-1">N E X O N</h1>
-                  <h2 className="text-blue-500 text-[11px] font-black tracking-[0.7em] uppercase ml-2">Scan</h2>
+              {/* LINHAS LATERAIS TECNOLÓGICAS */}
+              <div className="absolute top-1/4 -left-1 w-1.5 h-16 border-r-[2px] border-blue-500"></div>
+              <div className="absolute bottom-1/4 -right-1 w-1.5 h-16 border-l-[2px] border-purple-500"></div>
+              <div className="absolute bottom-32 -left-1 w-1.5 h-8 border-r-[2px] border-blue-500/30"></div>
+
+              {/* LOGO E TÍTULO NEXON SCAN */}
+              <div className="flex flex-col items-center mb-6 text-center w-full">
+                  <NexonLogo className="w-20 h-20 mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]" />
+                  <h1 className="text-white text-[32px] font-bold tracking-[0.25em] leading-none mb-1 ml-2">N E X O</h1>
+                  <h2 className="text-blue-500 text-[11px] font-black tracking-[0.7em] uppercase ml-2 mb-6">S C A N</h2>
                   
-                  <div className="w-4 h-4 bg-purple-500/20 rotate-45 mt-8 border border-purple-500/30"></div>
+                  <div className="flex items-center justify-center mb-3">
+                      <SparkleStar />
+                  </div>
                   
-                  <p className="text-gray-500 text-[11px] mt-4 text-center leading-relaxed">
-                    Seu portal para o <br/>
-                    <span className="text-purple-400 font-medium">universo dos mangás</span>
+                  <p className="text-gray-400 text-[11px] font-medium leading-relaxed">
+                      Seu portal para o <br/><span className="text-purple-400">universo dos mangás</span>
                   </p>
               </div>
 
               {localError && (
-                  <div className="mb-6 bg-red-950/30 border border-red-500/20 text-red-200 text-[10px] font-bold p-3 rounded-xl text-center flex items-center justify-center gap-2">
+                  <div className="mb-6 w-full bg-red-950/30 border border-red-500/20 text-red-200 text-[10px] font-bold p-3 rounded-xl text-center flex items-center justify-center gap-2">
                       <AlertCircle className="w-3 h-3" /> {localError}
                   </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              {/* FORMULÁRIO */}
+              <form onSubmit={handleSubmit} className="w-full space-y-4">
+                 
                  {isRegister && (
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black text-blue-500 tracking-widest uppercase ml-1">E-mail</label>
-                      <div className="flex items-center bg-[#080510] border border-blue-900/20 rounded-xl p-1.5 focus-within:border-blue-500/40 transition-all">
-                        <div className="w-10 h-10 rounded-lg bg-blue-950/20 flex items-center justify-center"><User className="w-4 h-4 text-blue-500" /></div>
-                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" className="flex-1 bg-transparent border-none text-gray-300 text-xs px-3 outline-none" />
+                    <div className="space-y-1.5 w-full">
+                      <label className="text-[9px] font-black text-blue-500 tracking-[0.1em] uppercase ml-1">NOME</label>
+                      <div className="flex items-center bg-[#080510] border border-[#1a1a2e] rounded-xl p-2 focus-within:border-blue-500/40 transition-all">
+                        <div className="w-8 h-8 rounded-lg bg-blue-950/20 flex items-center justify-center mr-2"><User className="w-4 h-4 text-blue-500" /></div>
+                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Digite seu nome" className="flex-1 bg-transparent border-none text-gray-300 text-xs outline-none" required />
                       </div>
                     </div>
                  )}
 
-                 <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-blue-500 tracking-widest uppercase ml-1">E-mail</label>
-                    <div className="flex items-center bg-[#080510] border border-blue-900/20 rounded-xl p-1.5 focus-within:border-blue-500/40 transition-all">
-                       <div className="w-10 h-10 rounded-lg bg-blue-950/20 flex items-center justify-center"><Mail className="w-4 h-4 text-blue-500" /></div>
-                       <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Digite seu e-mail" className="flex-1 bg-transparent border-none text-gray-300 text-xs px-3 outline-none" />
+                 <div className="space-y-1.5 w-full">
+                    <label className="text-[9px] font-black text-blue-500 tracking-[0.1em] uppercase ml-1">E-MAIL</label>
+                    <div className="flex items-center bg-[#080510] border border-[#1a1a2e] rounded-xl p-2 focus-within:border-blue-500/40 transition-all">
+                       <div className="w-8 h-8 rounded-lg bg-blue-950/20 flex items-center justify-center mr-2"><Mail className="w-4 h-4 text-blue-500" /></div>
+                       <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Digite seu e-mail" className="flex-1 bg-transparent border-none text-gray-300 text-xs outline-none" required />
                     </div>
                  </div>
 
-                 <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-purple-500 tracking-widest uppercase ml-1">Senha</label>
-                    <div className="flex items-center bg-[#080510] border border-purple-900/20 rounded-xl p-1.5 focus-within:border-purple-500/40 transition-all">
-                       <div className="w-10 h-10 rounded-lg bg-purple-950/20 flex items-center justify-center"><Lock className="w-4 h-4 text-purple-500" /></div>
-                       <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Digite sua senha" className="flex-1 bg-transparent border-none text-gray-300 text-xs px-3 outline-none" />
-                       <button type="button" onClick={() => setShowPass(!showPass)} className="pr-4 text-purple-500 font-black text-[9px] tracking-widest flex items-center gap-2 hover:text-white transition-colors">{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} VER</button>
+                 <div className="space-y-1.5 w-full">
+                    <label className="text-[9px] font-black text-purple-500 tracking-[0.1em] uppercase ml-1">SENHA</label>
+                    <div className="flex items-center bg-[#080510] border border-[#1a1a2e] rounded-xl p-2 focus-within:border-purple-500/40 transition-all">
+                       <div className="w-8 h-8 rounded-lg bg-purple-950/20 flex items-center justify-center mr-2"><Lock className="w-4 h-4 text-purple-500" /></div>
+                       <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Digite sua senha" className="flex-1 min-w-0 bg-transparent border-none text-gray-300 text-xs outline-none" required />
+                       <button type="button" onClick={() => setShowPass(!showPass)} className="pr-2 text-purple-500 font-black text-[9px] tracking-widest flex items-center gap-1.5 hover:text-white transition-colors">{showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />} VER</button>
                     </div>
                  </div>
 
-                 <div className="flex items-center justify-between px-1">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <div className="relative w-4 h-4">
-                        <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="peer appearance-none w-4 h-4 border border-gray-700 rounded bg-transparent checked:bg-blue-600 transition-all" />
-                        <Check className="absolute inset-0 w-3 h-3 m-auto text-white opacity-0 peer-checked:opacity-100" />
-                      </div>
-                      <span className="text-[10px] text-gray-500 font-medium">Lembrar de mim</span>
-                    </label>
-                    <button type="button" onClick={handleForgotPassword} className="text-[10px] text-blue-500 hover:text-cyan-400 font-medium transition-colors">Esqueci minha senha</button>
-                 </div>
+                 {!isRegister && (
+                     <div className="flex items-center justify-between px-1 pt-1 w-full">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <div className="relative w-[14px] h-[14px]">
+                            <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="peer appearance-none w-[14px] h-[14px] border border-gray-600 rounded bg-transparent checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer" />
+                            <Check className="absolute inset-0 w-2.5 h-2.5 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                          </div>
+                          <span className="text-[10px] text-gray-500 font-medium group-hover:text-gray-400 transition-colors">Lembrar de mim</span>
+                        </label>
+                        <button type="button" onClick={handleForgotPassword} className="text-[10px] text-blue-500 hover:text-cyan-400 font-medium transition-colors">Esqueci minha senha</button>
+                     </div>
+                 )}
 
-                 <button type="submit" disabled={loading} className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl py-4.5 flex justify-between items-center px-8 text-white text-[11px] font-black tracking-[0.2em] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all group">
-                    <span className="flex-1 text-center">{loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto"/> : (isRegister ? 'CRIAR CONTA' : 'ENTRAR')}</span>
-                    {!loading && <ChevronRight className="w-5 h-5 text-white/50 group-hover:translate-x-1 transition-transform" />}
+                 <button type="submit" disabled={loading} className="w-full mt-6 bg-gradient-to-r from-[#0052D4] via-[#4364F7] to-[#6FB1FC] rounded-xl py-4 flex justify-between items-center px-6 text-white text-[11px] font-black tracking-[0.2em] shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:scale-[1.02] transition-transform disabled:opacity-70 disabled:hover:scale-100 group">
+                    <span className="flex-1 text-center pl-4">{loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto"/> : (isRegister ? 'CRIAR CONTA' : 'ENTRAR')}</span>
+                    {!loading && <ChevronRight className="w-4 h-4 text-white/80 group-hover:translate-x-1 transition-transform" />}
                  </button>
               </form>
 
-              <div className="text-center mt-6">
-                 <span className="text-[10px] text-gray-600 font-bold tracking-wide">Ainda não tem conta?</span><br/>
-                 <button onClick={() => setIsRegister(!isRegister)} className="text-[10px] text-blue-500 font-black tracking-widest uppercase mt-2 hover:text-cyan-400 transition-colors">
-                    {isRegister ? "Fazer Login" : "Criar Conta"}
+              <div className="text-center mt-5 w-full">
+                 <span className="text-[9px] text-gray-600 font-medium tracking-wide">{isRegister ? "Já possui conta?" : "Ainda não tem conta?"}</span><br/>
+                 <button onClick={() => setIsRegister(!isRegister)} className="text-[10px] text-blue-500 font-black tracking-widest uppercase mt-1.5 hover:text-cyan-400 transition-colors">
+                    {isRegister ? "Fazer Login" : "CRIAR CONTA"}
                  </button>
               </div>
 
-              <div className="flex items-center gap-4 my-8 justify-center">
-                 <div className="h-[1px] w-12 bg-white/5"></div>
-                 <span className="text-[9px] font-black text-gray-700 uppercase tracking-widest">OU</span>
-                 <div className="h-[1px] w-12 bg-white/5"></div>
+              <div className="flex items-center gap-4 my-6 w-full justify-center">
+                 <div className="h-[1px] w-8 bg-gray-800"></div>
+                 <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">OU</span>
+                 <div className="h-[1px] w-8 bg-gray-800"></div>
               </div>
 
-              <button onClick={onGuestAccess} className="w-full bg-[#0a0a12] border border-white/5 hover:border-blue-500/30 rounded-xl p-1.5 flex items-center justify-between group transition-all">
-                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-600/10"><Eye className="w-5 h-5 text-blue-500" /></div>
-                 <span className="text-[10px] font-black text-gray-400 tracking-[0.15em] group-hover:text-white transition-colors">ACESSO DE ESPECTADOR</span>
-                 <ChevronRight className="w-4 h-4 text-blue-900 group-hover:text-blue-500 transition-colors mr-3" />
+              <button onClick={onGuestAccess} className="w-full bg-transparent border border-white/10 hover:border-purple-500/50 rounded-xl p-1.5 flex items-center justify-between group transition-all">
+                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-600/10 group-hover:bg-blue-600/20"><Eye className="w-4 h-4 text-blue-500" /></div>
+                 <span className="text-[10px] font-bold text-gray-300 tracking-[0.15em] group-hover:text-white transition-colors uppercase">ACESSO DE ESPECTADOR</span>
+                 <ChevronRight className="w-4 h-4 text-gray-500 mr-3 group-hover:translate-x-1 group-hover:text-white transition-all" />
               </button>
-           </div>
-        </div>
 
-        {/* FOOTER TEXT */}
-        <div className="mt-12 text-center">
-           <p className="text-[8px] font-black tracking-[0.4em] text-blue-900/40 uppercase">
-             . . . Leia. <span className="text-purple-600">Descubra.</span> Continue. . . .
-           </p>
+           </div>
         </div>
 
       </div>
