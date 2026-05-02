@@ -40,7 +40,7 @@ export function LibraryView({ mangas, user, libraryData, onNavigate, onRequireLo
               <Library className="w-7 h-7 text-cyan-400" strokeWidth={1.5} />
           </div>
           <div>
-              <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Seu Acervo</h2>
+              <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Sua Biblioteca</h2>
               <p className="text-[10px] text-cyan-500 font-black uppercase tracking-widest mt-1">As obras salvas no seu perfil.</p>
           </div>
       </div>
