@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from './firebase'; 
-import { Mail, Lock, User, Eye, EyeOff, ChevronRight, AlertCircle, Loader2, BookOpen, Zap, Heart } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ChevronRight, AlertCircle, Loader2, BookOpen, Zap, Heart, Check } from 'lucide-react';
 
 const NewNexoLogo = ({ className }) => (
   <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
