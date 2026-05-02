@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, BookOpen, Zap, Heart } from 'lucide-react';
 
-// O nome do componente voltou para NexoLogo para não quebrar os outros arquivos,
-// mas o visual continua sendo o N moderno do Nexon Scan!
-export const NexoLogo = React.memo(({ className = "w-64 h-64" }) => {
+export const NexonLogo = React.memo(({ className = "w-64 h-64" }) => {
   return (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -22,14 +20,13 @@ export const NexoLogo = React.memo(({ className = "w-64 h-64" }) => {
   );
 });
 
+// NOVA TELA DE ABERTURA ÉPICA (ESTILO ANIME)
 export const SplashScreen = React.memo(() => {
   const [fade, setFade] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => { 
       const t1 = setTimeout(() => setFade(true), 50); 
-      
-      // Animação da barra de progresso simulando carregamento
       const duration = 2000;
       const interval = 30;
       const steps = duration / interval;
@@ -40,72 +37,67 @@ export const SplashScreen = React.memo(() => {
           if (currentStep >= steps) clearInterval(timer);
       }, interval);
 
-      return () => {
-          clearTimeout(t1);
-          clearInterval(timer);
-      };
+      return () => { clearTimeout(t1); clearInterval(timer); };
   }, []);
   
+  // Forma Hexagonal da Barra de Progresso
+  const barClip = { clipPath: 'polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%)' };
+
   return (
     <div className={`fixed inset-0 z-[9999] bg-[#030108] flex flex-col items-center justify-center font-sans transition-opacity duration-700 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-      <style>{`body, html { background-color: #030108 !important; }`}</style>
       
-      {/* Fundo Ambiente Escuro */}
-      <div className="absolute inset-0 bg-[#030108] pointer-events-none">
-          <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.05)_0%,transparent_50%)] mix-blend-screen"></div>
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+      {/* FUNDO DIVIDIDO: RAIO AZUL E AURA MAGENTA */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none mix-blend-screen">
+          <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-r from-blue-700/30 to-transparent blur-[80px]"></div>
+          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-rose-700/30 to-transparent blur-[80px]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#030108_100%)]"></div>
+          
+          {/* Círculos Rotativos Escuros no Fundo */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border-[2px] border-white/5 border-dashed animate-[spin_20s_linear_infinite]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-blue-500/10 animate-[spin_30s_linear_infinite_reverse]"></div>
+
+          {/* Textos Laterais Decorativos (Japonês) */}
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-500/30 font-black text-2xl tracking-[1em] writing-vertical-rl">マンガの宇宙</div>
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 text-rose-500/30 font-black text-2xl tracking-[1em] writing-vertical-rl">無限の物語</div>
       </div>
 
       <div className={`transition-all duration-1000 ease-out z-10 w-full flex flex-col items-center max-w-sm px-6 ${fade ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4 opacity-0'}`}>
         
-        {/* LOGO CENTRAL */}
+        {/* LOGO GIGANTE E TÍTULOS */}
         <div className="relative flex flex-col items-center mb-8">
-            <div className="absolute inset-0 bg-blue-500/20 blur-[50px] rounded-full"></div>
-            <NexoLogo className="w-24 h-24 mb-6 relative z-10 drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
-            <h1 className="text-white text-[38px] font-bold tracking-[0.3em] leading-none mb-2 ml-3 relative z-10">N E X O</h1>
-            <h2 className="text-blue-500 text-[12px] font-black tracking-[0.8em] uppercase ml-3 relative z-10">S C A N</h2>
+            <NexonLogo className="w-36 h-36 mb-4 relative z-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
+            <h1 className="text-white text-[42px] font-black tracking-[0.4em] leading-none mb-2 ml-4 relative z-10 drop-shadow-md">N E X O</h1>
+            <h2 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-rose-500 text-[14px] font-black tracking-[1em] uppercase ml-4 relative z-10">S C A N</h2>
         </div>
 
-        {/* DIVISOR */}
-        <div className="flex items-center gap-4 w-full justify-center mb-10 opacity-70">
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-blue-900"></div>
-            <span className="text-[9px] font-medium text-gray-400">Seu portal para o <span className="text-purple-400">universo dos mangás</span></span>
-            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-blue-900"></div>
+        <div className="flex items-center gap-3 w-full justify-center mb-16 opacity-80">
+            <div className="text-[10px] text-gray-500 font-black tracking-[0.2em] uppercase">/// Seu portal para o <span className="text-purple-400">universo dos mangás</span> ///</div>
         </div>
         
-        {/* BARRA DE PROGRESSO */}
-        <div className="w-full mb-10">
-           <div className="flex items-center gap-3 mb-2">
-               <div className="h-1.5 flex-1 bg-[#0a0a16] rounded-full overflow-hidden border border-white/5 relative">
-                  <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-75 shadow-[0_0_10px_rgba(59,130,246,0.8)]" style={{ width: `${progress}%` }}></div>
-               </div>
-               <span className="text-[10px] font-black text-purple-400 w-8">{progress}%</span>
+        {/* BARRA DE PROGRESSO HEXAGONAL (ESTILO JOGO) */}
+        <div className="w-[90%] relative h-12 mb-6 shadow-[0_0_30px_rgba(0,0,0,0.8)]" style={barClip}>
+           {/* Fundo da Barra */}
+           <div className="absolute inset-0 bg-[#0a0a16] border-[2px] border-white/10" style={barClip}></div>
+           
+           {/* Preenchimento Gradient Split */}
+           <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-rose-500 transition-all duration-75 shadow-[inset_0_0_15px_rgba(255,255,255,0.4)]" style={{ width: `${progress}%`, ...barClip }}></div>
+           
+           {/* Reflexo Brilhante no Topo */}
+           <div className="absolute top-0 left-0 w-full h-[2px] bg-white/50 blur-[1px]"></div>
+           
+           {/* Porcentagem Centralizada */}
+           <div className="absolute inset-0 flex items-center justify-center text-white font-black text-sm tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+               {progress}%
            </div>
-           <p className="text-center text-[9px] text-gray-500 font-medium tracking-widest uppercase mt-3">Carregando sua experiência...</p>
         </div>
 
-        {/* FEATURES */}
-        <div className="flex justify-between w-full border-t border-white/5 pt-8">
-            <div className="flex flex-col items-center flex-1">
-                <BookOpen className="w-5 h-5 text-blue-500 mb-2 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" strokeWidth={1.5} />
-                <span className="text-[7px] text-gray-500 font-black uppercase tracking-widest text-center">Mais Histórias</span>
-            </div>
-            <div className="flex flex-col items-center flex-1 border-l border-white/5">
-                <Zap className="w-5 h-5 text-cyan-400 mb-2 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]" strokeWidth={1.5} />
-                <span className="text-[7px] text-gray-500 font-black uppercase tracking-widest text-center">Mais Rápido</span>
-            </div>
-            <div className="flex flex-col items-center flex-1 border-l border-white/5">
-                <Heart className="w-5 h-5 text-purple-500 mb-2 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" strokeWidth={1.5} />
-                <span className="text-[7px] text-gray-500 font-black uppercase tracking-widest text-center">Feito Para Você</span>
-            </div>
-        </div>
-
-        {/* DOTS DE DECORAÇÃO */}
-        <div className="flex justify-center gap-1.5 mt-8 opacity-50">
-            <div className="w-1 h-1 rounded-full bg-gray-700"></div>
-            <div className="w-1 h-1 rounded-full bg-purple-500"></div>
-            <div className="w-1 h-1 rounded-full bg-gray-700"></div>
-            <div className="w-1 h-1 rounded-full bg-gray-700"></div>
+        <p className="text-center text-[8px] text-gray-500 font-bold tracking-[0.3em] uppercase">Carregando sua experiência...</p>
+        
+        {/* Ícone de Shuriken inferior */}
+        <div className="mt-8 opacity-40">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#nexonPurple)" strokeWidth="1.5">
+             <path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z" />
+           </svg>
         </div>
 
       </div>
@@ -148,7 +140,7 @@ export function Footer() {
         <footer className="w-full bg-[#030108] border-t border-blue-900/20 py-12 mt-auto pb-24 md:pb-12 flex flex-col items-center justify-center relative overflow-hidden">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
             <div className="max-w-7xl mx-auto px-4 text-center flex flex-col items-center relative z-10">
-                <NexoLogo className="w-16 h-16 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 mb-4" />
+                <NexonLogo className="w-16 h-16 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 mb-4" />
                 <span className="font-black text-[10px] text-gray-600 tracking-[0.5em] uppercase mt-2">NEXON SCAN</span>
                 <span className="font-bold text-[8px] text-gray-700 tracking-[0.2em] uppercase mt-1">SEU PORTAL PARA O UNIVERSO DOS MANGÁS</span>
             </div>
