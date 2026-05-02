@@ -5,8 +5,8 @@ import { auth, db } from './firebase';
 import { addXpLogic, removeXpLogic, getLevelTitle, cleanCosmeticUrl, getRarityColor } from './helpers';
 import { APP_ID } from './constants';
 
-const CHEST_CLOSED = "https://i.ibb.co/1Y3D0wTp/file-0000000025a071f59ae3ef7fa83b5dab.png";
-const CHEST_OPEN = "https://i.ibb.co/Rp3Djn30/file-0000000040c471f59ff80244c4b7c2b7-removebg-preview.png";
+const CHEST_CLOSED = "https://i.ibb.co/8gRvqw81/file-00000000bad4720eba1f9c9af69a35ac-removebg-preview.png";
+const CHEST_OPEN = "https://i.ibb.co/N2C6R6bZ/file-00000000f55c720e9d543bf9cbf9328e-removebg-preview.png";
 
 // COMPONENTE: Cartão de Perfil Público 
 const PublicProfileModal = ({ userId, onClose, currentUserId }) => {
@@ -163,7 +163,7 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
         }
     };
 
-    // NOVO SISTEMA DE RARIDADES PARA A CAIXA NEXO
+    // SISTEMA DE RARIDADES PARA A CAIXA NEXO
     const handleOpenBox = async () => {
         const caixas = userProfileData.caixas || 0;
         if (caixas < 1) return showToast("Você não possui Caixas Nexo.", "error");
@@ -289,7 +289,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         .anim-chest-open { animation: chest-open 2.5s ease-out both; }
                         .anim-rays { animation: spin-rays 8s linear infinite; }
                         .text-hide-after { animation: fade-out 2.5s forwards; }
-                        .text-show-after { animation: fade-in-late 2.5s forwards; }
                         
                         @keyframes chest-shake {
                             0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(6,182,212,0.5)); }
@@ -310,7 +309,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                         }
                         @keyframes spin-rays { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                         @keyframes fade-out { 0%, 80% { opacity: 1; } 85%, 100% { opacity: 0; } }
-                        @keyframes fade-in-late { 0%, 85% { opacity: 0; transform: translateY(20px); } 90%, 100% { opacity: 1; transform: translateY(0); } }
                     `}</style>
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.2)_0%,transparent_70%)] text-hide-after pointer-events-none"></div>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 anim-chest-open pointer-events-none">
@@ -322,10 +320,6 @@ export function NexoView({ user, userProfileData, showToast, mangas, onNavigate,
                     </div>
                     <div className="absolute inset-0 flex flex-col items-center justify-center anim-chest-open z-30 pointer-events-none">
                         <img src={CHEST_OPEN} loading="eager" fetchPriority="high" className="w-56 h-56 md:w-72 md:h-72 object-contain mix-blend-screen flex-shrink-0" alt="Chest Opened" />
-                    </div>
-                    <div className="absolute bottom-1/4 left-0 w-full flex justify-center z-40 pointer-events-none">
-                        <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] text-hide-after absolute">Desbloqueando...</h2>
-                        <h2 className="text-3xl md:text-4xl font-black text-cyan-400 uppercase tracking-[0.5em] drop-shadow-[0_0_20px_rgba(6,182,212,1)] text-show-after absolute">Processando!</h2>
                     </div>
                 </div>
             )}
