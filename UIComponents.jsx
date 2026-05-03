@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, BookOpen, Zap, Heart } from 'lucide-react';
 
+// O nome exato é NexoLogo
 export const NexoLogo = React.memo(({ className = "w-64 h-64" }) => {
   return (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -20,7 +21,6 @@ export const NexoLogo = React.memo(({ className = "w-64 h-64" }) => {
   );
 });
 
-// NOVA TELA DE ABERTURA ÉPICA (ESTILO ANIME)
 export const SplashScreen = React.memo(() => {
   const [fade, setFade] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -40,7 +40,6 @@ export const SplashScreen = React.memo(() => {
       return () => { clearTimeout(t1); clearInterval(timer); };
   }, []);
   
-  // Forma Hexagonal da Barra de Progresso
   const barClip = { clipPath: 'polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%)' };
 
   return (
@@ -52,11 +51,9 @@ export const SplashScreen = React.memo(() => {
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-rose-700/30 to-transparent blur-[80px]"></div>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#030108_100%)]"></div>
           
-          {/* Círculos Rotativos Escuros no Fundo */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border-[2px] border-white/5 border-dashed animate-[spin_20s_linear_infinite]"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-blue-500/10 animate-[spin_30s_linear_infinite_reverse]"></div>
 
-          {/* Textos Laterais Decorativos (Japonês) */}
           <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-500/30 font-black text-2xl tracking-[1em] writing-vertical-rl">マンガの宇宙</div>
           <div className="absolute right-6 top-1/2 -translate-y-1/2 text-rose-500/30 font-black text-2xl tracking-[1em] writing-vertical-rl">無限の物語</div>
       </div>
@@ -65,7 +62,8 @@ export const SplashScreen = React.memo(() => {
         
         {/* LOGO GIGANTE E TÍTULOS */}
         <div className="relative flex flex-col items-center mb-8">
-            <NexonLogo className="w-36 h-36 mb-4 relative z-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
+            {/* O NOME AQUI FOI CORRIGIDO PARA NexoLogo */}
+            <NexoLogo className="w-36 h-36 mb-4 relative z-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
             <h1 className="text-white text-[42px] font-black tracking-[0.4em] leading-none mb-2 ml-4 relative z-10 drop-shadow-md">N E X O</h1>
             <h2 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-rose-500 text-[14px] font-black tracking-[1em] uppercase ml-4 relative z-10">S C A N</h2>
         </div>
@@ -74,18 +72,11 @@ export const SplashScreen = React.memo(() => {
             <div className="text-[10px] text-gray-500 font-black tracking-[0.2em] uppercase">/// Seu portal para o <span className="text-purple-400">universo dos mangás</span> ///</div>
         </div>
         
-        {/* BARRA DE PROGRESSO HEXAGONAL (ESTILO JOGO) */}
+        {/* BARRA DE PROGRESSO HEXAGONAL */}
         <div className="w-[90%] relative h-12 mb-6 shadow-[0_0_30px_rgba(0,0,0,0.8)]" style={barClip}>
-           {/* Fundo da Barra */}
            <div className="absolute inset-0 bg-[#0a0a16] border-[2px] border-white/10" style={barClip}></div>
-           
-           {/* Preenchimento Gradient Split */}
            <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-rose-500 transition-all duration-75 shadow-[inset_0_0_15px_rgba(255,255,255,0.4)]" style={{ width: `${progress}%`, ...barClip }}></div>
-           
-           {/* Reflexo Brilhante no Topo */}
            <div className="absolute top-0 left-0 w-full h-[2px] bg-white/50 blur-[1px]"></div>
-           
-           {/* Porcentagem Centralizada */}
            <div className="absolute inset-0 flex items-center justify-center text-white font-black text-sm tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                {progress}%
            </div>
@@ -93,7 +84,6 @@ export const SplashScreen = React.memo(() => {
 
         <p className="text-center text-[8px] text-gray-500 font-bold tracking-[0.3em] uppercase">Carregando sua experiência...</p>
         
-        {/* Ícone de Shuriken inferior */}
         <div className="mt-8 opacity-40">
            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#nexonPurple)" strokeWidth="1.5">
              <path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z" />
@@ -140,6 +130,7 @@ export function Footer() {
         <footer className="w-full bg-[#030108] border-t border-blue-900/20 py-12 mt-auto pb-24 md:pb-12 flex flex-col items-center justify-center relative overflow-hidden">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
             <div className="max-w-7xl mx-auto px-4 text-center flex flex-col items-center relative z-10">
+                {/* O NOME AQUI TAMBÉM FOI CORRIGIDO PARA NexoLogo */}
                 <NexoLogo className="w-16 h-16 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 mb-4" />
                 <span className="font-black text-[10px] text-gray-600 tracking-[0.5em] uppercase mt-2">NEXON SCAN</span>
                 <span className="font-bold text-[8px] text-gray-700 tracking-[0.2em] uppercase mt-1">SEU PORTAL PARA O UNIVERSO DOS MANGÁS</span>
