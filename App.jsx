@@ -37,7 +37,8 @@ function NexoScanApp() {
   const [catalogState, setCatalogState] = useState({ filterType: "Todos", selectedGenres: [], visibleCount: 24, scrollPos: 0 });
   const [user, setUser] = useState(null);
   
-  const [userProfileData, setUserProfileData] = useState({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [], caixas: 0, lastDailyBox: 0 });
+  // Estado do usuário limpo (sem sistema de missões)
+  const [userProfileData, setUserProfileData] = useState({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, caixas: 0, lastDailyBox: 0 });
   
   const [userSettings, setUserSettings] = useState({ readMode: 'Cascata', dataSaver: false, theme: 'Escuro' });
   const [libraryData, setLibraryData] = useState({});
@@ -98,9 +99,9 @@ function NexoScanApp() {
           const unsubProfile = onSnapshot(profileRef, (docSnap) => {
             if (docSnap.exists()) {
               const data = docSnap.data();
-              setUserProfileData({ bio: data.bio, avatarUrl: data.avatarUrl, coverUrl: data.coverUrl, xp: data.xp || 0, level: data.level || 1, coins: data.coins || 0, crystals: data.crystals || 0, inventory: data.inventory || [], equipped_items: data.equipped_items || {}, activeMission: data.activeMission || null, completedMissions: data.completedMissions || [], caixas: data.caixas || 0, lastDailyBox: data.lastDailyBox || 0 });
+              setUserProfileData({ bio: data.bio, avatarUrl: data.avatarUrl, coverUrl: data.coverUrl, xp: data.xp || 0, level: data.level || 1, coins: data.coins || 0, crystals: data.crystals || 0, inventory: data.inventory || [], equipped_items: data.equipped_items || {}, caixas: data.caixas || 0, lastDailyBox: data.lastDailyBox || 0 });
               if(data.settings) setUserSettings({ ...userSettings, ...data.settings }); 
-            } else { setDoc(profileRef, { bio: "Leitor Nível 1.", settings: userSettings, xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [], caixas: 0, lastDailyBox: 0 }, { merge: true }); }
+            } else { setDoc(profileRef, { bio: "Leitor Nível 1.", settings: userSettings, xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, caixas: 0, lastDailyBox: 0 }, { merge: true }); }
           });
           const libraryRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'library');
           const unsubLib = onSnapshot(query(libraryRef), (snapshot) => { const libs = {}; snapshot.docs.forEach(d => libs[d.id] = d.data().status); setLibraryData(libs); });
@@ -110,24 +111,10 @@ function NexoScanApp() {
           const unsubNotif = onSnapshot(query(notifRef), (snapshot) => { const notifs = []; snapshot.docs.forEach(d => notifs.push({ id: d.id, ...d.data() })); setNotifications(notifs.sort((a,b) => b.createdAt - a.createdAt)); setDataLoaded(true); });
           return () => { unsubProfile(); unsubLib(); unsubHist(); unsubNotif(); };
         } catch (error) { console.error(error); }
-      } else { setUserProfileData({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, activeMission: null, completedMissions: [], caixas: 0, lastDailyBox: 0 }); setLibraryData({}); setHistoryData([]); setNotifications([]); setDataLoaded(true); }
+      } else { setUserProfileData({ xp: 0, level: 1, coins: 0, crystals: 0, inventory: [], equipped_items: {}, caixas: 0, lastDailyBox: 0 }); setLibraryData({}); setHistoryData([]); setNotifications([]); setDataLoaded(true); }
     });
     return () => unsubscribeAuth();
   }, [currentView]);
-
-  useEffect(() => {
-    if (!user || !userProfileData.activeMission) return;
-    const interval = setInterval(async () => {
-      const mission = userProfileData.activeMission;
-      if (mission && Date.now() > mission.deadline) {
-         setGlobalToast({ text: `Missão Falhou pelo Tempo! Penalidade: -${mission.penaltyXp}XP`, type: "error" });
-         const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-         let newCoins = Math.max(0, (userProfileData.coins || 0) - mission.penaltyCoins); let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, mission.penaltyXp);
-         await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [user, userProfileData.activeMission]);
 
   const showSplash = !splashTimerDone || !authReady || loadingMangas;
   useEffect(() => { if (!showSplash && !user && !isGuest && currentView !== 'login') { setCurrentView('login'); } }, [showSplash, user, isGuest, currentView]);
@@ -142,28 +129,6 @@ function NexoScanApp() {
     window.history.pushState({ view, mangaId: manga?.id, chapterId: chapter?.id }, '', ''); 
     setCurrentView(view);
     if (view !== 'catalog') { window.scrollTo(0, 0); }
-
-    if (view === 'details' && manga && userProfileData?.activeMission?.type === 'search_local' && user) {
-        setTimeout(async () => {
-            const m = userProfileData.activeMission;
-            const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-            
-            if (m.targetManga === manga.id) {
-                let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp); 
-                let newCoins = (userProfileData.coins || 0) + m.rewardCoins;
-                let currentCompleted = userProfileData.completedMissions || []; 
-                if (!currentCompleted.includes("search_local_" + m.targetManga)) currentCompleted = [...currentCompleted, "search_local_" + m.targetManga];
-                await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted });
-                showToast(`Alvo Encontrado! Missão Concluída: +${m.rewardXp} XP | +${m.rewardCoins} M`, "success"); 
-                if(didLevelUp) handleLevelUpAnim(newLvl);
-            } else {
-                let newCoins = Math.max(0, (userProfileData.coins || 0) - m.penaltyCoins); 
-                let { newXp, newLvl } = removeXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.penaltyXp);
-                await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null });
-                showToast(`Alvo Incorreto! A Missão Falhou. Penalidade: -${m.penaltyXp}XP`, "error");
-            }
-        }, 0);
-    }
   };
 
   const handleBack = () => { if (window.history.state !== null) { window.history.back(); } else { navigateTo('home'); } };
@@ -175,21 +140,29 @@ function NexoScanApp() {
     setTimeout(() => { const random = mangas[Math.floor(Math.random() * mangas.length)]; navigateTo('details', random); setIsRandomizing(false); }, 600); 
   };
 
-  const triggerRandomDrop = async () => { if (!user) return; const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'); try { await updateDoc(profileRef, { crystals: increment(1) }); setDropAlert(true); setTimeout(() => setDropAlert(false), 2000); } catch(e) {} };
+  // DROP ALEATÓRIO DE CRISTAIS (Sem tempo limite, 40% de chance por chamada)
+  const triggerRandomDrop = async () => { 
+      if (!user) return; 
+      const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main'); 
+      try { 
+          if (Math.random() < 0.40) { 
+              await updateDoc(profileRef, { crystals: increment(1) }); 
+              setDropAlert(true); 
+              setTimeout(() => setDropAlert(false), 3000); 
+          }
+      } catch(e) {} 
+  };
 
-  const markAsRead = async (manga, chapter, isValidReading) => {
+  // MARCAR COMO LIDO (Sem checagem de missões e sem limite de 45 segundos)
+  const markAsRead = async (manga, chapter) => {
     if (!user) return;
     try {
-      const ref = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', `${manga.id}_${chapter.id}`); const docSnap = await getDoc(ref); let isNewRead = false;
-      if (!docSnap.exists()) { isNewRead = true; await setDoc(ref, { mangaId: manga.id, mangaTitle: manga.title, chapterNumber: chapter.number, timestamp: Date.now(), id: `${manga.id}_${chapter.id}` }); } else { await updateDoc(ref, { timestamp: Date.now() }); }
-      if (isNewRead && userProfileData.activeMission?.type === 'read' && userProfileData.activeMission.targetManga === manga.id) {
-         if (!isValidReading) { showToast("⚠️ Tempo insuficiente (Mín. 45s).", "warning"); return; }
-         const m = userProfileData.activeMission; const newCount = m.currentCount + 1; const profileRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'profile', 'main');
-         if (newCount >= m.targetCount) {
-             let newCoins = (userProfileData.coins || 0) + m.rewardCoins; let { newXp, newLvl, didLevelUp } = addXpLogic(userProfileData.xp || 0, userProfileData.level || 1, m.rewardXp);
-             let currentCompleted = userProfileData.completedMissions || []; if (!currentCompleted.includes(m.targetManga)) currentCompleted = [...currentCompleted, m.targetManga];
-             await updateDoc(profileRef, { coins: newCoins, xp: newXp, level: newLvl, activeMission: null, completedMissions: currentCompleted }); showToast(`Missão Concluída! +${m.rewardXp} XP | +${m.rewardCoins} Moedas`, "success"); if(didLevelUp) handleLevelUpAnim(newLvl);
-         } else { await updateDoc(profileRef, { 'activeMission.currentCount': newCount }); showToast(`Progresso: ${newCount}/${m.targetCount}`, "info"); }
+      const ref = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'history', `${manga.id}_${chapter.id}`); 
+      const docSnap = await getDoc(ref); 
+      if (!docSnap.exists()) { 
+          await setDoc(ref, { mangaId: manga.id, mangaTitle: manga.title, chapterNumber: chapter.number, timestamp: Date.now(), id: `${manga.id}_${chapter.id}` }); 
+      } else { 
+          await updateDoc(ref, { timestamp: Date.now() }); 
       }
     } catch(e) { console.error(e) }
   };
@@ -250,7 +223,7 @@ function NexoScanApp() {
       `}</style>
 
       {levelUpAlert && ( <div className="fixed top-20 right-4 z-[99999] bg-[#05050a]/95 backdrop-blur-md border border-cyan-500/30 text-white px-4 py-3 rounded-2xl flex items-center gap-3 animate-in slide-in-from-right fade-out duration-300 pointer-events-none shadow-[0_0_20px_rgba(6,182,212,0.3)]"><div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-xl"><Trophy className="w-5 h-5 text-white" /></div><div className="flex flex-col"><span className="text-[10px] text-cyan-400 uppercase tracking-widest font-black">Poder Expandido!</span><span className="text-sm font-bold">Nível {levelUpAlert} Alcançado</span></div></div> )}
-      {dropAlert && ( <div className="fixed bottom-24 right-4 z-[99999] bg-[#05050a]/90 backdrop-blur-md border border-purple-500/50 rounded-2xl px-3 py-2 flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-out duration-300 pointer-events-none shadow-lg"><Hexagon className="w-4 h-4 text-purple-400 animate-pulse" /><span className="text-purple-100 text-xs font-bold">+1 Cristal Nexo</span></div> )}
+      {dropAlert && ( <div className="fixed bottom-24 right-4 z-[99999] bg-[#05050a]/90 backdrop-blur-md border border-blue-500/50 rounded-2xl px-4 py-3 flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-out duration-300 pointer-events-none shadow-[0_0_20px_rgba(59,130,246,0.2)]"><div className="bg-blue-900/40 p-2 rounded-lg border border-blue-500/30"><Hexagon className="w-5 h-5 text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" fill="currentColor" fillOpacity="0.2" /></div><div className="flex flex-col"><span className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Matéria Obtida</span><span className="text-white text-xs font-bold">+1 Cristal Nexo</span></div></div> )}
       {isRandomizing && ( <div className="fixed inset-0 z-[2000] bg-[#020205]/90 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-100 pointer-events-none"><Dices className="w-24 h-24 text-cyan-500 animate-[spin_0.2s_linear_infinite]" /></div> )}
 
       <GlobalToast toast={globalToast} />
